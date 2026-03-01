@@ -1,15 +1,22 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public interface IResourceNode 
+public interface IResourceNode
 {
     bool IsAvailable { get; }
     Vector2 WorkPosition { get; }
 
-    ResourceSize Size { get; }  
+    int Priority { get; }
+    //ResourceSize Size { get; }
 
-    void StartWork(System.Action onFinished);
-
+    void StartWork(Action<int> onFinished);
+}
+public enum ResourceSize
+{
+    Tiny = 1,
+    Small = 2,
+    Medium = 3,
+    Large = 4,
+    Huge = 5,
+    Giant = 6
 }

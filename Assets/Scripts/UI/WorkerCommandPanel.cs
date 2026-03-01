@@ -7,6 +7,8 @@ public class WorkerCommandPanel : MonoBehaviour
 {
     [SerializeField] private Button chopWoodButton;
     [SerializeField] private Button mineGoldButton;
+    [SerializeField] private Button huntMeatButton;
+
 
     private Worker currentWorker;
 
@@ -14,6 +16,7 @@ public class WorkerCommandPanel : MonoBehaviour
     {
         chopWoodButton.onClick.AddListener(OnChopWoodClicked);
         mineGoldButton.onClick.AddListener(OnMineGoldClicked);
+        huntMeatButton.onClick.AddListener (OnHuntMeatClicked);
         Hide();
     }
 
@@ -27,15 +30,16 @@ public class WorkerCommandPanel : MonoBehaviour
     {
         currentWorker = null;
         gameObject.SetActive(false);
+        var selectionSystem = FindAnyObjectByType<SelectionSystem>();
+        selectionSystem.ClearSelection();
     }
 
     public void OnChopWoodClicked()
     {
-        Debug.Log("Chop button clicked");
         if (currentWorker == null)
             return;
 
-        currentWorker.AssignChopWoodTask();
+        currentWorker.AssignJob(WorkerJobType.ChopWood);
         Hide(); 
     }
     public void OnMineGoldClicked()
@@ -43,7 +47,12 @@ public class WorkerCommandPanel : MonoBehaviour
         if (currentWorker == null)
             return;
 
-        currentWorker.AssignMineGoldTask();
+        currentWorker.AssignJob(WorkerJobType.MineGold);
+        Hide();
+    }
+    public void OnHuntMeatClicked()
+    {
+        currentWorker?.AssignJob(WorkerJobType.HuntMeat);
         Hide();
     }
 }

@@ -12,18 +12,42 @@ public class WorkerAnimator : MonoBehaviour
         animator.SetBool("IsMoving", movement.HasTarget);
     }
 
-    public void SetAxe(bool value)
+    public void PlayWork(WorkerJobType job)
     {
-        animator.SetBool("HasAxe", value);
+        if (job == WorkerJobType.ChopWood)
+            animator.SetTrigger("Chop");
+        else if (job == WorkerJobType.MineGold)
+            animator.SetTrigger("Mine");
     }
 
-    public void SetCarry(bool value)
+    public void SetTool(WorkerJobType job)
     {
-        animator.SetBool("HasWood", value);
+        animator.SetBool("HasAxe", job == WorkerJobType.ChopWood);
+        animator.SetBool("HasPickaxe", job == WorkerJobType.MineGold);
     }
 
-    public void PlayChop()
+    public void SetCarry(WorkerJobType job)
     {
-        animator.SetTrigger("Chop");
+        animator.SetBool("HasWood", job == WorkerJobType.ChopWood);
+        animator.SetBool("HasGold", job == WorkerJobType.MineGold);
+    }
+
+    public void ClearCarry()
+    {
+        animator.SetBool("HasWood", false);
+        animator.SetBool("HasGold", false);
+    }
+
+    public void ClearTool()
+    {
+        animator.SetBool("HasAxe", false);
+        animator.SetBool("HasPickaxe", false);
+    }
+
+    public void SetIdle()
+    {
+        ClearCarry();
+        ClearTool();
     }
 }
+

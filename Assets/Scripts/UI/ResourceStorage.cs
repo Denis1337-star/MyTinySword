@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,15 +7,14 @@ public class ResourceStorage : MonoBehaviour
 
     [SerializeField] private int wood;
     [SerializeField] private int gold;
+    [SerializeField] private int meat;
     [SerializeField] private Text woodText;
     [SerializeField] private Text goldText;
+    [SerializeField] private Text meatText;
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-            Destroy(gameObject);
-        else
-            Instance = this;
+        Instance = this;
 
         UpdateUI();
     }
@@ -33,6 +30,11 @@ public class ResourceStorage : MonoBehaviour
         gold += amount;
         UpdateUI();
     }
+    public void AddMeat(int amount)
+    {
+        meat += amount;
+        UpdateUI();
+    }
 
     private void UpdateUI()
     {
@@ -40,5 +42,7 @@ public class ResourceStorage : MonoBehaviour
             woodText.text = wood.ToString();
         if (goldText != null)
             goldText.text = gold.ToString();
+        if (meatText != null)
+            meatText.text = meat.ToString();
     }
 }

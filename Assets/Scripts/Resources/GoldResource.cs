@@ -1,16 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum ResourceSize
-{
-    Tiny = 1,
-    Small = 2,
-    Medium = 3,
-    Large = 4,
-    Huge = 5,
-    Giant = 6
-}
+
 public class GoldResource : MonoBehaviour, IResourceNode
 {
     [Header("Positions")]
@@ -27,12 +20,13 @@ public class GoldResource : MonoBehaviour, IResourceNode
 
     private SpriteRenderer sr;
     private bool available = true;
+    private Action<int> onFinishedCallback;
 
     private ResourceSize size = ResourceSize.Tiny;
 
     public bool IsAvailable => available;
     public Vector2 WorkPosition => workPoint.position;
-    public ResourceSize Size => size;
+    public int Priority => 10;
 
     private void Awake()
     {
@@ -42,22 +36,23 @@ public class GoldResource : MonoBehaviour, IResourceNode
         InvokeRepeating(nameof(Grow), growInterval, growInterval);
     }
 
-    public void StartWork(System.Action onFinished)
+    public void StartWork(Action<int> onFinished)
     {
         if (!available)
             return;
 
         available = false;
+        onFinishedCallback = onFinished;
         CancelInvoke(nameof(Grow));
 
-        Invoke(nameof(FinishMining), mineTime);
+        Invoke(nameof(FinishMine), mineTime);
 
-        void FinishMining()
-        {
-            sr.enabled = false; // камень исчез
-            onFinished?.Invoke();
-            Invoke(nameof(Respawn), respawnTime);
-        }
+    }
+    private void FinishMine()
+    {
+        sr.enabled = false; // камень исчез
+       onFinishedCallback?.Invoke((int)size);
+        Invoke(nameof(Respawn), respawnTime);
     }
 
     private void Respawn()

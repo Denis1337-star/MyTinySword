@@ -16,7 +16,6 @@ public class UnitMovement : MonoBehaviour
     private bool hasTarget;  //флаг если ли цель куда идти
     public bool HasTarget => hasTarget;
 
-
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -46,6 +45,8 @@ public class UnitMovement : MonoBehaviour
 
     public void MoveTo(Vector2 position)  //задает новую цель движения
     {
+
+
         targetPosition = position;    //сохраняет точку
         hasTarget = true;  //флаг что имеет цель
     }

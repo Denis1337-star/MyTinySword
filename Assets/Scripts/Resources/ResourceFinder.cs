@@ -17,8 +17,8 @@ public static class ResourceFinder
             if (!node.IsAvailable)
                 continue;
 
-            float distance = Vector2.Distance(from, node.transform.position);
-            float score = (int)node.Size * 100f - distance;
+            float distance = Vector2.Distance(from, node.WorkPosition);
+            float score = node.Priority * 100f - distance;
 
             if (score > bestScore)
             {

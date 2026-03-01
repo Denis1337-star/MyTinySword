@@ -1,23 +1,38 @@
+using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 
 public enum WorkerState
 {
-    Idle,
-    GoingToResource,
-    Working,
-    CarryingToHouse
+    Idle,               // стоит, ждёт приказа
+    GoingToResource,    // идёт к ресурсу
+    Working,            // работает (рубит / добывает)
+    CarryingToHouse,     // несёт ресурсы домой
+    Unloading
 }
+public enum WorkerJobType
+{
+    None,
+    ChopWood,
+    MineGold,
+    HuntMeat
+}
+
 
 [RequireComponent(typeof(UnitMovement))]
 public class Worker : MonoBehaviour
 {
-    [SerializeField] private WorkerTaskUI taskUI;
+    public event Action<Worker> OnStateChanged;
+    public event Action<Worker> OnJobChanged;
+
+    [SerializeField] private float unloadDuration = 2f;
 
     private WorkerState state = WorkerState.Idle;
     public WorkerState CurrentState => state;
+
+    public WorkerJobType CurrentJob { get; private set; } = WorkerJobType.None;
+    private WorkerJobType queuedJob = WorkerJobType.None;
 
     private UnitMovement movement;
     private WorkerAnimator animator;
@@ -25,13 +40,23 @@ public class Worker : MonoBehaviour
     private IResourceNode targetResource;
     private House targetHouse;
 
+    private int carriedAmount;
+
     private void Awake()
     {
         movement = GetComponent<UnitMovement>();
         animator = GetComponent<WorkerAnimator>();
 
-        if (taskUI != null)
-            taskUI.Initialize(this);
+        targetHouse = FindObjectOfType<House>();
+    }
+    private void Start()
+    {
+        WorkerRegistry.Instance.Register(this);
+    }
+
+    private void OnDestroy()
+    {
+        WorkerRegistry.Instance.Unregister(this);
     }
 
     private void Update()
@@ -41,81 +66,123 @@ public class Worker : MonoBehaviour
             case WorkerState.GoingToResource:
                 if (!movement.HasTarget)
                 {
-                    StartWorking();
+                    SetState(WorkerState.Working);
+                    animator.PlayWork(CurrentJob);
+
+                    StartResourceWork();
                 }
                 break;
 
             case WorkerState.CarryingToHouse:
                 if (!movement.HasTarget)
                 {
-                    FinishDelivery();
+                    SetState(WorkerState.Unloading);
+                    StartCoroutine(UnloadRoutine());
                 }
                 break;
         }
     }
 
-    // === ВЫЗЫВАЕТСЯ ИЗ UI ===
-    public void AssignChopWoodTask()
+    public void AssignJob(WorkerJobType job)
     {
-        if (state != WorkerState.Idle)
-            return;
+        if (CurrentJob == WorkerJobType.None || state == WorkerState.Idle)
+        {
+            StartNewJob(job);
+        }
+        else
+        {
+            queuedJob = job;
+        }
+    }
+    private void StartNewJob(WorkerJobType job)
+    {
+        CurrentJob = job;
+        queuedJob = WorkerJobType.None;
+        OnJobChanged?.Invoke(this);
 
-        targetResource = ResourceFinder.FindBest<TreeResource>(transform.position);
+        TryFindNextResource();
+    }
+
+    private void TryFindNextResource()
+    {
+        targetResource = FindResourceForJob();
+
         if (targetResource == null)
+        {
+            state = WorkerState.Idle;
+            animator.SetIdle();
             return;
+        }
 
-        animator.SetAxe(true);
-        animator.SetCarry(false);
-
-        state = WorkerState.GoingToResource;
+        SetState(WorkerState.GoingToResource);
+        animator.SetTool(CurrentJob);
         movement.MoveTo(targetResource.WorkPosition);
     }
 
-    private void StartWorking()
+    private void StartResourceWork()
     {
-        state = WorkerState.Working;
-        animator.PlayChop();
-
-        targetResource.StartWork(OnWorkFinished);
+        targetResource.StartWork(OnResourceFinished);
     }
 
-    private void OnWorkFinished()
+    private void OnResourceFinished(int amount)
     {
-        targetHouse = FindObjectOfType<House>();
-        if (targetHouse == null)
-            return;
+        carriedAmount = amount;
 
-        animator.SetCarry(true);
-        animator.SetAxe(false);
-
-        state = WorkerState.CarryingToHouse;
+        animator.SetCarry(CurrentJob);
+        SetState(WorkerState.CarryingToHouse);
         movement.MoveTo(targetHouse.DropPoint);
     }
-
-    private void FinishDelivery()
+    private IEnumerator UnloadRoutine()
     {
-        ResourceStorage.Instance.AddWood((int)targetResource.Size);
+        animator.SetIdle();
 
-        animator.SetCarry(false);
+        yield return new WaitForSeconds(unloadDuration);
 
-        state = WorkerState.Idle;
+        GiveResources();
 
-        //  АВТОЦИКЛ
-        AssignChopWoodTask();
+        carriedAmount = 0;
+
+        if (queuedJob != WorkerJobType.None)
+        {
+            StartNewJob(queuedJob);
+        }
+        else
+        {
+            TryFindNextResource();
+        }
     }
-    public void AssignMineGoldTask()
+    private void GiveResources()
     {
-        if (state != WorkerState.Idle)
-            return;
+        switch (CurrentJob)
+        {
+            case WorkerJobType.ChopWood:
+                ResourceStorage.Instance.AddWood(carriedAmount);
+                break;
 
-        targetResource = ResourceFinder.FindBest<GoldResource>(transform.position);
-        if (targetResource == null)
-            return;
+            case WorkerJobType.MineGold:
+                ResourceStorage.Instance.AddGold(carriedAmount);
+                break;
 
-        animator.SetAxe(false);
-        animator.SetCarry(false);
+            case WorkerJobType.HuntMeat:
+                ResourceStorage.Instance.AddMeat(carriedAmount);
+                break;
+        }
+    }
 
-        state = WorkerState.GoingToResource;
-        movement.MoveTo(targetResource.WorkPosition);
+    private void SetState(WorkerState newState)
+    {
+        state = newState;
+        OnStateChanged?.Invoke(this);
+    }
+
+    private IResourceNode FindResourceForJob()
+    {
+        return CurrentJob switch
+        {
+            WorkerJobType.ChopWood => ResourceFinder.FindBest<TreeResource>(transform.position),
+            WorkerJobType.MineGold => ResourceFinder.FindBest<GoldResource>(transform.position),
+            WorkerJobType.HuntMeat => ResourceFinder.FindBest<SheepResource>(transform.position),
+            _ => null
+        };
     }
 }
