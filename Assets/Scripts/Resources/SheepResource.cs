@@ -3,21 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SheepResource : MonoBehaviour,IResourceNode
+public class SheepResource : ResourceNodeBase
 {
-
     [SerializeField] private int meatAmount = 2;
     [SerializeField] private float workTime = 2f;
     [SerializeField] private float respawnTime = 15f;
-
-    private bool available = true;
-
-    public Vector2 WorkPosition => transform.position;
-    public bool IsAvailable => available;
-
-    public int Priority => 1;
-
-    public void StartWork(Action<int> onFinished)
+    public override Vector2 WorkPosition => transform.position;
+    public override int Priority => 1;
+    public override void StartWork(Action<int> onFinished)
     {
         if (!available)
             return;
@@ -25,7 +18,7 @@ public class SheepResource : MonoBehaviour,IResourceNode
         available = false;
 
         if (TryGetComponent(out SheepAI ai))
-            ai.enabled = false;
+            ai.SetFrozen(true);
 
         StartCoroutine(WorkRoutine(onFinished));
     }
@@ -36,6 +29,7 @@ public class SheepResource : MonoBehaviour,IResourceNode
 
         callback?.Invoke(meatAmount);
 
+        reservedBy = null;
         gameObject.SetActive(false);
 
         yield return new WaitForSeconds(respawnTime);
@@ -46,9 +40,10 @@ public class SheepResource : MonoBehaviour,IResourceNode
     private void Respawn()
     {
         available = true;
+        reservedBy = null;
 
         if (TryGetComponent(out SheepAI ai))
-            ai.enabled = true;
+            ai.SetFrozen(false);
 
         gameObject.SetActive(true);
     }

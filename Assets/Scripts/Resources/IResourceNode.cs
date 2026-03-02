@@ -5,9 +5,7 @@ public interface IResourceNode
 {
     bool IsAvailable { get; }
     Vector2 WorkPosition { get; }
-
     int Priority { get; }
-    //ResourceSize Size { get; }
 
     void StartWork(Action<int> onFinished);
 }

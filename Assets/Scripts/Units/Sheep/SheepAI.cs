@@ -13,6 +13,7 @@ public class SheepAI : MonoBehaviour
 
     private float timer;
     private bool isEating;
+    private bool frozen;
 
     private void Awake()
     {
@@ -46,6 +47,13 @@ public class SheepAI : MonoBehaviour
             }
         }
     }
+    public void SetFrozen(bool value)
+    {
+        frozen = value;
+        if (value)
+            GetComponent<UnitMovement>().Stop();
+    }
+
 
     private void GoToRandomPoint()
     {

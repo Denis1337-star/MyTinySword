@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TreeResource : MonoBehaviour, IResourceNode
+public class TreeResource : ResourceNodeBase
 {
     [Header("Positions")]
     [SerializeField] private Transform workPoint;
@@ -18,15 +18,8 @@ public class TreeResource : MonoBehaviour, IResourceNode
 
     private SpriteRenderer sr;
     private Animator animator;
-
-    private bool available = true;
-    private Action<int> onFinishedCallback;
-
-    public bool IsAvailable => available;
-    public Vector2 WorkPosition => workPoint.position;
-    public int Priority => 10;
-
-
+    public override Vector2 WorkPosition => workPoint.position;
+    public override int Priority => 10;
 
     private void Awake()
     {
@@ -35,24 +28,29 @@ public class TreeResource : MonoBehaviour, IResourceNode
         sr.sprite = treeSprite;
     }
 
-    public void StartWork(Action<int> onFinished)
+    public override void StartWork(Action<int> onFinished)
     {
         if (!available)
             return;
 
         available = false;
-        onFinishedCallback = onFinished;
-
-        CancelInvoke();
-        Invoke(nameof(FinishChop), chopTime);
+        StartCoroutine(ChopRoutine(onFinished));
     }
 
-    private void FinishChop()
+    private IEnumerator ChopRoutine(Action<int> callback)
     {
+        yield return new WaitForSeconds(chopTime);
+
         sr.sprite = stumpSprite;
         animator.SetBool("Stump", true);
-        onFinishedCallback?.Invoke(1);
-        Invoke(nameof(Respawn), respawnTime);
+
+        callback?.Invoke(1);
+
+        reservedBy = null;
+
+        yield return new WaitForSeconds(respawnTime);
+
+        Respawn();
     }
 
     private void Respawn()

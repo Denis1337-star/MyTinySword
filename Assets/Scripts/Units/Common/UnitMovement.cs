@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 
@@ -28,26 +26,25 @@ public class UnitMovement : MonoBehaviour
         if (!hasTarget)
             return;
 
-        Vector2 currentPos = rb.position; //получаем координаты текущие 
         Vector2 newPos = Vector2.MoveTowards(
-            currentPos,
-            targetPosition,
-            moveSpeed * Time.fixedDeltaTime  //двигаем обьект к цели
-        );
+              rb.position,
+              targetPosition,
+              moveSpeed * Time.fixedDeltaTime
+          );
 
         rb.MovePosition(newPos);  //перемещение в новую позицию 
 
-        if (Vector2.Distance(currentPos, targetPosition) < 0.05f)  //проверка достиг ли цели
-        {
+        if (Vector2.Distance(rb.position, targetPosition) < 0.05f)
             hasTarget = false;
-        }
     }
 
     public void MoveTo(Vector2 position)  //задает новую цель движения
     {
-
-
         targetPosition = position;    //сохраняет точку
         hasTarget = true;  //флаг что имеет цель
+    }
+    public void Stop()
+    {
+        hasTarget = false;
     }
 }

@@ -37,7 +37,7 @@ public class Worker : MonoBehaviour
     private UnitMovement movement;
     private WorkerAnimator animator;
 
-    private IResourceNode targetResource;
+    private ResourceNodeBase targetResource;
     private House targetHouse;
 
     private int carriedAmount;
@@ -46,9 +46,9 @@ public class Worker : MonoBehaviour
     {
         movement = GetComponent<UnitMovement>();
         animator = GetComponent<WorkerAnimator>();
-
         targetHouse = FindObjectOfType<House>();
     }
+
     private void Start()
     {
         WorkerRegistry.Instance.Register(this);
@@ -66,10 +66,15 @@ public class Worker : MonoBehaviour
             case WorkerState.GoingToResource:
                 if (!movement.HasTarget)
                 {
+                    if (targetResource == null || !targetResource.IsAvailable)
+                    {
+                        TryFindNextResource();
+                        return;
+                    }
+
                     SetState(WorkerState.Working);
                     animator.PlayWork(CurrentJob);
-
-                    StartResourceWork();
+                    targetResource.StartWork(OnResourceFinished);
                 }
                 break;
 
@@ -94,8 +99,11 @@ public class Worker : MonoBehaviour
             queuedJob = job;
         }
     }
+
     private void StartNewJob(WorkerJobType job)
     {
+        ReleaseResource();
+
         CurrentJob = job;
         queuedJob = WorkerJobType.None;
         OnJobChanged?.Invoke(this);
@@ -105,11 +113,13 @@ public class Worker : MonoBehaviour
 
     private void TryFindNextResource()
     {
-        targetResource = FindResourceForJob();
+        ReleaseResource();
+
+        targetResource = FindAndReserveResource();
 
         if (targetResource == null)
         {
-            state = WorkerState.Idle;
+            SetState(WorkerState.Idle);
             animator.SetIdle();
             return;
         }
@@ -119,19 +129,30 @@ public class Worker : MonoBehaviour
         movement.MoveTo(targetResource.WorkPosition);
     }
 
-    private void StartResourceWork()
+    private ResourceNodeBase FindAndReserveResource()
     {
-        targetResource.StartWork(OnResourceFinished);
+        ResourceNodeBase resource = FindResourceForJob();
+
+        if (resource == null)
+            return null;
+
+        if (!resource.TryReserve(this))
+            return null;
+
+        return resource;
     }
 
     private void OnResourceFinished(int amount)
     {
         carriedAmount = amount;
 
+        ReleaseResource();
+
         animator.SetCarry(CurrentJob);
         SetState(WorkerState.CarryingToHouse);
         movement.MoveTo(targetHouse.DropPoint);
     }
+
     private IEnumerator UnloadRoutine()
     {
         animator.SetIdle();
@@ -139,18 +160,14 @@ public class Worker : MonoBehaviour
         yield return new WaitForSeconds(unloadDuration);
 
         GiveResources();
-
         carriedAmount = 0;
 
         if (queuedJob != WorkerJobType.None)
-        {
             StartNewJob(queuedJob);
-        }
         else
-        {
             TryFindNextResource();
-        }
     }
+
     private void GiveResources()
     {
         switch (CurrentJob)
@@ -158,14 +175,21 @@ public class Worker : MonoBehaviour
             case WorkerJobType.ChopWood:
                 ResourceStorage.Instance.AddWood(carriedAmount);
                 break;
-
             case WorkerJobType.MineGold:
                 ResourceStorage.Instance.AddGold(carriedAmount);
                 break;
-
             case WorkerJobType.HuntMeat:
                 ResourceStorage.Instance.AddMeat(carriedAmount);
                 break;
+        }
+    }
+
+    private void ReleaseResource()
+    {
+        if (targetResource != null)
+        {
+            targetResource.Release(this);
+            targetResource = null;
         }
     }
 
@@ -175,7 +199,7 @@ public class Worker : MonoBehaviour
         OnStateChanged?.Invoke(this);
     }
 
-    private IResourceNode FindResourceForJob()
+    private ResourceNodeBase FindResourceForJob()
     {
         return CurrentJob switch
         {

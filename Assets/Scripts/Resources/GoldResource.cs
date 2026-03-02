@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-public class GoldResource : MonoBehaviour, IResourceNode
+public class GoldResource : ResourceNodeBase
 {
     [Header("Positions")]
     [SerializeField] private Transform workPoint;
@@ -19,60 +19,62 @@ public class GoldResource : MonoBehaviour, IResourceNode
     [SerializeField] private Animator animator;
 
     private SpriteRenderer sr;
-    private bool available = true;
-    private Action<int> onFinishedCallback;
-
     private ResourceSize size = ResourceSize.Tiny;
-
-    public bool IsAvailable => available;
-    public Vector2 WorkPosition => workPoint.position;
-    public int Priority => 10;
+    public override Vector2 WorkPosition => workPoint.position;
+    public override int Priority => 8;
 
     private void Awake()
     {
         animator = GetComponent<Animator>();
         sr = GetComponent<SpriteRenderer>();
         UpdateVisual();
-        InvokeRepeating(nameof(Grow), growInterval, growInterval);
+        StartCoroutine(GrowRoutine());
     }
 
-    public void StartWork(Action<int> onFinished)
+    public override void StartWork(Action<int> onFinished)
     {
         if (!available)
             return;
 
         available = false;
-        onFinishedCallback = onFinished;
-        CancelInvoke(nameof(Grow));
-
-        Invoke(nameof(FinishMine), mineTime);
-
+        StopAllCoroutines();
+        StartCoroutine(MineRoutine(onFinished));
     }
-    private void FinishMine()
+
+    private IEnumerator MineRoutine(Action<int> callback)
     {
-        sr.enabled = false; // камень исчез
-       onFinishedCallback?.Invoke((int)size);
-        Invoke(nameof(Respawn), respawnTime);
+        yield return new WaitForSeconds(mineTime);
+
+        sr.enabled = false;
+        callback?.Invoke((int)size);
+
+        reservedBy = null;
+
+        yield return new WaitForSeconds(respawnTime);
+
+        Respawn();
     }
 
     private void Respawn()
     {
-        size = ResourceSize.Tiny;
         available = true;
+        size = ResourceSize.Tiny;
         sr.enabled = true;
         UpdateVisual();
-        InvokeRepeating(nameof(Grow), growInterval, growInterval);
+        StartCoroutine(GrowRoutine());
     }
 
-    private void Grow()
+    private IEnumerator GrowRoutine()
     {
-        if (!available)
-            return;
-
-        if (size < ResourceSize.Giant)
+        while (available)
         {
-            size++;
-            UpdateVisual();
+            yield return new WaitForSeconds(growInterval);
+
+            if (size < ResourceSize.Giant)
+            {
+                size++;
+                UpdateVisual();
+            }
         }
     }
 
