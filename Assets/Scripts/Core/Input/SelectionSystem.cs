@@ -1,9 +1,10 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 using TouchPhase = UnityEngine.InputSystem.TouchPhase;
-using System.Collections.Generic;
 
 
 public class SelectionSystem : MonoBehaviour
@@ -13,6 +14,7 @@ public class SelectionSystem : MonoBehaviour
 
     [SerializeField] private WorkerCommandPanel workerCommandPanel;
     [SerializeField] private HousePanel housePanel;
+    [SerializeField] private LayerMask ignoreLayers;
 
     private void Awake()
     {
@@ -27,25 +29,24 @@ public class SelectionSystem : MonoBehaviour
 
     private void HandleTouchInput()
     {
-        if (Touch.activeTouches.Count == 0)
+
+        if (Touchscreen.current == null)  //Проверка
             return;
 
-        var touch = Touch.activeTouches[0];
+        var touch = Touchscreen.current.primaryTouch;  //получает данные о первом касание 
 
-        if (touch.phase != TouchPhase.Ended)
-            return;
-
-        if (EventSystem.current != null &&
-            EventSystem.current.IsPointerOverGameObject(touch.touchId))
-            return;
-
-        ProcessTap(touch.screenPosition);
+        if (touch.press.wasPressedThisFrame)  //проверка на косание 
+        {
+            Vector2 screenPos = touch.position.ReadValue();  //счтитывает позицию
+            ProcessTap(screenPos);
+        }
     }
 
     private void ProcessTap(Vector2 screenPos)
     {
+
         Vector2 worldPos = cam.ScreenToWorldPoint(screenPos);
-        RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero);
+        RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero, Mathf.Infinity, ~ignoreLayers);
 
         if (hit.collider == null)
         {
@@ -63,7 +64,7 @@ public class SelectionSystem : MonoBehaviour
             return;
         }
 
-        var unit = hit.collider.GetComponent<UnitSelectable>();
+        UnitSelectable unit = hit.collider.GetComponent<UnitSelectable>();
         if (unit != null)
         {
             ClearSelection();

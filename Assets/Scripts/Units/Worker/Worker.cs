@@ -51,10 +51,7 @@ public class Worker : MonoBehaviour
     }
     private void Start()
     {
-        if (WorkerRegistry.Instance != null)
             WorkerRegistry.Instance.Register(this);
-        else
-            Debug.LogError("WorkerRegistry не найден на сцене в Start!");
     }
     private void OnDestroy()
     {
