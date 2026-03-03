@@ -21,6 +21,10 @@ public class WorkerCommandPanel : MonoBehaviour
         huntMeatButton.onClick.AddListener (OnHuntMeatClicked);
         Hide();
     }
+    private void OnDisable()
+    {
+        selectionSystem.ClearSelection();
+    }
 
     public void ShowForWorker(Worker worker)
     {
