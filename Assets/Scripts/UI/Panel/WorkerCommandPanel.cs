@@ -28,6 +28,9 @@ public class WorkerCommandPanel : MonoBehaviour
 
     public void ShowForWorker(Worker worker)
     {
+        if (worker == null)
+            return;
+
         currentWorker = worker;
         gameObject.SetActive(true);
     }
@@ -36,7 +39,6 @@ public class WorkerCommandPanel : MonoBehaviour
     {
         currentWorker = null;
         gameObject.SetActive(false);
-        selectionSystem.ClearSelection();
     }
 
     public void OnChopWoodClicked()
