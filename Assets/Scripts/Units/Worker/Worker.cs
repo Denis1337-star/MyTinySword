@@ -48,7 +48,15 @@ public class Worker : MonoBehaviour
         movement = GetComponent<UnitMovement>();
         animator = GetComponent<WorkerAnimator>();
         targetHouse = FindObjectOfType<House>();
-        WorkerRegistry.Instance.Register(this);
+
+        if (WorkerRegistry.Instance != null)
+        {
+            WorkerRegistry.Instance.Register(this);
+        }
+        else
+        {
+            Debug.LogError("WorkerRegistry не найден на сцене!");
+        }
     }
     private void OnDestroy()
     {

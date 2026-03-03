@@ -12,11 +12,16 @@ public class SheepResource : ResourceNodeBase
     [Header("Components")]
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private Collider2D col;
+
+    private Vector2 fixedWorkPosition;
+
     public override Vector2 WorkPosition => transform.position;
     public override int Priority => 1;
 
     protected override void OnReserved(Worker worker)
     {
+        fixedWorkPosition = transform.position;
+
         if (TryGetComponent(out SheepAI ai))
             ai.SetFrozen(true); //ÎÑÒÀÍÀÂËÈÂÀÅÌ ÑĞÀÇÓ
     }

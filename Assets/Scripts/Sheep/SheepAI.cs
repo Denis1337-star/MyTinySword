@@ -54,10 +54,16 @@ public class SheepAI : MonoBehaviour
     {
         frozen = value;
 
+        frozen = value;
+
         if (value)
+        {
             movement.Stop();
+        }
         else
+        {
             GoToRandomPoint();
+        }
     }
 
 
