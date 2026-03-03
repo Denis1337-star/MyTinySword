@@ -68,9 +68,24 @@ public class Worker : MonoBehaviour
             case WorkerState.GoingToResource:
                 if (!movement.HasTarget)
                 {
-                    SetState(WorkerState.Working);
-                    animator.PlayWork(CurrentJob);
-                    targetResource.StartWork(OnResourceFinished);
+                    if (targetResource != null && targetResource.IsAvailable && targetResource.TryReserve(this))
+                    {
+                        // Ресурс доступен и мы его резервируем
+                        SetState(WorkerState.Working);
+                        animator.PlayWork(CurrentJob);
+                        targetResource.StartWork(OnResourceFinished);
+                    }
+                    else if (targetResource != null && targetResource == targetResource) // зарезервирован нами
+                    {
+                        SetState(WorkerState.Working);
+                        animator.PlayWork(CurrentJob);
+                        targetResource.StartWork(OnResourceFinished);
+                    }
+                    else
+                    {
+                        // ищем новый ресурс
+                        TryFindNextResource();
+                    }
                 }
                 break;
 

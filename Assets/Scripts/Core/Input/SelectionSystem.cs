@@ -48,12 +48,7 @@ public class SelectionSystem : MonoBehaviour
         Vector2 worldPos = cam.ScreenToWorldPoint(screenPos);
         RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero, Mathf.Infinity, ~ignoreLayers);
 
-        if (hit.collider == null)
-        {
-            ClearSelection();
-            HidePanels();
-            return;
-        }
+        if (hit.collider == null) return;
 
         var houseSelectable = hit.collider.GetComponent<HouseSelectable>();
         if (houseSelectable != null)
@@ -77,8 +72,8 @@ public class SelectionSystem : MonoBehaviour
             return;
         }
 
-        ClearSelection();
-        HidePanels();
+        //ClearSelection();
+        //HidePanels();
     }
 
     private void SelectUnit(UnitSelectable unit)

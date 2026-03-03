@@ -13,23 +13,26 @@ public class SheepResource : ResourceNodeBase
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private Collider2D col;
 
-    private Vector2 fixedWorkPosition;
 
     public override Vector2 WorkPosition => transform.position;
     public override int Priority => 1;
 
     protected override void OnReserved(Worker worker)
     {
-        fixedWorkPosition = transform.position;
-
+        reservedBy = worker;        // фиксируем, кто забронировал ресурс
+        available = true;           // оставляем доступной для этого Worker
         if (TryGetComponent(out SheepAI ai))
-            ai.SetFrozen(true); //ОСТАНАВЛИВАЕМ СРАЗУ
+            ai.SetFrozen(true);     // овца стоит на месте
     }
 
     protected override void OnReleased(Worker worker)
     {
-        if (TryGetComponent(out SheepAI ai))
-            ai.SetFrozen(false);
+        if (reservedBy == worker)
+        {
+            reservedBy = null;
+            if (TryGetComponent(out SheepAI ai))
+                ai.SetFrozen(false);
+        }
     }
     public override void StartWork(Action<int> onFinished)
     {

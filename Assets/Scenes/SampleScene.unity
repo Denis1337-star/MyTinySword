@@ -493,7 +493,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 233601292}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1126800925}
+        m_TargetAssemblyTypeName: WorkerCommandPanel, Assembly-CSharp
+        m_MethodName: OnHuntMeatClicked
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &233601292
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -542,7 +554,7 @@ GameObject:
   m_Component:
   - component: {fileID: 262744294}
   - component: {fileID: 262744293}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: CameraBounds
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1019,7 +1031,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -25.988192, y: 0.01588, z: -10}
+  m_LocalPosition: {x: -28.30537, y: 0.0116799995, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2756,7 +2768,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1479457564}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1126800925}
+        m_TargetAssemblyTypeName: WorkerCommandPanel, Assembly-CSharp
+        m_MethodName: OnMineGoldClicked
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1479457564
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3674,6 +3698,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   workerCommandPanel: {fileID: 1126800925}
   housePanel: {fileID: 1659133471}
+  ignoreLayers:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!1 &1807910878
 GameObject:
   m_ObjectHideFlags: 0
