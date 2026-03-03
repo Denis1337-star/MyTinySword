@@ -1,14 +1,14 @@
-using System;
+п»їusing System;
 using System.Collections;
 using UnityEngine;
 
 
 public enum WorkerState
 {
-    Idle,               // стоит, ждёт приказа
-    GoingToResource,    // идёт к ресурсу
-    Working,            // работает (рубит / добывает)
-    CarryingToHouse,     // несёт ресурсы домой
+    Idle,               // СЃС‚РѕРёС‚, Р¶РґС‘С‚ РїСЂРёРєР°Р·Р°
+    GoingToResource,    // РёРґС‘С‚ Рє СЂРµСЃСѓСЂСЃСѓ
+    Working,            // СЂР°Р±РѕС‚Р°РµС‚ (СЂСѓР±РёС‚ / РґРѕР±С‹РІР°РµС‚)
+    CarryingToHouse,     // РЅРµСЃС‘С‚ СЂРµСЃСѓСЂСЃС‹ РґРѕРјРѕР№
     Unloading
 }
 public enum WorkerJobType
@@ -48,15 +48,13 @@ public class Worker : MonoBehaviour
         movement = GetComponent<UnitMovement>();
         animator = GetComponent<WorkerAnimator>();
         targetHouse = FindObjectOfType<House>();
-
+    }
+    private void Start()
+    {
         if (WorkerRegistry.Instance != null)
-        {
             WorkerRegistry.Instance.Register(this);
-        }
         else
-        {
-            Debug.LogError("WorkerRegistry не найден на сцене!");
-        }
+            Debug.LogError("WorkerRegistry РЅРµ РЅР°Р№РґРµРЅ РЅР° СЃС†РµРЅРµ РІ Start!");
     }
     private void OnDestroy()
     {
