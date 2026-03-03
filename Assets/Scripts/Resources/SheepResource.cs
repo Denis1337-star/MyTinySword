@@ -8,29 +8,44 @@ public class SheepResource : ResourceNodeBase
     [SerializeField] private int meatAmount = 2;
     [SerializeField] private float workTime = 2f;
     [SerializeField] private float respawnTime = 15f;
+
+    [Header("Components")]
+    [SerializeField] private SpriteRenderer spriteRenderer;
+    [SerializeField] private Collider2D col;
     public override Vector2 WorkPosition => transform.position;
     public override int Priority => 1;
+
+    protected override void OnReserved(Worker worker)
+    {
+        if (TryGetComponent(out SheepAI ai))
+            ai.SetFrozen(true); //Œ—“¿Õ¿¬À»¬¿≈Ã —–¿«”
+    }
+
+    protected override void OnReleased(Worker worker)
+    {
+        if (TryGetComponent(out SheepAI ai))
+            ai.SetFrozen(false);
+    }
     public override void StartWork(Action<int> onFinished)
     {
         if (!available)
             return;
 
         available = false;
-
-        if (TryGetComponent(out SheepAI ai))
-            ai.SetFrozen(true);
-
         StartCoroutine(WorkRoutine(onFinished));
     }
 
     private IEnumerator WorkRoutine(Action<int> callback)
     {
+
         yield return new WaitForSeconds(workTime);
 
         callback?.Invoke(meatAmount);
 
+        spriteRenderer.enabled = false;
+        col.enabled = false;
+
         reservedBy = null;
-        gameObject.SetActive(false);
 
         yield return new WaitForSeconds(respawnTime);
 
@@ -45,6 +60,7 @@ public class SheepResource : ResourceNodeBase
         if (TryGetComponent(out SheepAI ai))
             ai.SetFrozen(false);
 
-        gameObject.SetActive(true);
+        spriteRenderer.enabled = true;
+        col.enabled = true;
     }
 }

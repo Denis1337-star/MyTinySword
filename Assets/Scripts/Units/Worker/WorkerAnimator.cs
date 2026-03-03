@@ -19,7 +19,7 @@ public class WorkerAnimator : MonoBehaviour
         else if (job == WorkerJobType.MineGold)
             animator.SetTrigger("Mine");
         else if (job == WorkerJobType.HuntMeat)
-            animator.SetTrigger("Mine");
+            animator.SetTrigger("Hunt");
     }
 
     public void SetTool(WorkerJobType job)

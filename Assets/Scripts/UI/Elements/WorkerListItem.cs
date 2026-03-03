@@ -21,7 +21,9 @@ public class WorkerListItem : MonoBehaviour
 
     private void UpdateView(Worker w)
     {
-        workerText.text = w.name + " | Job: " + w.CurrentJob + " | State: " + w.CurrentState;
+        workerText.text =
+             $"{w.name}\n" +
+             $"Job: {w.CurrentJob}";
     }
 
     private void OnDestroy()

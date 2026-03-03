@@ -6,18 +6,15 @@ public class WorkerListPanel : MonoBehaviour
 {
     [SerializeField] private Transform contentRoot;
     [SerializeField] private WorkerListItem itemPrefab;
-
-    private void Start()
+    public void Refresh()
     {
+        foreach (Transform child in contentRoot)
+            Destroy(child.gameObject);
+
         foreach (var worker in WorkerRegistry.Instance.Workers)
         {
-            CreateItem(worker);
+            var item = Instantiate(itemPrefab, contentRoot);
+            item.Bind(worker);
         }
-    }
-
-    private void CreateItem(Worker worker)
-    {
-        var item = Instantiate(itemPrefab, contentRoot);
-        item.Bind(worker);
     }
 }

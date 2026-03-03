@@ -45,4 +45,14 @@ public class ResourceStorage : MonoBehaviour
         if (meatText != null)
             meatText.text = meat.ToString();
     }
+    public bool HasResources(int wood, int gold)
+    {
+        return this.wood >= wood && this.gold >= gold;
+    }
+
+    public void SpendResources(int wood, int gold)
+    {
+        this.wood -= wood;
+        this.gold -= gold;
+    }
 }

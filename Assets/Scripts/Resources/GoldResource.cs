@@ -80,8 +80,7 @@ public class GoldResource : ResourceNodeBase
 
     private void UpdateVisual()
     {
-        int index = (int)size - 1;
-        sr.sprite = sizeSprites[index];
+        int index = Mathf.Clamp((int)size - 1, 0, sizeSprites.Length - 1);
         animator.SetInteger("Size", index);
     }
 }

@@ -29,6 +29,9 @@ public class SheepAI : MonoBehaviour
 
     private void Update()
     {
+        if (frozen)
+            return;
+
         animator.SetBool("IsMoving", movement.HasTarget);
 
         if (!movement.HasTarget && !isEating)
@@ -50,8 +53,11 @@ public class SheepAI : MonoBehaviour
     public void SetFrozen(bool value)
     {
         frozen = value;
+
         if (value)
-            GetComponent<UnitMovement>().Stop();
+            movement.Stop();
+        else
+            GoToRandomPoint();
     }
 
 

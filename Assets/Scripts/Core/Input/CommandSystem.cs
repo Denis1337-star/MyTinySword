@@ -1,15 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
+using UnityEngine.EventSystems;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 using TouchPhase = UnityEngine.InputSystem.TouchPhase;
 
-/// <summary>
-/// ѕринимает input и отдаЄт команды юнитам
-/// </summary>
 public class CommandSystem : MonoBehaviour
 {
     [SerializeField] private SelectionSystem selectionSystem;
@@ -29,38 +23,33 @@ public class CommandSystem : MonoBehaviour
 
     private void HandleMoveCommand()
     {
-        // ≈сли клик по UI Ч выходим
-        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
-            return;
-
         if (Touch.activeTouches.Count == 0)
             return;
 
         var touch = Touch.activeTouches[0];
 
-        if (touch.phase != TouchPhase.Began)
+        // команда “ќЋ№ ќ по тапу
+        if (touch.phase != TouchPhase.Ended)
             return;
 
-        Vector2 screenPos = touch.screenPosition;
-        Vector2 worldPos = cam.ScreenToWorldPoint(screenPos);
+        // если UI Ч выходим
+        if (EventSystem.current != null &&
+            EventSystem.current.IsPointerOverGameObject(touch.touchId))
+            return;
 
-        // ѕ–ќ¬≈– ј: попали ли мы в юнита?
+        Vector2 worldPos = cam.ScreenToWorldPoint(touch.screenPosition);
+
+        // если тап по юниту Ч Ќ≈ двигаем
         RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero);
-
         if (hit.collider != null && hit.collider.GetComponent<UnitSelectable>() != null)
-        {
-            //   лик по юниту Ч Ќ»„≈√ќ Ќ≈ ƒ≈Ћј≈ћ
             return;
-        }
 
-        //   лик по земле Ч команда движени€
         IssueMoveCommand(worldPos);
     }
 
     private void IssueMoveCommand(Vector2 targetPos)
     {
         var selectedUnits = selectionSystem.GetSelectedUnits();
-
         if (selectedUnits.Count == 0)
             return;
 
@@ -74,13 +63,9 @@ public class CommandSystem : MonoBehaviour
 
         for (int i = 0; i < selectedUnits.Count; i++)
         {
-            var unit = selectedUnits[i];
-            var movement = unit.GetComponent<UnitMovement>();
-
+            var movement = selectedUnits[i].GetComponent<UnitMovement>();
             if (movement != null)
-            {
                 movement.MoveTo(positions[i]);
-            }
         }
     }
 }

@@ -41,21 +41,20 @@ public class Worker : MonoBehaviour
     private House targetHouse;
 
     private int carriedAmount;
+    private Vector2 reservedWorkPosition;
 
     private void Awake()
     {
         movement = GetComponent<UnitMovement>();
         animator = GetComponent<WorkerAnimator>();
         targetHouse = FindObjectOfType<House>();
-    }
-
-    private void Start()
-    {
         WorkerRegistry.Instance.Register(this);
     }
-
     private void OnDestroy()
     {
+        if (WorkerRegistry.Instance == null)
+            return;
+
         WorkerRegistry.Instance.Unregister(this);
     }
 
@@ -66,12 +65,6 @@ public class Worker : MonoBehaviour
             case WorkerState.GoingToResource:
                 if (!movement.HasTarget)
                 {
-                    if (targetResource == null || !targetResource.IsAvailable)
-                    {
-                        TryFindNextResource();
-                        return;
-                    }
-
                     SetState(WorkerState.Working);
                     animator.PlayWork(CurrentJob);
                     targetResource.StartWork(OnResourceFinished);
@@ -126,12 +119,12 @@ public class Worker : MonoBehaviour
 
         SetState(WorkerState.GoingToResource);
         animator.SetTool(CurrentJob);
-        movement.MoveTo(targetResource.WorkPosition);
+        movement.MoveTo(reservedWorkPosition);
     }
 
     private ResourceNodeBase FindAndReserveResource()
     {
-        ResourceNodeBase resource = FindResourceForJob();
+        var resource = FindResourceForJob();
 
         if (resource == null)
             return null;
@@ -139,6 +132,7 @@ public class Worker : MonoBehaviour
         if (!resource.TryReserve(this))
             return null;
 
+        reservedWorkPosition = resource.WorkPosition;
         return resource;
     }
 
@@ -186,11 +180,11 @@ public class Worker : MonoBehaviour
 
     private void ReleaseResource()
     {
-        if (targetResource != null)
-        {
-            targetResource.Release(this);
-            targetResource = null;
-        }
+        if (targetResource == null)
+            return;
+
+        targetResource.Release(this);
+        targetResource = null;
     }
 
     private void SetState(WorkerState newState)

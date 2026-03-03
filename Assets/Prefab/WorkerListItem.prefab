@@ -37,8 +37,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: -510.0001, y: -283}
-  m_SizeDelta: {x: 500, y: 200}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 350, y: 200}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!222 &2285191386198714411
 CanvasRenderer:
@@ -90,9 +90,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8077d9b1e1f776942b8f399a50292295, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  nameText: {fileID: 0}
-  jobText: {fileID: 0}
-  stateText: {fileID: 0}
   workerText: {fileID: 7595517630051982740}
 --- !u!1 &5414775349414143298
 GameObject:
@@ -204,7 +201,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 70, y: 0}
-  m_SizeDelta: {x: 300, y: 150}
+  m_SizeDelta: {x: 250, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3624686206979355595
 CanvasRenderer:
@@ -249,6 +246,4 @@ MonoBehaviour:
     m_LineSpacing: 1
   m_Text: 'Worker #1
 
-    Job: ChopWood
-
-    State: CarryingToHouse'
+    Job: ChopWood'

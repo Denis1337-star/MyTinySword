@@ -1,9 +1,7 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class ResourceNodeBase : MonoBehaviour,IResourceNode
+public abstract class ResourceNodeBase : MonoBehaviour, IResourceNode
 {
     protected bool available = true;
     protected Worker reservedBy;
@@ -13,20 +11,27 @@ public abstract class ResourceNodeBase : MonoBehaviour,IResourceNode
 
     public bool IsAvailable => available && reservedBy == null;
 
+
     public bool TryReserve(Worker worker)
     {
         if (!IsAvailable)
             return false;
 
         reservedBy = worker;
+        OnReserved(worker);
         return true;
     }
 
     public void Release(Worker worker)
     {
-        if (reservedBy == worker)
-            reservedBy = null;
+        if (reservedBy != worker)
+            return;
+
+        reservedBy = null;
+        OnReleased(worker);
     }
 
+    protected virtual void OnReserved(Worker worker) { }
+    protected virtual void OnReleased(Worker worker) { }
     public abstract void StartWork(Action<int> onFinished);
 }

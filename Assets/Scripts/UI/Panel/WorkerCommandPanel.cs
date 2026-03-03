@@ -9,6 +9,8 @@ public class WorkerCommandPanel : MonoBehaviour
     [SerializeField] private Button mineGoldButton;
     [SerializeField] private Button huntMeatButton;
 
+    [SerializeField] private SelectionSystem selectionSystem;
+
 
     private Worker currentWorker;
 
@@ -30,7 +32,6 @@ public class WorkerCommandPanel : MonoBehaviour
     {
         currentWorker = null;
         gameObject.SetActive(false);
-        var selectionSystem = FindAnyObjectByType<SelectionSystem>();
         selectionSystem.ClearSelection();
     }
 
