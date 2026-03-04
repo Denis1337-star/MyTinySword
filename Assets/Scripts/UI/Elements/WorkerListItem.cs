@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class WorkerListItem : MonoBehaviour
+public class WorkerListItem : MonoBehaviour, IPointerClickHandler
+
 {
     [SerializeField] private Text workerText;
 
@@ -32,6 +34,14 @@ public class WorkerListItem : MonoBehaviour
 
         worker.OnStateChanged -= UpdateView;
         worker.OnJobChanged -= UpdateView;
+    }
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        var selectionSystem = FindAnyObjectByType<SelectionSystem>();
+        if (selectionSystem == null)
+            return;
+
+        selectionSystem.SelectWorkerFromUI(worker);
     }
 
 }

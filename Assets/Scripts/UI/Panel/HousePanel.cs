@@ -43,9 +43,9 @@ public class HousePanel : MonoBehaviour
 
     private void Refresh()
     {
-        limitText.text = $"Нанято {currentHouse.CurrentWorkers+1} / {currentHouse.MaxWorkers}";
+        limitText.text = $"Нанято {currentHouse.CurrentWorkers} / {currentHouse.MaxWorkers}";
         hireButton.interactable = currentHouse.CanHire();
-        costText.text = $"Для найма - Дерево: {currentHouse.hireWoodCost} / Золото: {currentHouse.hireGoldCost}"; 
+        costText.text = $"Для найма - Дерево: {currentHouse.CurrentWoodCost} / Золото: {currentHouse.CurrentGoldCost}"; 
         workerList.Refresh();
     }
 

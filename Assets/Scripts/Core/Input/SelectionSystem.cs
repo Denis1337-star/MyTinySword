@@ -71,9 +71,6 @@ public class SelectionSystem : MonoBehaviour
 
             return;
         }
-
-        //ClearSelection();
-        //HidePanels();
     }
 
     private void SelectUnit(UnitSelectable unit)
@@ -99,5 +96,22 @@ public class SelectionSystem : MonoBehaviour
     public IReadOnlyList<UnitSelectable> GetSelectedUnits()
     {
         return selectedUnits;
+    }
+    public void SelectWorkerFromUI(Worker worker)
+    {
+        ClearSelection();
+
+        var selectable = worker.GetComponent<UnitSelectable>();
+        if (selectable == null)
+            return;
+
+        SelectUnit(selectable);
+
+        if (workerCommandPanel != null)
+            workerCommandPanel.ShowForWorker(worker);
+
+        var cameraController = Camera.main.GetComponent<CameraInputController>();
+        if (cameraController != null)
+            cameraController.FocusOn(worker.transform);
     }
 }

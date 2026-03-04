@@ -8,7 +8,6 @@ public class House : MonoBehaviour
     [Header("Spawn & Drop")]
     [SerializeField] private Transform spawnPoint;
     [SerializeField] private Transform dropPoint;
-
     public Vector2 DropPoint => dropPoint.position;
 
     [Header("Idle Positions")]
@@ -18,9 +17,13 @@ public class House : MonoBehaviour
     [SerializeField] private int maxWorkers = 5;
     [SerializeField] private Worker workerPrefab;
 
-    [Header("Hire Cost")]
-    public int hireWoodCost = 5;
-    public int hireGoldCost = 2;
+    [Header("Hire Cost (Base)")]
+    [SerializeField] private int baseWoodCost = 5;
+    [SerializeField] private int baseGoldCost = 2;
+
+    [Header("Hire Cost Increase")]
+    [SerializeField] private int woodIncreasePerWorker = 2;
+    [SerializeField] private int goldIncreasePerWorker = 1;
 
     private readonly List<Transform> idlePoints = new();
     private readonly Dictionary<Worker, Transform> occupiedIdlePoints = new();
@@ -37,16 +40,21 @@ public class House : MonoBehaviour
     }
 
     #region Hire
+    public int CurrentWoodCost =>
+    baseWoodCost + CurrentWorkers * woodIncreasePerWorker;
+
+    public int CurrentGoldCost =>
+        baseGoldCost + CurrentWorkers * goldIncreasePerWorker;
 
     public bool CanHire()
     {
         if (CurrentWorkers >= maxWorkers)
             return false;
 
-        if (!ResourceStorage.Instance.HasResources(hireWoodCost, hireGoldCost))
-            return false;
-
-        return true;
+        return ResourceStorage.Instance.HasResources(
+            CurrentWoodCost,
+            CurrentGoldCost
+        );
     }
 
     public void HireWorker()
@@ -54,7 +62,10 @@ public class House : MonoBehaviour
         if (!CanHire())
             return;
 
-        ResourceStorage.Instance.SpendResources(hireWoodCost, hireGoldCost);
+        ResourceStorage.Instance.SpendResources(
+            CurrentWoodCost,
+            CurrentGoldCost
+        );
 
         Worker worker = Instantiate(workerPrefab, spawnPoint.position, Quaternion.identity);
         worker.SetHome(this);

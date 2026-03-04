@@ -3251,8 +3251,10 @@ MonoBehaviour:
   idlePointsRoot: {fileID: 1706305321}
   maxWorkers: 5
   workerPrefab: {fileID: 4596641850069108570, guid: f508677d4c21cf44da86baaf33f36fb8, type: 3}
-  hireWoodCost: 0
-  hireGoldCost: 0
+  baseWoodCost: 5
+  baseGoldCost: 2
+  woodIncreasePerWorker: 2
+  goldIncreasePerWorker: 1
 --- !u!114 &1453584496
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3781,6 +3783,7 @@ MonoBehaviour:
   zoomSpeed: 0.02
   minZoom: 3
   maxZoom: 10
+  focusSpeed: 5
 --- !u!114 &1552036509
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5985,14 +5988,6 @@ PrefabInstance:
     - target: {fileID: 1626369444277348829, guid: f508677d4c21cf44da86baaf33f36fb8, type: 3}
       propertyPath: m_IsActive
       value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6874217164833742940, guid: f508677d4c21cf44da86baaf33f36fb8, type: 3}
-      propertyPath: m_IsTrigger
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7347587350218288060, guid: f508677d4c21cf44da86baaf33f36fb8, type: 3}
-      propertyPath: m_BodyType
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

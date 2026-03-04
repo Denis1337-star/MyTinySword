@@ -1,9 +1,10 @@
+using Cinemachine;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 using TouchPhase = UnityEngine.InputSystem.TouchPhase;
-using Cinemachine;
 
 public class CameraInputController : MonoBehaviour
 {
@@ -18,6 +19,12 @@ public class CameraInputController : MonoBehaviour
     private Camera mainCamera;
     private Vector3 lastWorldPos;
 
+    [Header("Focus")]
+    [SerializeField] private float focusSpeed = 5f;
+
+    private Transform focusTarget;
+    private bool isFocusing;
+
     private void Awake()
     {
         EnhancedTouchSupport.Enable();
@@ -29,12 +36,19 @@ public class CameraInputController : MonoBehaviour
 
     private void Update()
     {
+        HandleFocus();
         HandleTouch();
     }
 
     private void HandleTouch()
     {
         var touches = Touch.activeTouches;
+
+        if (Touchscreen.current != null &&
+    Touchscreen.current.primaryTouch.press.isPressed)
+        {
+            isFocusing = false;
+        }
 
         // ===== DRAG (1 палец) =====
         if (touches.Count == 1)
@@ -80,5 +94,33 @@ public class CameraInputController : MonoBehaviour
 
             virtualCamera.m_Lens.OrthographicSize = size;
         }
+    }
+    private void HandleFocus()
+    {
+        if (!isFocusing || focusTarget == null)
+            return;
+
+        Vector3 targetPos = new Vector3(
+            focusTarget.position.x,
+            focusTarget.position.y,
+            transform.position.z
+        );
+
+        transform.position = Vector3.Lerp(
+            transform.position,
+            targetPos,
+            focusSpeed * Time.deltaTime
+        );
+
+        // почти доехали Ч выключаем фокус
+        if (Vector2.Distance(transform.position, targetPos) < 0.05f)
+        {
+            isFocusing = false;
+        }
+    }
+    public void FocusOn(Transform target)
+    {
+        focusTarget = target;
+        isFocusing = true;
     }
 }
