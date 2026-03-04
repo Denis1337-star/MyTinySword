@@ -8,119 +8,113 @@ using TouchPhase = UnityEngine.InputSystem.TouchPhase;
 
 public class CameraInputController : MonoBehaviour
 {
-    [Header("Cinemachine")]
-    [SerializeField] private CinemachineVirtualCamera virtualCamera;
+    [Header("Movement")]
+    [SerializeField] private float moveSpeed = 0.01f;
 
     [Header("Zoom")]
-    [SerializeField] private float zoomSpeed = 0.02f;
+    [SerializeField] private float zoomSpeed = 0.01f;
     [SerializeField] private float minZoom = 3f;
     [SerializeField] private float maxZoom = 10f;
 
-    private Camera mainCamera;
-    private Vector3 lastWorldPos;
+    [Header("Bounds")]
+    [SerializeField] private Vector2 minBounds;
+    [SerializeField] private Vector2 maxBounds;
 
-    [Header("Focus")]
-    [SerializeField] private float focusSpeed = 5f;
+    private Camera cam;
 
-    private Transform focusTarget;
-    private bool isFocusing;
+    private Vector2 lastTouchPosition;
+    private bool isDragging;
+
+    private float lastPinchDistance;
 
     private void Awake()
     {
-        EnhancedTouchSupport.Enable();
-        mainCamera = Camera.main;
-
-        if (virtualCamera == null)
-            virtualCamera = GetComponent<CinemachineVirtualCamera>();
+        cam = Camera.main;
     }
 
     private void Update()
     {
-        HandleFocus();
         HandleTouch();
     }
 
     private void HandleTouch()
     {
-        var touches = Touch.activeTouches;
-
-        if (Touchscreen.current != null &&
-    Touchscreen.current.primaryTouch.press.isPressed)
-        {
-            isFocusing = false;
-        }
-
-        // ===== DRAG (1 палец) =====
-        if (touches.Count == 1)
-        {
-            var touch = touches[0];
-
-            // если палец над UI Ч не двигаем камеру
-            if (EventSystem.current != null &&
-                EventSystem.current.IsPointerOverGameObject(touch.touchId))
-                return;
-
-            Vector3 worldPos = mainCamera.ScreenToWorldPoint(touch.screenPosition);
-
-            if (touch.phase == TouchPhase.Began)
-            {
-                lastWorldPos = worldPos;
-            }
-            else if (touch.phase == TouchPhase.Moved)
-            {
-                Vector3 delta = lastWorldPos - worldPos;
-                virtualCamera.transform.position += delta;
-                lastWorldPos = worldPos;
-            }
-        }
-
-        // ===== PINCH ZOOM (2 пальца) =====
-        if (touches.Count == 2)
-        {
-            var t0 = touches[0];
-            var t1 = touches[1];
-
-            Vector2 prev0 = t0.screenPosition - t0.delta;
-            Vector2 prev1 = t1.screenPosition - t1.delta;
-
-            float prevDistance = Vector2.Distance(prev0, prev1);
-            float currentDistance = Vector2.Distance(t0.screenPosition, t1.screenPosition);
-
-            float delta = currentDistance - prevDistance;
-
-            float size = virtualCamera.m_Lens.OrthographicSize;
-            size -= delta * zoomSpeed;
-            size = Mathf.Clamp(size, minZoom, maxZoom);
-
-            virtualCamera.m_Lens.OrthographicSize = size;
-        }
-    }
-    private void HandleFocus()
-    {
-        if (!isFocusing || focusTarget == null)
+        if (Touchscreen.current == null)
             return;
 
-        Vector3 targetPos = new Vector3(
-            focusTarget.position.x,
-            focusTarget.position.y,
-            transform.position.z
-        );
+        var touches = Touchscreen.current.touches;
 
-        transform.position = Vector3.Lerp(
-            transform.position,
-            targetPos,
-            focusSpeed * Time.deltaTime
-        );
-
-        // почти доехали Ч выключаем фокус
-        if (Vector2.Distance(transform.position, targetPos) < 0.05f)
+        // Ћюбое касание Ч отмен€ем Cinemachine-фокус
+        if (Touchscreen.current.primaryTouch.press.isPressed)
         {
-            isFocusing = false;
+            var focus = FindAnyObjectByType<CameraFocusController>();
+            if (focus != null)
+                focus.CancelFocus();
+        }
+
+        //  ќдин палец Ч движение камеры
+        if (touches.Count == 1 && touches[0].isInProgress)
+        {
+            Vector2 currentPos = touches[0].position.ReadValue();
+
+            if (!isDragging)
+            {
+                lastTouchPosition = currentPos;
+                isDragging = true;
+                return;
+            }
+
+            Vector2 delta = currentPos - lastTouchPosition;
+            MoveCamera(delta);
+
+            lastTouchPosition = currentPos;
+        }
+        else
+        {
+            isDragging = false;
+        }
+
+        // ƒва пальца Ч зум
+        if (touches.Count == 2 &&
+            touches[0].isInProgress &&
+            touches[1].isInProgress)
+        {
+            float currentDistance = Vector2.Distance(
+                touches[0].position.ReadValue(),
+                touches[1].position.ReadValue()
+            );
+
+            if (lastPinchDistance == 0)
+            {
+                lastPinchDistance = currentDistance;
+                return;
+            }
+
+            float delta = currentDistance - lastPinchDistance;
+            ZoomCamera(delta);
+
+            lastPinchDistance = currentDistance;
+        }
+        else
+        {
+            lastPinchDistance = 0;
         }
     }
-    public void FocusOn(Transform target)
+
+    private void MoveCamera(Vector2 delta)
     {
-        focusTarget = target;
-        isFocusing = true;
+        Vector3 move = new Vector3(-delta.x, -delta.y, 0f) * moveSpeed;
+        Vector3 targetPos = transform.position + move;
+
+        targetPos.x = Mathf.Clamp(targetPos.x, minBounds.x, maxBounds.x);
+        targetPos.y = Mathf.Clamp(targetPos.y, minBounds.y, maxBounds.y);
+
+        transform.position = targetPos;
+    }
+
+    private void ZoomCamera(float delta)
+    {
+        cam.orthographicSize -= delta * zoomSpeed;
+        cam.orthographicSize = Mathf.Clamp(cam.orthographicSize, minZoom, maxZoom);
     }
 }

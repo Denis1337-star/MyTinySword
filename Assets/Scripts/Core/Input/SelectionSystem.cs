@@ -9,12 +9,16 @@ using TouchPhase = UnityEngine.InputSystem.TouchPhase;
 
 public class SelectionSystem : MonoBehaviour
 {
-    private readonly List<UnitSelectable> selectedUnits = new();
-    private Camera cam;
-
+    [Header("Panels")]
     [SerializeField] private WorkerCommandPanel workerCommandPanel;
     [SerializeField] private HousePanel housePanel;
-    [SerializeField] private LayerMask ignoreLayers;
+
+    [Header("Raycast Ignore")]
+    [SerializeField] private LayerMask ignoreLayer;
+
+    //private readonly List<UnitSelectable> selectedUnits = new();
+    private Camera cam;
+    private UnitSelectable currentSelection;
 
     private void Awake()
     {
@@ -35,83 +39,95 @@ public class SelectionSystem : MonoBehaviour
 
         var touch = Touchscreen.current.primaryTouch;  //получает данные о первом касание 
 
-        if (touch.press.wasPressedThisFrame)  //проверка на косание 
-        {
-            Vector2 screenPos = touch.position.ReadValue();  //счтитывает позицию
-            ProcessTap(screenPos);
-        }
+        if (!touch.press.wasReleasedThisFrame)
+            return;
+
+        // Игнор кликов по UI
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+            return;
+
+        ProcessTap(touch.position.ReadValue());
     }
 
     private void ProcessTap(Vector2 screenPos)
     {
 
-        Vector2 worldPos = cam.ScreenToWorldPoint(screenPos);
-        RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero, Mathf.Infinity, ~ignoreLayers);
+        Vector2 worldPoint = cam.ScreenToWorldPoint(screenPos);
+        // ~ignoreLayer => все слои кроме игнорируемого
+        int mask = ~ignoreLayer.value;
 
-        if (hit.collider == null) return;
+        RaycastHit2D hit = Physics2D.Raycast(worldPoint, Vector2.zero, Mathf.Infinity, mask);
 
-        var houseSelectable = hit.collider.GetComponent<HouseSelectable>();
-        if (houseSelectable != null)
+        if (hit.collider != null)
         {
-            ClearSelection();
-            HidePanels();
-            housePanel.Show(houseSelectable.GetHouse());
-            return;
+            var selectable = hit.collider.GetComponent<UnitSelectable>();
+            if (selectable != null)
+            {
+                SelectUnit(selectable);
+                return;
+            }
         }
 
-        UnitSelectable unit = hit.collider.GetComponent<UnitSelectable>();
-        if (unit != null)
-        {
-            ClearSelection();
-            SelectUnit(unit);
+        ClearSelection();
 
-            var worker = unit.GetComponent<Worker>();
-            if (worker != null)
-                workerCommandPanel.ShowForWorker(worker);
+    }
 
+    private void SelectUnit(UnitSelectable selectable)
+    {
+        if (currentSelection == selectable)
             return;
+
+        ClearSelection();
+
+        currentSelection = selectable;
+        currentSelection.Select();
+
+        // Worker
+        if (selectable.TryGetComponent(out Worker worker))
+        {
+            workerCommandPanel.ShowForWorker(worker);
+
+            var focus = FindAnyObjectByType<CameraFocusController>();
+            if (focus != null)
+                focus.FocusOn(worker.transform);
+        }
+
+        // House
+        if (selectable.TryGetComponent(out House house))
+        {
+            housePanel.Show(house);
         }
     }
 
-    private void SelectUnit(UnitSelectable unit)
+    public void SelectWorkerFromUI(Worker worker)
     {
-        selectedUnits.Add(unit);
-        unit.Select();
-    }
+        if (worker == null) return;
 
-    private void HidePanels()
-    {
-        workerCommandPanel?.Hide();
-        housePanel?.Hide();
+        var selectable = worker.GetComponent<UnitSelectable>();
+        if (selectable != null)
+            SelectUnit(selectable);
     }
 
     public void ClearSelection()
     {
-        foreach (var unit in selectedUnits)
-            unit.Deselect();
+        if (currentSelection != null)
+        {
+            currentSelection.Deselect();
+            currentSelection = null;
+        }
 
-        selectedUnits.Clear();
+        workerCommandPanel.Hide();
+        housePanel.Hide();
+
+        var focus = FindAnyObjectByType<CameraFocusController>();
+        if (focus != null)
+            focus.CancelFocus();
     }
 
     public IReadOnlyList<UnitSelectable> GetSelectedUnits()
     {
-        return selectedUnits;
-    }
-    public void SelectWorkerFromUI(Worker worker)
-    {
-        ClearSelection();
-
-        var selectable = worker.GetComponent<UnitSelectable>();
-        if (selectable == null)
-            return;
-
-        SelectUnit(selectable);
-
-        if (workerCommandPanel != null)
-            workerCommandPanel.ShowForWorker(worker);
-
-        var cameraController = Camera.main.GetComponent<CameraInputController>();
-        if (cameraController != null)
-            cameraController.FocusOn(worker.transform);
+        if (currentSelection != null)
+            return new List<UnitSelectable> { currentSelection };
+        return new List<UnitSelectable>();
     }
 }

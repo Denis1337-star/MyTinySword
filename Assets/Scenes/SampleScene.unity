@@ -3779,11 +3779,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8306bf6d913a10349834357d9ae69d39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  virtualCamera: {fileID: 1552036510}
+  moveSpeed: 0.01
   zoomSpeed: 0.02
   minZoom: 3
   maxZoom: 10
-  focusSpeed: 5
+  minBounds: {x: 0, y: 0}
+  maxBounds: {x: 0, y: 0}
 --- !u!114 &1552036509
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4312,9 +4313,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   workerCommandPanel: {fileID: 1126800925}
   housePanel: {fileID: 1659133471}
-  ignoreLayers:
+  ignoreLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 4
 --- !u!1 &1807910878
 GameObject:
   m_ObjectHideFlags: 0
