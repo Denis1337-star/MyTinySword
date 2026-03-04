@@ -16,6 +16,7 @@ public class WorkerCommandPanel : MonoBehaviour
 
     private void Awake()
     {
+
         chopWoodButton.onClick.AddListener(OnChopWoodClicked);
         mineGoldButton.onClick.AddListener(OnMineGoldClicked);
         huntMeatButton.onClick.AddListener (OnHuntMeatClicked);

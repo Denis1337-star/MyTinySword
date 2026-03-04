@@ -113,12 +113,13 @@ public class Worker : MonoBehaviour
 
     private void StartNewJob(WorkerJobType job)
     {
-        ReleaseResource();
+        targetHouse.ReleaseIdlePosition(this);
 
+        ReleaseResource();
         CurrentJob = job;
         queuedJob = WorkerJobType.None;
-        OnJobChanged?.Invoke(this);
 
+        OnJobChanged?.Invoke(this);
         TryFindNextResource();
     }
 
@@ -132,6 +133,9 @@ public class Worker : MonoBehaviour
         {
             SetState(WorkerState.Idle);
             animator.SetIdle();
+            Vector2 idlePos = targetHouse.GetIdlePosition(this);
+            movement.MoveTo(idlePos);
+
             return;
         }
 
@@ -209,6 +213,10 @@ public class Worker : MonoBehaviour
     {
         state = newState;
         OnStateChanged?.Invoke(this);
+    }
+    public void SetHome(House house)
+    {
+        targetHouse = house;
     }
 
     private ResourceNodeBase FindResourceForJob()

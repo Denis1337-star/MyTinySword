@@ -44,7 +44,7 @@ public class TreeResource : ResourceNodeBase
         sr.sprite = stumpSprite;
         animator.SetBool("Stump", true);
 
-        callback?.Invoke(1);
+        callback?.Invoke(3);
 
         reservedBy = null;
 

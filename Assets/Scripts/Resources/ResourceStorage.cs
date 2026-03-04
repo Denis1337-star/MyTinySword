@@ -1,13 +1,17 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class ResourceStorage : MonoBehaviour
 {
     public static ResourceStorage Instance { get; private set; }
+    public event Action OnResourcesChanged;
+
 
     [SerializeField] private int wood;
     [SerializeField] private int gold;
     [SerializeField] private int meat;
+
     [SerializeField] private Text woodText;
     [SerializeField] private Text goldText;
     [SerializeField] private Text meatText;
@@ -44,6 +48,7 @@ public class ResourceStorage : MonoBehaviour
             goldText.text = gold.ToString();
         if (meatText != null)
             meatText.text = meat.ToString();
+        OnResourcesChanged?.Invoke();
     }
     public bool HasResources(int wood, int gold)
     {
@@ -54,5 +59,6 @@ public class ResourceStorage : MonoBehaviour
     {
         this.wood -= wood;
         this.gold -= gold;
+        UpdateUI();
     }
 }

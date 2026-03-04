@@ -22,8 +22,8 @@ public class WorkerListItem : MonoBehaviour
     private void UpdateView(Worker w)
     {
         workerText.text =
-             $"{w.name}\n" +
-             $"Job: {w.CurrentJob}";
+            $"{w.name}\n" +
+            $"Работа: {WorkerJobLocalization.GetName(w.CurrentJob)}";
     }
 
     private void OnDestroy()
@@ -33,4 +33,5 @@ public class WorkerListItem : MonoBehaviour
         worker.OnStateChanged -= UpdateView;
         worker.OnJobChanged -= UpdateView;
     }
+
 }

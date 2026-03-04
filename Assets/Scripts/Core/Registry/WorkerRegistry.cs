@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,6 +11,7 @@ public class WorkerRegistry : MonoBehaviour
     public event Action<Worker> OnWorkerAdded;
     public event Action<Worker> OnWorkerRemoved;
 
+    private int workerCounter = 0;
 
     private void Awake()
     {
@@ -23,6 +24,9 @@ public class WorkerRegistry : MonoBehaviour
     }
     public void Register(Worker worker)
     {
+        workerCounter++;
+
+        worker.name = $"Worker {workerCounter}"; 
         Workers.Add(worker);
         OnWorkerAdded?.Invoke(worker);
     }
