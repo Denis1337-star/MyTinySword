@@ -16,14 +16,16 @@ public class SelectionSystem : MonoBehaviour
     [Header("Raycast Ignore")]
     [SerializeField] private LayerMask ignoreLayer;
 
-    //private readonly List<UnitSelectable> selectedUnits = new();
     private Camera cam;
     private UnitSelectable currentSelection;
+    private CameraFocusController focusController;
+
+    private readonly List<UnitSelectable> selectedUnits = new();
 
     private void Awake()
     {
         cam = Camera.main;
-        EnhancedTouchSupport.Enable();
+        focusController = FindAnyObjectByType<CameraFocusController>();
     }
 
     private void Update()
@@ -51,28 +53,24 @@ public class SelectionSystem : MonoBehaviour
 
     private void ProcessTap(Vector2 screenPos)
     {
-
-        Vector2 worldPoint = cam.ScreenToWorldPoint(screenPos);
+        Vector3 worldPos = cam.ScreenToWorldPoint(screenPos);
         // ~ignoreLayer => все слои кроме игнорируемого
         int mask = ~ignoreLayer.value;
 
-        RaycastHit2D hit = Physics2D.Raycast(worldPoint, Vector2.zero, Mathf.Infinity, mask);
+        RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero, 100f, mask);
 
-        if (hit.collider != null)
+        if (hit.collider != null &&
+                  hit.collider.TryGetComponent(out UnitSelectable selectable))
         {
-            var selectable = hit.collider.GetComponent<UnitSelectable>();
-            if (selectable != null)
-            {
-                SelectUnit(selectable);
-                return;
-            }
+            Select(selectable);
+            return;
         }
 
         ClearSelection();
 
     }
 
-    private void SelectUnit(UnitSelectable selectable)
+    private void Select(UnitSelectable selectable)
     {
         if (currentSelection == selectable)
             return;
@@ -80,19 +78,16 @@ public class SelectionSystem : MonoBehaviour
         ClearSelection();
 
         currentSelection = selectable;
-        currentSelection.Select();
+        selectable.Select();
 
-        // Worker
+        selectedUnits.Add(selectable);
+
         if (selectable.TryGetComponent(out Worker worker))
         {
             workerCommandPanel.ShowForWorker(worker);
-
-            var focus = FindAnyObjectByType<CameraFocusController>();
-            if (focus != null)
-                focus.FocusOn(worker.transform);
+            focusController?.FocusOn(worker.transform);
         }
 
-        // House
         if (selectable.TryGetComponent(out House house))
         {
             housePanel.Show(house);
@@ -101,33 +96,28 @@ public class SelectionSystem : MonoBehaviour
 
     public void SelectWorkerFromUI(Worker worker)
     {
-        if (worker == null) return;
+        if (worker == null)
+            return;
 
-        var selectable = worker.GetComponent<UnitSelectable>();
-        if (selectable != null)
-            SelectUnit(selectable);
+        if (worker.TryGetComponent(out UnitSelectable selectable))
+            Select(selectable);
     }
 
     public void ClearSelection()
     {
         if (currentSelection != null)
-        {
             currentSelection.Deselect();
-            currentSelection = null;
-        }
+
+        currentSelection = null;
 
         workerCommandPanel.Hide();
         housePanel.Hide();
 
-        var focus = FindAnyObjectByType<CameraFocusController>();
-        if (focus != null)
-            focus.CancelFocus();
+        focusController?.CancelFocus();
     }
-
     public IReadOnlyList<UnitSelectable> GetSelectedUnits()
     {
-        if (currentSelection != null)
-            return new List<UnitSelectable> { currentSelection };
-        return new List<UnitSelectable>();
+        return selectedUnits;
     }
 }
+

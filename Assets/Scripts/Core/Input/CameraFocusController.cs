@@ -1,31 +1,34 @@
 using Cinemachine;
+using System.Collections;
 using UnityEngine;
 
 public class CameraFocusController : MonoBehaviour
 {
-    [SerializeField] private CinemachineVirtualCamera vcam;
-    [SerializeField] private float focusBlendTime = 0.5f;
+    [SerializeField] private CinemachineVirtualCamera virtualCamera;
+    [SerializeField] private float focusDuration = 0.4f;
 
-    private Transform originalFollow;
-    private CinemachineBrain brain;
-
-    private void Awake()
-    {
-        brain = Camera.main.GetComponent<CinemachineBrain>();
-        originalFollow = vcam.Follow;
-    }
+    private Coroutine focusRoutine;
+    private Transform followTarget;
 
     public void FocusOn(Transform target)
     {
-        if (target == null)
-            return;
+        followTarget = target;
 
-        vcam.Follow = target;
-        brain.m_DefaultBlend.m_Time = focusBlendTime;
+        if (focusRoutine != null)
+            StopCoroutine(focusRoutine);
+
+        focusRoutine = StartCoroutine(FocusRoutine());
     }
 
     public void CancelFocus()
     {
-        vcam.Follow = originalFollow;
+        followTarget = null;
+        virtualCamera.Follow = null;
+    }
+
+    private IEnumerator FocusRoutine()
+    {
+        virtualCamera.Follow = followTarget;
+        yield return new WaitForSeconds(focusDuration);
     }
 }

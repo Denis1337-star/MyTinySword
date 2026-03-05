@@ -8,6 +8,9 @@ using TouchPhase = UnityEngine.InputSystem.TouchPhase;
 
 public class CameraInputController : MonoBehaviour
 {
+    [Header("Cinemachine")]
+    [SerializeField] private CinemachineVirtualCamera virtualCamera;
+
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 0.01f;
 
@@ -16,21 +19,9 @@ public class CameraInputController : MonoBehaviour
     [SerializeField] private float minZoom = 3f;
     [SerializeField] private float maxZoom = 10f;
 
-    [Header("Bounds")]
-    [SerializeField] private Vector2 minBounds;
-    [SerializeField] private Vector2 maxBounds;
-
-    private Camera cam;
-
-    private Vector2 lastTouchPosition;
-    private bool isDragging;
-
-    private float lastPinchDistance;
-
-    private void Awake()
-    {
-        cam = Camera.main;
-    }
+    private Vector2 lastTouchPos;
+    private bool dragging;
+    private float lastPinchDist;
 
     private void Update()
     {
@@ -44,77 +35,64 @@ public class CameraInputController : MonoBehaviour
 
         var touches = Touchscreen.current.touches;
 
-        // Ћюбое касание Ч отмен€ем Cinemachine-фокус
-        if (Touchscreen.current.primaryTouch.press.isPressed)
-        {
-            var focus = FindAnyObjectByType<CameraFocusController>();
-            if (focus != null)
-                focus.CancelFocus();
-        }
-
-        //  ќдин палец Ч движение камеры
-        if (touches.Count == 1 && touches[0].isInProgress)
-        {
-            Vector2 currentPos = touches[0].position.ReadValue();
-
-            if (!isDragging)
-            {
-                lastTouchPosition = currentPos;
-                isDragging = true;
-                return;
-            }
-
-            Vector2 delta = currentPos - lastTouchPosition;
-            MoveCamera(delta);
-
-            lastTouchPosition = currentPos;
-        }
-        else
-        {
-            isDragging = false;
-        }
-
-        // ƒва пальца Ч зум
-        if (touches.Count == 2 &&
+        // ===== ZOOM (2 пальца) =====
+        if (touches.Count >= 2 &&
             touches[0].isInProgress &&
             touches[1].isInProgress)
         {
-            float currentDistance = Vector2.Distance(
-                touches[0].position.ReadValue(),
-                touches[1].position.ReadValue()
-            );
+            Vector2 p0 = touches[0].position.ReadValue();
+            Vector2 p1 = touches[1].position.ReadValue();
 
-            if (lastPinchDistance == 0)
+            float dist = Vector2.Distance(p0, p1);
+
+            if (lastPinchDist > 0)
             {
-                lastPinchDistance = currentDistance;
-                return;
+                float delta = dist - lastPinchDist;
+                Zoom(delta);
             }
 
-            float delta = currentDistance - lastPinchDistance;
-            ZoomCamera(delta);
-
-            lastPinchDistance = currentDistance;
+            lastPinchDist = dist;
+            dragging = false;
+            return;
         }
         else
         {
-            lastPinchDistance = 0;
+            lastPinchDist = 0;
+        }
+
+        // ===== MOVE (1 палец) =====
+        if (touches.Count == 1 && touches[0].isInProgress)
+        {
+            Vector2 pos = touches[0].position.ReadValue();
+
+            if (!dragging)
+            {
+                lastTouchPos = pos;
+                dragging = true;
+                return;
+            }
+
+            Vector2 delta = pos - lastTouchPos;
+            Move(delta);
+            lastTouchPos = pos;
+        }
+        else
+        {
+            dragging = false;
         }
     }
 
-    private void MoveCamera(Vector2 delta)
+    private void Move(Vector2 delta)
     {
         Vector3 move = new Vector3(-delta.x, -delta.y, 0f) * moveSpeed;
-        Vector3 targetPos = transform.position + move;
-
-        targetPos.x = Mathf.Clamp(targetPos.x, minBounds.x, maxBounds.x);
-        targetPos.y = Mathf.Clamp(targetPos.y, minBounds.y, maxBounds.y);
-
-        transform.position = targetPos;
+        virtualCamera.transform.position += move;
     }
 
-    private void ZoomCamera(float delta)
+    private void Zoom(float delta)
     {
-        cam.orthographicSize -= delta * zoomSpeed;
-        cam.orthographicSize = Mathf.Clamp(cam.orthographicSize, minZoom, maxZoom);
+        float size = virtualCamera.m_Lens.OrthographicSize;
+        size -= delta * zoomSpeed;
+        size = Mathf.Clamp(size, minZoom, maxZoom);
+        virtualCamera.m_Lens.OrthographicSize = size;
     }
 }
