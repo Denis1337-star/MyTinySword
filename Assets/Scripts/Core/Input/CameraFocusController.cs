@@ -10,8 +10,19 @@ public class CameraFocusController : MonoBehaviour
     private Coroutine focusRoutine;
     private Transform followTarget;
 
+    private void Awake()
+    {
+        if (virtualCamera == null)
+        {
+            Debug.LogError("CameraFocusController: VirtualCamera НЕ назначена!");
+        }
+    }
+
     public void FocusOn(Transform target)
     {
+        if (virtualCamera == null || target == null)
+            return;
+
         followTarget = target;
 
         if (focusRoutine != null)
@@ -22,6 +33,9 @@ public class CameraFocusController : MonoBehaviour
 
     public void CancelFocus()
     {
+        if (virtualCamera == null)
+            return;
+
         followTarget = null;
         virtualCamera.Follow = null;
     }

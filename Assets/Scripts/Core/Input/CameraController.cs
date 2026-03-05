@@ -1,17 +1,16 @@
 using Cinemachine;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.EnhancedTouch;
-using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
-using TouchPhase = UnityEngine.InputSystem.TouchPhase;
 
-public class CameraInputController : MonoBehaviour
+public class CameraController : MonoBehaviour
 {
     [Header("Cinemachine")]
     [SerializeField] private CinemachineVirtualCamera virtualCamera;
 
-    [Header("Movement")]
+    [Header("Move")]
     [SerializeField] private float moveSpeed = 0.01f;
 
     [Header("Zoom")]
@@ -96,3 +95,4 @@ public class CameraInputController : MonoBehaviour
         virtualCamera.m_Lens.OrthographicSize = size;
     }
 }
+
