@@ -7,6 +7,10 @@ public class WorkerListPanel : MonoBehaviour
     [SerializeField] private Transform contentRoot;
     [SerializeField] private WorkerListItem itemPrefab;
 
+    private void Start()
+    {
+        Refresh(); // обновляем список, если рабочие уже есть
+    }
     private void Awake()
     {
         WorkerRegistry.Instance.OnWorkerAdded += CreateItem;

@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d1514134bc4fbd41bb739b1b9a49231, type: 3}
+  m_Name: FlatGround
+  m_EditorClassIdentifier: 
+  m_DefaultSprite: {fileID: 8045197053618216752, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
+  m_DefaultGameObject: {fileID: 0}
+  m_DefaultColliderType: 1
+  m_TilingRules:
+  - m_Id: 0
+    m_Sprites:
+    - {fileID: 8045197053618216752, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
+    - {fileID: -1778029542102904798, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
+    - {fileID: 5677542656759928977, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
+    - {fileID: -4839569638931813264, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
+    - {fileID: 2004939184200893186, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
+    - {fileID: 8432400645076990619, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
+    - {fileID: -3704847506149939038, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
+    - {fileID: 2230421966675971980, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
+    - {fileID: 2397228053743353214, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
+    - {fileID: -3258321334757180875, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
+    - {fileID: -1659767062332973701, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
+    - {fileID: -3681904862023827580, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
+    - {fileID: -8034513510692042630, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
+    - {fileID: 8313790842667632763, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
+    - {fileID: 1024707267088520393, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
+    - {fileID: -5952541215844301678, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
+    m_GameObject: {fileID: 0}
+    m_MinAnimationSpeed: 5
+    m_MaxAnimationSpeed: 5
+    m_PerlinScale: 0.5
+    m_Output: 2
+    m_ColliderType: 1
+    m_RandomTransform: 0
+    m_Neighbors: 
+    m_NeighborPositions: []
+    m_RuleTransform: 0

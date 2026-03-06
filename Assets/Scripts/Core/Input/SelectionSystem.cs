@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.EnhancedTouch;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 using TouchPhase = UnityEngine.InputSystem.TouchPhase;
 
@@ -36,19 +34,19 @@ public class SelectionSystem : MonoBehaviour
 
     private void HandleTouch()
     {
-        if (Touchscreen.current == null)
+        if (Touch.activeTouches.Count == 0)
             return;
 
-        var touch = Touchscreen.current.primaryTouch;
+        var touch = Touch.activeTouches[0];
 
-        if (!touch.press.wasReleasedThisFrame)
+        if (touch.phase != TouchPhase.Ended)
             return;
 
         if (EventSystem.current != null &&
-            EventSystem.current.IsPointerOverGameObject())
+            EventSystem.current.IsPointerOverGameObject(touch.touchId))
             return;
 
-        ProcessTap(touch.position.ReadValue());
+        ProcessTap(touch.screenPosition);
     }
 
     private void ProcessTap(Vector2 screenPos)
@@ -58,11 +56,21 @@ public class SelectionSystem : MonoBehaviour
 
         RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero, 100f, mask);
 
-        if (hit.collider != null &&
-            hit.collider.TryGetComponent(out UnitSelectable selectable))
+        if (hit.collider != null)
         {
-            Select(selectable);
-            return;
+            // Worker
+            if (hit.collider.TryGetComponent(out UnitSelectable selectable))
+            {
+                Select(selectable);
+                return;
+            }
+
+            // House
+            if (hit.collider.TryGetComponent(out HouseSelectable houseSelectable))
+            {
+                housePanel.Show(houseSelectable.GetHouse());
+                return;
+            }
         }
 
         ClearSelection();

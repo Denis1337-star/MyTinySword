@@ -5,11 +5,14 @@ using UnityEngine;
 [RequireComponent(typeof(UnitMovement))]
 public class SheepAI : MonoBehaviour
 {
+    [Header("Settings")]
     [SerializeField] private float eatTime = 3f;
+
+    [Header("Territory")]
+    [SerializeField] private SheepTerritory territory;
 
     private UnitMovement movement;
     private Animator animator;
-    private SheepTerritory territory;
 
     private float timer;
     private bool isEating;
@@ -19,7 +22,11 @@ public class SheepAI : MonoBehaviour
     {
         movement = GetComponent<UnitMovement>();
         animator = GetComponent<Animator>();
-        territory = FindObjectOfType<SheepTerritory>();
+
+        if (territory == null)
+        {
+            Debug.LogError($"Sheep {name} has no territory assigned!");
+        }
     }
 
     private void Start()
@@ -43,6 +50,7 @@ public class SheepAI : MonoBehaviour
         if (isEating)
         {
             timer -= Time.deltaTime;
+
             if (timer <= 0f)
             {
                 isEating = false;
@@ -50,10 +58,9 @@ public class SheepAI : MonoBehaviour
             }
         }
     }
+
     public void SetFrozen(bool value)
     {
-        frozen = value;
-
         frozen = value;
 
         if (value)
@@ -66,9 +73,11 @@ public class SheepAI : MonoBehaviour
         }
     }
 
-
     private void GoToRandomPoint()
     {
+        if (territory == null)
+            return;
+
         Vector2 point = territory.GetRandomPoint();
         movement.MoveTo(point);
     }

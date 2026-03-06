@@ -1,50 +1,29 @@
 using UnityEngine;
+using UnityEngine.AI;
 
 
-/// <summary>
-/// Отвечает ТОЛЬКО за движение юнита
-/// Никакого input, никакого selection
-/// </summary>
+[RequireComponent(typeof(NavMeshAgent))]
 public class UnitMovement : MonoBehaviour
 {
-    [SerializeField] private float moveSpeed = 2f;
+    private NavMeshAgent agent;
 
-    private Rigidbody2D rb;
-    private Vector2 targetPosition;  //Куда должен двигаться
-    private bool hasTarget;  //флаг если ли цель куда идти
-    public bool HasTarget => hasTarget;
+    public bool HasTarget => agent.hasPath;
 
     private void Awake()
     {
-        rb = GetComponent<Rigidbody2D>();
-        rb.gravityScale = 0f;
-        rb.freezeRotation = true;
+        agent = GetComponent<NavMeshAgent>();
+
+        agent.updateRotation = false;
+        agent.updateUpAxis = false;
     }
 
-    private void FixedUpdate()
+    public void MoveTo(Vector2 position)
     {
-        if (!hasTarget)
-            return;
-
-        Vector2 newPos = Vector2.MoveTowards(
-              rb.position,
-              targetPosition,
-              moveSpeed * Time.fixedDeltaTime
-          );
-
-        rb.MovePosition(newPos);  //перемещение в новую позицию 
-
-        if (Vector2.Distance(rb.position, targetPosition) < 0.05f)
-            hasTarget = false;
+        agent.SetDestination(position);
     }
 
-    public void MoveTo(Vector2 position)  //задает новую цель движения
-    {
-        targetPosition = position;    //сохраняет точку
-        hasTarget = true;  //флаг что имеет цель
-    }
     public void Stop()
     {
-        hasTarget = false;
+        agent.ResetPath();
     }
 }

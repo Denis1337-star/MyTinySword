@@ -20,6 +20,11 @@ public class HousePanel : MonoBehaviour
 
     public void Show(House house)
     {
+        if (house == null)
+        {
+            Debug.LogError("HousePanel.Show received null house!");
+            return;
+        }
         currentHouse = house;
         gameObject.SetActive(true);
 
@@ -40,18 +45,32 @@ public class HousePanel : MonoBehaviour
         currentHouse = null;
         gameObject.SetActive(false);
     }
+    private void OnDisable()
+    {
+        if (currentHouse != null)
+        {
+            currentHouse.OnWorkersChanged -= Refresh;
+            ResourceStorage.Instance.OnResourcesChanged -= Refresh;
+        }
+    }
+
 
     private void Refresh()
     {
+        if (currentHouse == null)
+            return; // панель закрыта или не назначена
+
         limitText.text = $"Нанято {currentHouse.CurrentWorkers} / {currentHouse.MaxWorkers}";
         hireButton.interactable = currentHouse.CanHire();
         costText.text = $"Для найма - Дерево: {currentHouse.CurrentWoodCost} / Золото: {currentHouse.CurrentGoldCost}"; 
         workerList.Refresh();
     }
 
-    private void OnHireClicked()
+    public void OnHireClicked()
     {
-        currentHouse.HireWorker();
+        if (currentHouse == null)
+            return;
 
+        currentHouse.HireWorker();
     }
 }
