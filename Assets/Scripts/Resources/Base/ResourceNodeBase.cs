@@ -3,35 +3,29 @@ using UnityEngine;
 
 public abstract class ResourceNodeBase : MonoBehaviour, IResourceNode
 {
+    [SerializeField] protected WorkSlot[] workSlots;
     protected bool available = true;
-    protected Worker reservedBy;
 
-    public abstract Vector2 WorkPosition { get; }
+    public bool IsAvailable => available;
+
     public abstract int Priority { get; }
+    public abstract Vector2 WorkPosition { get; }
 
-    public bool IsAvailable => available && reservedBy == null;
-
-
-    public bool TryReserve(Worker worker)
+    public virtual WorkSlot GetFreeSlot(Worker worker)
     {
-        if (!IsAvailable)
-            return false;
-
-        reservedBy = worker;
-        OnReserved(worker);
-        return true;
+        foreach (var slot in workSlots)
+        {
+            if (slot.TryReserve(worker))
+                return slot;
+        }
+        return null;
     }
 
-    public void Release(Worker worker)
+    public virtual  void ReleaseSlot(Worker worker)
     {
-        if (reservedBy != worker)
-            return;
-
-        reservedBy = null;
-        OnReleased(worker);
+        foreach (var slot in workSlots)
+            slot.Release(worker);
     }
 
-    protected virtual void OnReserved(Worker worker) { }
-    protected virtual void OnReleased(Worker worker) { }
     public abstract void StartWork(Action<int> onFinished);
 }

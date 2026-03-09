@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.AI;
 
 
 public enum WorkerState
@@ -38,27 +39,24 @@ public class Worker : MonoBehaviour
     private WorkerAnimator animator;
 
     private ResourceNodeBase targetResource;
+    private WorkSlot targetSlot;
     private House targetHouse;
-
     private int carriedAmount;
-    private Vector2 reservedWorkPosition;
 
     private void Awake()
     {
         movement = GetComponent<UnitMovement>();
         animator = GetComponent<WorkerAnimator>();
         targetHouse = FindObjectOfType<House>();
+
     }
     private void Start()
     {
-            WorkerRegistry.Instance.Register(this);
+        WorkerRegistry.Instance.Register(this);
     }
     private void OnDestroy()
     {
-        if (WorkerRegistry.Instance == null)
-            return;
-
-        WorkerRegistry.Instance.Unregister(this);
+        WorkerRegistry.Instance?.Unregister(this);
     }
 
     private void Update()
@@ -66,16 +64,9 @@ public class Worker : MonoBehaviour
         switch (state)
         {
             case WorkerState.GoingToResource:
-                if (!movement.HasTarget)
+                if (IsAtWorkSlot())
                 {
-                    if (targetResource != null && targetResource.IsAvailable && targetResource.TryReserve(this))
-                    {
-                        // Ресурс доступен и мы его резервируем
-                        SetState(WorkerState.Working);
-                        animator.PlayWork(CurrentJob);
-                        targetResource.StartWork(OnResourceFinished);
-                    }
-                    else if (targetResource != null && targetResource == targetResource) // зарезервирован нами
+                    if (targetSlot != null)
                     {
                         SetState(WorkerState.Working);
                         animator.PlayWork(CurrentJob);
@@ -83,7 +74,6 @@ public class Worker : MonoBehaviour
                     }
                     else
                     {
-                        // ищем новый ресурс
                         TryFindNextResource();
                     }
                 }
@@ -113,8 +103,6 @@ public class Worker : MonoBehaviour
 
     private void StartNewJob(WorkerJobType job)
     {
-        targetHouse.ReleaseIdlePosition(this);
-
         ReleaseResource();
         CurrentJob = job;
         queuedJob = WorkerJobType.None;
@@ -127,41 +115,29 @@ public class Worker : MonoBehaviour
     {
         ReleaseResource();
 
-        targetResource = FindAndReserveResource();
+        targetResource = FindResourceForJob();
 
         if (targetResource == null)
         {
-            SetState(WorkerState.Idle);
-            animator.SetIdle();
-            Vector2 idlePos = targetHouse.GetIdlePosition(this);
-            movement.MoveTo(idlePos);
+            SetIdle();
+            return;
+        }
 
+        targetSlot = targetResource.GetFreeSlot(this);
+        if (targetSlot == null)
+        {
+            SetIdle();
             return;
         }
 
         SetState(WorkerState.GoingToResource);
         animator.SetTool(CurrentJob);
-        movement.MoveTo(reservedWorkPosition);
-    }
-
-    private ResourceNodeBase FindAndReserveResource()
-    {
-        var resource = FindResourceForJob();
-
-        if (resource == null)
-            return null;
-
-        if (!resource.TryReserve(this))
-            return null;
-
-        reservedWorkPosition = resource.WorkPosition;
-        return resource;
+        movement.MoveTo(targetSlot.Position);
     }
 
     private void OnResourceFinished(int amount)
     {
         carriedAmount = amount;
-
         ReleaseResource();
 
         animator.SetCarry(CurrentJob);
@@ -202,11 +178,11 @@ public class Worker : MonoBehaviour
 
     private void ReleaseResource()
     {
-        if (targetResource == null)
-            return;
+        if (targetResource != null)
+            targetResource.ReleaseSlot(this);
 
-        targetResource.Release(this);
         targetResource = null;
+        targetSlot = null;
     }
 
     private void SetState(WorkerState newState)
@@ -214,9 +190,27 @@ public class Worker : MonoBehaviour
         state = newState;
         OnStateChanged?.Invoke(this);
     }
+    private void SetIdle()
+    {
+        SetState(WorkerState.Idle);
+        animator.SetIdle();
+        movement.MoveTo(targetHouse.GetIdlePosition(this));
+    }
     public void SetHome(House house)
     {
         targetHouse = house;
+    }
+    private bool IsAtWorkSlot()
+    {
+        if (targetSlot == null)
+            return false;
+
+        float distance = Vector2.Distance(
+            transform.position,
+            targetSlot.Position
+        );
+
+        return distance <= 0.15f;
     }
 
     private ResourceNodeBase FindResourceForJob()

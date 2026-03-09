@@ -5,9 +5,6 @@ using UnityEngine;
 
 public class TreeResource : ResourceNodeBase
 {
-    [Header("Positions")]
-    [SerializeField] private Transform workPoint;
-
     [Header("Timing")]
     [SerializeField] private float chopTime = 2f;
     [SerializeField] private float respawnTime = 10f;
@@ -18,7 +15,7 @@ public class TreeResource : ResourceNodeBase
 
     private SpriteRenderer sr;
     private Animator animator;
-    public override Vector2 WorkPosition => workPoint.position;
+    public override Vector2 WorkPosition => workSlots[0].Position;
     public override int Priority => 10;
 
     private void Awake()
@@ -45,8 +42,6 @@ public class TreeResource : ResourceNodeBase
         animator.SetBool("Stump", true);
 
         callback?.Invoke(3);
-
-        reservedBy = null;
 
         yield return new WaitForSeconds(respawnTime);
 

@@ -23,10 +23,10 @@ public class CommandSystem : MonoBehaviour
 
     private void HandleMoveCommand()
     {
-        if (Touch.activeTouches.Count == 0)
+        if (Touch.activeTouches.Count == 0)  //если нет косаний = выход
             return;
 
-        var touch = Touch.activeTouches[0];
+        var touch = Touch.activeTouches[0];  //первое активное косание
 
         // команда ТОЛЬКО по тапу
         if (touch.phase != TouchPhase.Ended)
@@ -37,33 +37,33 @@ public class CommandSystem : MonoBehaviour
             EventSystem.current.IsPointerOverGameObject(touch.touchId))
             return;
 
-        Vector2 worldPos = cam.ScreenToWorldPoint(touch.screenPosition);
+        Vector2 worldPos = cam.ScreenToWorldPoint(touch.screenPosition);  //экранные в мировые сцены координаты
 
         // если тап по юниту — НЕ двигаем
-        RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero);
-        if (hit.collider != null && hit.collider.GetComponent<UnitSelectable>() != null)
+        RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero);  //проверка если там юнит 
+        if (hit.collider != null && hit.collider.GetComponent<UnitSelectable>() != null)  //выделеем 
             return;
 
-        IssueMoveCommand(worldPos);
+        IssueMoveCommand(worldPos);  //команды идти в точку 
     }
 
     private void IssueMoveCommand(Vector2 targetPos)
     {
-        var selectedUnits = selectionSystem.GetSelectedUnits();
-        if (selectedUnits.Count == 0)
+        var selectedUnits = selectionSystem.GetSelectedUnits();  //список выделеных юнитов 
+        if (selectedUnits.Count == 0)  //если пустой выход
             return;
 
-        float spacing = 0.8f;
+        float spacing = 0.8f;  //растояние между юнитами 
 
-        var positions = FormationCalculator.GetSquareFormation(
-            targetPos,
-            selectedUnits.Count,
-            spacing
+        var positions = FormationCalculator.GetSquareFormation(   //расчитываем позиции для каждого юнита 
+            targetPos,  //центр
+            selectedUnits.Count,  //количество юнитов
+            spacing  //расстояние между ними
         );
 
-        for (int i = 0; i < selectedUnits.Count; i++)
+        for (int i = 0; i < selectedUnits.Count; i++)  //для каждого юнита 
         {
-            var movement = selectedUnits[i].GetComponent<UnitMovement>();
+            var movement = selectedUnits[i].GetComponent<UnitMovement>();  //получаем движение 
             if (movement != null)
                 movement.MoveTo(positions[i]);
         }

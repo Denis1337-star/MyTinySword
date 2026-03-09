@@ -1,14 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 [RequireComponent(typeof(UnitMovement))]
 public class SheepAI : MonoBehaviour
 {
-    [Header("Settings")]
     [SerializeField] private float eatTime = 3f;
-
-    [Header("Territory")]
     [SerializeField] private SheepTerritory territory;
 
     private UnitMovement movement;
@@ -17,21 +15,21 @@ public class SheepAI : MonoBehaviour
     private float timer;
     private bool isEating;
     private bool frozen;
+    private Vector2 targetPoint;
 
     private void Awake()
     {
         movement = GetComponent<UnitMovement>();
         animator = GetComponent<Animator>();
-
-        if (territory == null)
-        {
-            Debug.LogError($"Sheep {name} has no territory assigned!");
-        }
     }
 
-    private void Start()
+    private IEnumerator Start()
     {
-        GoToRandomPoint();
+        yield return new WaitUntil(() =>
+            GetComponent<NavMeshAgent>().isOnNavMesh
+        );
+
+        MoveToNewPoint();
     }
 
     private void Update()
@@ -41,7 +39,7 @@ public class SheepAI : MonoBehaviour
 
         animator.SetBool("IsMoving", movement.HasTarget);
 
-        if (!movement.HasTarget && !isEating)
+        if (!isEating && IsAtTarget())
         {
             isEating = true;
             timer = eatTime;
@@ -54,9 +52,34 @@ public class SheepAI : MonoBehaviour
             if (timer <= 0f)
             {
                 isEating = false;
-                GoToRandomPoint();
+                MoveToNewPoint();
             }
         }
+    }
+
+    private bool IsAtTarget()
+    {
+        return Vector2.Distance(transform.position, targetPoint) < 0.2f;
+    }
+
+    private void MoveToNewPoint()
+    {
+        if (territory == null)
+            return;
+
+        for (int i = 0; i < 5; i++) // 5 попыток найти точку
+        {
+            Vector2 random = territory.GetRandomPoint();
+
+            if (NavMesh.SamplePosition(random, out NavMeshHit hit, 3f, NavMesh.AllAreas))
+            {
+                targetPoint = hit.position;
+                movement.MoveTo(hit.position);
+                return;
+            }
+        }
+
+        Debug.LogWarning("Sheep: no valid NavMesh point in territory");
     }
 
     public void SetFrozen(bool value)
@@ -64,21 +87,8 @@ public class SheepAI : MonoBehaviour
         frozen = value;
 
         if (value)
-        {
             movement.Stop();
-        }
         else
-        {
-            GoToRandomPoint();
-        }
-    }
-
-    private void GoToRandomPoint()
-    {
-        if (territory == null)
-            return;
-
-        Vector2 point = territory.GetRandomPoint();
-        movement.MoveTo(point);
+            MoveToNewPoint();
     }
 }

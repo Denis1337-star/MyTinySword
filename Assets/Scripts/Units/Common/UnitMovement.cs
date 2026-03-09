@@ -6,8 +6,15 @@ using UnityEngine.AI;
 public class UnitMovement : MonoBehaviour
 {
     private NavMeshAgent agent;
-
-    public bool HasTarget => agent.hasPath;
+    public bool HasTarget
+    {
+        get
+        {
+            if (!agent.isOnNavMesh) return false;
+            if (agent.pathPending) return true;
+            return agent.remainingDistance > agent.stoppingDistance;
+        }
+    }
 
     private void Awake()
     {
@@ -15,15 +22,45 @@ public class UnitMovement : MonoBehaviour
 
         agent.updateRotation = false;
         agent.updateUpAxis = false;
+        agent.stoppingDistance = 0.05f;
+
+        PlaceOnNavMesh();
+    }
+
+    private void PlaceOnNavMesh()
+    {
+        if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 5f, NavMesh.AllAreas))
+        {
+            agent.Warp(hit.position);
+        }
+        else
+        {
+            Debug.LogError($"[{name}] NOT ON NAVMESH at start!");
+        }
     }
 
     public void MoveTo(Vector2 position)
     {
-        agent.SetDestination(position);
+        if (!agent.isOnNavMesh)
+        {
+            PlaceOnNavMesh();
+            if (!agent.isOnNavMesh) return;
+        }
+
+        if (NavMesh.SamplePosition(position, out NavMeshHit hit, 3f, NavMesh.AllAreas))
+        {
+            agent.SetDestination(hit.position);
+        }
+        else
+        {
+            Debug.LogWarning($"NavMesh point not found near {position}");
+        }
     }
 
     public void Stop()
     {
-        agent.ResetPath();
+        if (agent.isOnNavMesh)
+            agent.ResetPath();
     }
+
 }

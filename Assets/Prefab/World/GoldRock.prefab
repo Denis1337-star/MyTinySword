@@ -28,9 +28,54 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 5366408372180029333}
   m_Father: {fileID: 1637480760895373404}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5215887399480001551
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5366408372180029333}
+  - component: {fileID: 4298725028402502053}
+  m_Layer: 0
+  m_Name: Slot_1
+  m_TagString: Untagged
+  m_Icon: {fileID: 2488908585195742037, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5366408372180029333
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5215887399480001551}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5715615458045530650}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4298725028402502053
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5215887399480001551}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db6e3d0d22a37104fb035b12cad06af7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6329343067960642189
 GameObject:
   m_ObjectHideFlags: 0
@@ -44,6 +89,7 @@ GameObject:
   - component: {fileID: 6018133388493416482}
   - component: {fileID: 1966730817650815987}
   - component: {fileID: 5836224796505599117}
+  - component: {fileID: 4721321524432157419}
   m_Layer: 0
   m_Name: GoldRock
   m_TagString: Untagged
@@ -197,10 +243,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d2ecd26fc1500c4ab524e272c97190d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  workPoint: {fileID: 5715615458045530650}
+  workSlots:
+  - {fileID: 4298725028402502053}
   mineTime: 3
-  respawnTime: 15
-  growInterval: 5
+  respawnTime: 60
+  growInterval: 20
   sizeSprites:
   - {fileID: 21300000, guid: 67d30015e15234b60a2097cd3001c423, type: 3}
   - {fileID: 21300000, guid: 79eb76530889a4283aab87921fff68cf, type: 3}
@@ -208,4 +255,20 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 9f6c33a01ddca41df86e012fd10f4d76, type: 3}
   - {fileID: 21300000, guid: 099a3e9fd39fd40efa61fb2fa8acf5f6, type: 3}
   - {fileID: 21300000, guid: 5a4aa1c2f2ac84011bdacd0445d7cf5b, type: 3}
-  animator: {fileID: 0}
+  animator: {fileID: 1966730817650815987}
+--- !u!208 &4721321524432157419
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6329343067960642189}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 0.5, y: 0.5, z: 0.1}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 1
+  m_Center: {x: 0, y: 0.15, z: 0}
+  m_TimeToStationary: 0.5

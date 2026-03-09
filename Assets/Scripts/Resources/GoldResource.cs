@@ -6,26 +6,23 @@ using UnityEngine;
 
 public class GoldResource : ResourceNodeBase
 {
-    [Header("Positions")]
-    [SerializeField] private Transform workPoint;
-
     [Header("Timing")]
     [SerializeField] private float mineTime = 3f;
     [SerializeField] private float respawnTime = 15f;
     [SerializeField] private float growInterval = 5f;
 
     [Header("Visuals")]
-    [SerializeField] private Sprite[] sizeSprites; // 0 = Tiny ... 5 = Giant
+    [SerializeField] private Sprite[] sizeSprites; 
     [SerializeField] private Animator animator;
 
     private SpriteRenderer sr;
     private ResourceSize size = ResourceSize.Tiny;
-    public override Vector2 WorkPosition => workPoint.position;
+
     public override int Priority => 8;
+    public override Vector2 WorkPosition => workSlots[0].Position;
 
     private void Awake()
     {
-        animator = GetComponent<Animator>();
         sr = GetComponent<SpriteRenderer>();
         UpdateVisual();
         StartCoroutine(GrowRoutine());
@@ -45,13 +42,12 @@ public class GoldResource : ResourceNodeBase
     {
         yield return new WaitForSeconds(mineTime);
 
+        int amount = (int)size;
         sr.enabled = false;
-        callback?.Invoke((int)size);
 
-        reservedBy = null;
+        callback?.Invoke(amount);
 
         yield return new WaitForSeconds(respawnTime);
-
         Respawn();
     }
 
