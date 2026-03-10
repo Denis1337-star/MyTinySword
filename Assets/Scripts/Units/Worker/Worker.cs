@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.AI;
 
 
 public enum WorkerState
@@ -34,6 +33,8 @@ public class Worker : MonoBehaviour
 
     public WorkerJobType CurrentJob { get; private set; } = WorkerJobType.None;
     private WorkerJobType queuedJob = WorkerJobType.None;
+
+    private IWorkerJob currentJobLogic;
 
     private UnitMovement movement;
     private WorkerAnimator animator;
@@ -69,7 +70,7 @@ public class Worker : MonoBehaviour
                     if (targetSlot != null)
                     {
                         SetState(WorkerState.Working);
-                        animator.PlayWork(CurrentJob);
+                        animator.PlayAction(WorkerAction.Work);
                         targetResource.StartWork(OnResourceFinished);
                     }
                     else
@@ -104,7 +105,9 @@ public class Worker : MonoBehaviour
     private void StartNewJob(WorkerJobType job)
     {
         ReleaseResource();
+
         CurrentJob = job;
+        currentJobLogic = WorkerJobFactory.Create(job);
         queuedJob = WorkerJobType.None;
 
         OnJobChanged?.Invoke(this);
@@ -115,7 +118,7 @@ public class Worker : MonoBehaviour
     {
         ReleaseResource();
 
-        targetResource = FindResourceForJob();
+        targetResource = currentJobLogic?.FindResource(transform.position);
 
         if (targetResource == null)
         {
@@ -131,7 +134,7 @@ public class Worker : MonoBehaviour
         }
 
         SetState(WorkerState.GoingToResource);
-        animator.SetTool(CurrentJob);
+        animator.SetEquipment(GetToolForJob());
         movement.MoveTo(targetSlot.Position);
     }
 
@@ -140,18 +143,19 @@ public class Worker : MonoBehaviour
         carriedAmount = amount;
         ReleaseResource();
 
-        animator.SetCarry(CurrentJob);
+        animator.SetEquipment(GetCarryForJob());
         SetState(WorkerState.CarryingToHouse);
         movement.MoveTo(targetHouse.DropPoint);
     }
 
     private IEnumerator UnloadRoutine()
     {
-        animator.SetIdle();
+        animator.PlayAction(WorkerAction.Idle);
+        animator.SetEquipment(EquipmentType.None);
 
         yield return new WaitForSeconds(unloadDuration);
 
-        GiveResources();
+        currentJobLogic?.GiveReward(carriedAmount);
         carriedAmount = 0;
 
         if (queuedJob != WorkerJobType.None)
@@ -159,23 +163,6 @@ public class Worker : MonoBehaviour
         else
             TryFindNextResource();
     }
-
-    private void GiveResources()
-    {
-        switch (CurrentJob)
-        {
-            case WorkerJobType.ChopWood:
-                ResourceStorage.Instance.AddWood(carriedAmount);
-                break;
-            case WorkerJobType.MineGold:
-                ResourceStorage.Instance.AddGold(carriedAmount);
-                break;
-            case WorkerJobType.HuntMeat:
-                ResourceStorage.Instance.AddMeat(carriedAmount);
-                break;
-        }
-    }
-
     private void ReleaseResource()
     {
         if (targetResource != null)
@@ -193,7 +180,8 @@ public class Worker : MonoBehaviour
     private void SetIdle()
     {
         SetState(WorkerState.Idle);
-        animator.SetIdle();
+        animator.PlayAction(WorkerAction.Idle);
+        animator.SetEquipment(EquipmentType.None);
         movement.MoveTo(targetHouse.GetIdlePosition(this));
     }
     public void SetHome(House house)
@@ -205,22 +193,27 @@ public class Worker : MonoBehaviour
         if (targetSlot == null)
             return false;
 
-        float distance = Vector2.Distance(
-            transform.position,
-            targetSlot.Position
-        );
-
-        return distance <= 0.15f;
+        return Vector2.Distance(transform.position, targetSlot.Position) <= 0.15f;
     }
-
-    private ResourceNodeBase FindResourceForJob()
+    private EquipmentType GetToolForJob()
     {
         return CurrentJob switch
         {
-            WorkerJobType.ChopWood => ResourceFinder.FindBest<TreeResource>(transform.position),
-            WorkerJobType.MineGold => ResourceFinder.FindBest<GoldResource>(transform.position),
-            WorkerJobType.HuntMeat => ResourceFinder.FindBest<SheepResource>(transform.position),
-            _ => null
+            WorkerJobType.ChopWood => EquipmentType.Axe,
+            WorkerJobType.MineGold => EquipmentType.Pickaxe,
+            WorkerJobType.HuntMeat => EquipmentType.Knife,
+            _ => EquipmentType.None
+        };
+    }
+
+    private EquipmentType GetCarryForJob()
+    {
+        return CurrentJob switch
+        {
+            WorkerJobType.ChopWood => EquipmentType.Wood,
+            WorkerJobType.MineGold => EquipmentType.Gold,
+            WorkerJobType.HuntMeat => EquipmentType.Meat,
+            _ => EquipmentType.None
         };
     }
 }
