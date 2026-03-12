@@ -57,9 +57,12 @@ public class SelectionSystem : MonoBehaviour
 
         if (hit.collider != null)
         {
+            Debug.Log("Tap hit: " + hit.collider.name);
+
             UnitSelectable selectable = hit.collider.GetComponentInParent<UnitSelectable>();
             if (selectable != null)
             {
+                Debug.Log("Selected unit: " + selectable.name);
                 Select(selectable);
                 return;
             }
@@ -67,6 +70,7 @@ public class SelectionSystem : MonoBehaviour
             HouseSelectable houseSelectable = hit.collider.GetComponentInParent<HouseSelectable>();
             if (houseSelectable != null)
             {
+                Debug.Log("Selected house: " + houseSelectable.name);
                 ClearSelection();
                 housePanel.Show(houseSelectable.GetHouse());
                 return;
@@ -78,25 +82,43 @@ public class SelectionSystem : MonoBehaviour
 
     private void Select(UnitSelectable selectable)
     {
-        if (currentSelection == selectable)
+        if (selectable == null)
             return;
+
+        // если уже выбран этот же объект — просто обновляем панель
+        if (currentSelection == selectable)
+        {
+            Worker sameWorker = selectable.GetComponentInParent<Worker>();
+            if (sameWorker != null)
+                workerCommandPanel.ShowForWorker(sameWorker);
+
+            House sameHouse = selectable.GetComponentInParent<House>();
+            if (sameHouse != null)
+                housePanel.Show(sameHouse);
+
+            return;
+        }
 
         ClearSelection();
 
         currentSelection = selectable;
-        selectable.Select();
         selectedUnits.Add(selectable);
+        selectable.Select();
 
-        if (selectable.TryGetComponent(out Worker worker))
+        Worker worker = selectable.GetComponentInParent<Worker>();
+        if (worker != null)
         {
             workerCommandPanel.ShowForWorker(worker);
             focusController?.FocusOn(worker.transform);
+            return;
         }
 
-        if (selectable.TryGetComponent(out House house))
+        House house = selectable.GetComponentInParent<House>();
+        if (house != null)
         {
             housePanel.Show(house);
         }
+
     }
 
     public void SelectWorkerFromUI(Worker worker)
