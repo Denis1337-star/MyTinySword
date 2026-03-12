@@ -18,7 +18,7 @@ public class SheepResource : ResourceNodeBase
 
     private SheepAI sheepAI;
 
-    public override int Priority => 1;
+    public override float Priority => 1;
     public override Vector2 WorkPosition => workSlots[0].Position;
 
     private void Awake()

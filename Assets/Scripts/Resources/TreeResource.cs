@@ -16,7 +16,7 @@ public class TreeResource : ResourceNodeBase
     private SpriteRenderer sr;
     private Animator animator;
     public override Vector2 WorkPosition => workSlots[0].Position;
-    public override int Priority => 10;
+    public override float Priority => 10;
 
     private void Awake()
     {

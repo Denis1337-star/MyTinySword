@@ -18,7 +18,7 @@ public class GoldResource : ResourceNodeBase
     private SpriteRenderer sr;
     private ResourceSize size = ResourceSize.Tiny;
 
-    public override int Priority => 8;
+    public override float Priority => 8;
     public override Vector2 WorkPosition => workSlots[0].Position;
 
     private void Awake()

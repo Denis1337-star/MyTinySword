@@ -10,6 +10,7 @@ public class HouseSelectable : MonoBehaviour
     private void Awake()
     {
         house = GetComponent<House>();
+        GetHouse();
     }
 
     public House GetHouse()

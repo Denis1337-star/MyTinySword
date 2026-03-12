@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,11 +9,17 @@ public class ResourceRegistry : MonoBehaviour
 
     private void Awake()
     {
+        if (Instance != null)
+        {
+            Destroy(gameObject);
+            return;
+        }
         Instance = this;
     }
 
     public void Register(IResourceNode node)
     {
+        Debug.Log("Register resource: " + node);
         if (!nodes.Contains(node))
             nodes.Add(node);
     }

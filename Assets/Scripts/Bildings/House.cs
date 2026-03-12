@@ -25,6 +25,9 @@ public class House : MonoBehaviour
     [SerializeField] private int woodIncreasePerWorker = 2;
     [SerializeField] private int goldIncreasePerWorker = 1;
 
+    [Header("Start Workers")]
+    [SerializeField] private int startWorkers = 1;
+
     private readonly List<Transform> idlePoints = new();
     private readonly Dictionary<Worker, Transform> occupiedIdlePoints = new();
 
@@ -37,6 +40,27 @@ public class House : MonoBehaviour
     {
         foreach (Transform child in idlePointsRoot)
             idlePoints.Add(child);
+    }
+    private void Start()
+    {
+        for (int i = 0; i < startWorkers; i++)
+        {
+            SpawnWorker();
+        }
+    }
+    private Worker SpawnWorker()
+    {
+        Worker worker = Instantiate(workerPrefab, spawnPoint.position, Quaternion.identity);
+
+        worker.SetHome(this);
+
+        var selectable = worker.GetComponent<UnitSelectable>();
+        if (selectable == null) selectable = worker.gameObject.AddComponent<UnitSelectable>();
+
+        Vector2 idlePos = GetIdlePosition(worker);
+        worker.transform.position = idlePos;
+
+        return worker;
     }
 
     #region Hire
@@ -67,13 +91,7 @@ public class House : MonoBehaviour
             CurrentGoldCost
         );
 
-        Worker worker = Instantiate(workerPrefab, spawnPoint.position, Quaternion.identity);
-        worker.SetHome(this);
-
-        Vector2 idlePos = GetIdlePosition(worker);
-        worker.transform.position = idlePos;
-        //Worker worker = Instantiate(workerPrefab, spawnPoint.position, Quaternion.identity);
-        //worker.SetHome(this);
+        SpawnWorker();
 
         OnWorkersChanged?.Invoke();
     }

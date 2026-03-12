@@ -24,7 +24,7 @@ public class SelectionSystem : MonoBehaviour
     private void Awake()
     {
         cam = Camera.main;
-        focusController = FindAnyObjectByType<CameraFocusController>();
+        focusController = GameServices.Instance.GetComponent<CameraFocusController>();
     }
 
     private void Update()
@@ -92,11 +92,13 @@ public class SelectionSystem : MonoBehaviour
         {
             workerCommandPanel.ShowForWorker(worker);  //открывает панель
             focusController?.FocusOn(worker.transform);  //фокусируем камеру
+            return;
         }
 
         if (selectable.TryGetComponent(out House house))  //если дом
         {
             housePanel.Show(house);  //открывает панель дома
+            return;
         }
     }
 

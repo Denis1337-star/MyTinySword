@@ -5,17 +5,21 @@ using UnityEngine;
 
 public static class ResourceFinder
 {
-    public static T FindBest<T>(Vector2 from) where T : class, IResourceNode
+    public static T FindBest<T>(Vector2 from) where T : ResourceNodeBase
     {
         T best = null;
         float bestScore = float.MinValue;
 
         foreach (var node in ResourceRegistry.Instance.Nodes)
         {
-            if (node is not T typed || !node.IsAvailable)
+            if (node is not T typed)
                 continue;
 
-            float dist = Vector2.Distance(from, node.WorkPosition);
+            var freeSlot = typed.GetFreeSlot(null); // проверяем доступность слота
+            if (freeSlot == null)
+                continue; // нет свободных слотов → пропускаем
+
+            float dist = Vector2.Distance(from, typed.WorkPosition);
             float score = typed.Priority * 100f - dist;
 
             if (score > bestScore)

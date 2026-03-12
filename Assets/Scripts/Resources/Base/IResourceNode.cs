@@ -5,9 +5,16 @@ public interface IResourceNode
 {
     bool IsAvailable { get; }
     Vector2 WorkPosition { get; }
-    int Priority { get; }
 
-    void StartWork(Action<int> onFinished);
+    bool TryStartWork(Worker worker, Action<int> onFinished);
+    Vector2 GetWorkPosition(Worker worker);
+    void CancelWork(Worker worker);
+    float Priority { get; }
+    //bool IsAvailable { get; }
+    //Vector2 WorkPosition { get; }
+    //int Priority { get; }
+
+    //void StartWork(Action<int> onFinished);
 }
 public enum ResourceSize
 {
