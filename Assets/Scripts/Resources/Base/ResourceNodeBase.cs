@@ -10,6 +10,15 @@ public abstract class ResourceNodeBase : MonoBehaviour, IResourceNode
 
     public abstract int Priority { get; }
     public abstract Vector2 WorkPosition { get; }
+    protected virtual void OnEnable()
+    {
+        ResourceRegistry.Instance?.Register(this);
+    }
+
+    protected virtual void OnDisable()
+    {
+        ResourceRegistry.Instance?.Unregister(this);
+    }
 
     public virtual WorkSlot GetFreeSlot(Worker worker)
     {
@@ -28,4 +37,5 @@ public abstract class ResourceNodeBase : MonoBehaviour, IResourceNode
     }
 
     public abstract void StartWork(Action<int> onFinished);
+   
 }

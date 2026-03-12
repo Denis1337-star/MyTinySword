@@ -72,6 +72,8 @@ public class House : MonoBehaviour
 
         Vector2 idlePos = GetIdlePosition(worker);
         worker.transform.position = idlePos;
+        //Worker worker = Instantiate(workerPrefab, spawnPoint.position, Quaternion.identity);
+        //worker.SetHome(this);
 
         OnWorkersChanged?.Invoke();
     }

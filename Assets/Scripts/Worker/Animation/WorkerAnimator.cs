@@ -49,36 +49,47 @@ public class WorkerAnimator : MonoBehaviour
         switch (equipment)
         {
             case EquipmentType.Axe:
-                animator.SetBool("HasAxe", true);
+                animator.SetFloat("Equipment", 1);
+               // animator.SetBool("HasAxe", true);
                 break;
             case EquipmentType.Pickaxe:
-                animator.SetBool("HasPickaxe", true);
+                animator.SetFloat("Equipment", 2);
+               // animator.SetBool("HasPickaxe", true);
                 break;
             case EquipmentType.Knife:
-                animator.SetBool("HasKnife", true);
+                animator.SetFloat("Equipment", 3);
+               // animator.SetBool("HasKnife", true);
                 break;
 
             case EquipmentType.Wood:
-                animator.SetBool("HasWood", true);
+                animator.SetFloat("Equipment", 4);
+               // animator.SetBool("HasWood", true);
                 break;
             case EquipmentType.Gold:
-                animator.SetBool("HasGold", true);
+                animator.SetFloat("Equipment", 5);
+              //  animator.SetBool("HasGold", true);
                 break;
             case EquipmentType.Meat:
-                animator.SetBool("HasMeat", true);
+                animator.SetFloat("Equipment", 6);
+               // animator.SetBool("HasMeat", true);
+                break;
+            case EquipmentType.None:
+                animator.SetFloat("Equipment", 0);
+                // animator.SetBool("HasWood", true);
                 break;
         }
     }
 
     private void ResetEquipment()
     {
-        animator.SetBool("HasAxe", false);
-        animator.SetBool("HasPickaxe", false);
-        animator.SetBool("HasKnife", false);
+        animator.SetFloat("Equipment", 0);
+        //animator.SetBool("HasAxe", false);
+        //animator.SetBool("HasPickaxe", false);
+        //animator.SetBool("HasKnife", false);
 
-        animator.SetBool("HasWood", false);
-        animator.SetBool("HasGold", false);
-        animator.SetBool("HasMeat", false);
+        //animator.SetBool("HasWood", false);
+        //animator.SetBool("HasGold", false);
+        //animator.SetBool("HasMeat", false);
     }
 }
 

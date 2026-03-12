@@ -41,8 +41,8 @@ public class Worker : MonoBehaviour
 
     private ResourceNodeBase targetResource;
     private WorkSlot targetSlot;
-    private House targetHouse;
     private int carriedAmount;
+    private House targetHouse;
 
     private void Awake()
     {
@@ -187,6 +187,9 @@ public class Worker : MonoBehaviour
     public void SetHome(House house)
     {
         targetHouse = house;
+        // сразу отправляем на idle
+        //Vector2 idlePos = targetHouse.GetIdlePosition(this);
+        //movement.MoveTo(idlePos);
     }
     private bool IsAtWorkSlot()
     {

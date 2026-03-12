@@ -2,7 +2,6 @@ using Cinemachine;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem.EnhancedTouch;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 public class CameraFocusController : MonoBehaviour
