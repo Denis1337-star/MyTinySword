@@ -13,7 +13,7 @@ public class WorkerIdleState : IWorkerState
 
     public void Enter()
     {
-        worker.Animator.PlayAction(WorkerAction.Idle);
+        worker.Animator.SetWorking(false);
         worker.Animator.SetEquipment(EquipmentType.None);
 
         worker.Movement.MoveTo(

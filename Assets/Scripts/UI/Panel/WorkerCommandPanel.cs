@@ -8,6 +8,7 @@ public class WorkerCommandPanel : MonoBehaviour
     [SerializeField] private Button chopWoodButton;
     [SerializeField] private Button mineGoldButton;
     [SerializeField] private Button huntMeatButton;
+    [SerializeField] private SelectionSystem selectionSystem;
 
     private Worker currentWorker;
 
@@ -31,7 +32,9 @@ public class WorkerCommandPanel : MonoBehaviour
     public void Hide()
     {
         currentWorker = null;
+        selectionSystem.ClearSelection();
         gameObject.SetActive(false);
+        
     }
 
     public void OnChopWoodClicked()

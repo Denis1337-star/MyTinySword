@@ -18,7 +18,7 @@ public static class ResourceFinder
             if (node is not T typed || !typed.IsAvailable)
                 continue;
 
-            float dist = Vector2.Distance(from, typed.GetWorkPosition(null));
+            float dist = Vector2.Distance(from, typed.WorkPosition);
             float score = typed.Priority * 100f - dist;
 
             if (score > bestScore)

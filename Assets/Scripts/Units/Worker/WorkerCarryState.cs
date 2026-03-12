@@ -13,6 +13,7 @@ public class WorkerCarryState : IWorkerState
 
     public void Enter()
     {
+        worker.Animator.SetWorking(false);
         worker.Animator.SetEquipment(GetCarry());
         worker.Movement.MoveTo(worker.Home.DropPoint);
     }

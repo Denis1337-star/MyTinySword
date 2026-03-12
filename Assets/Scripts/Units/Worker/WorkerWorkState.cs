@@ -19,7 +19,7 @@ public class WorkerWorkState : IWorkerState
             return;
         }
 
-        worker.Animator.PlayAction(WorkerAction.Work);
+        worker.Animator.SetWorking(true);
 
         bool started = worker.TargetResource.TryStartWork(worker, OnFinished);
 
@@ -34,6 +34,7 @@ public class WorkerWorkState : IWorkerState
 
     private void OnFinished(int amount)
     {
+        worker.Animator.SetWorking(false);
         worker.CarriedAmount = amount;
 
         if (worker.TargetResource != null)

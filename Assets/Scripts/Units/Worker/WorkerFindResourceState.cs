@@ -18,7 +18,7 @@ public class WorkerFindResourceState : IWorkerState
             worker.ChangeState(new WorkerIdleState(worker));
             return;
         }
-
+        worker.Animator.SetWorking(false);
         worker.TargetResource = worker.CurrentJobLogic.FindResource(worker.transform.position);
 
         if (worker.TargetResource == null)

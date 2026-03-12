@@ -13,7 +13,7 @@ public class WorkerUnloadState : IWorkerState
 
     public void Enter()
     {
-        worker.Animator.PlayAction(WorkerAction.Idle);
+        worker.Animator.SetWorking(false);
 
         if (worker.CurrentJobLogic != null && worker.CarriedAmount > 0)
             worker.CurrentJobLogic.GiveReward(worker.CarriedAmount);

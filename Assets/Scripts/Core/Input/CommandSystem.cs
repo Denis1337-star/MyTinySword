@@ -49,23 +49,19 @@ public class CommandSystem : MonoBehaviour
 
     private void IssueMoveCommand(Vector2 targetPos)
     {
-        var selectedUnits = selectionSystem.GetSelectedUnits();  //список выделеных юнитов 
-        if (selectedUnits.Count == 0)  //если пустой выход
+        var selectedUnits = selectionSystem.GetSelectedUnits();
+        if (selectedUnits.Count == 0)
             return;
 
-        float spacing = 0.8f;  //растояние между юнитами 
-
-        var positions = FormationCalculator.GetSquareFormation(   //расчитываем позиции для каждого юнита 
-            targetPos,  //центр
-            selectedUnits.Count,  //количество юнитов
-            spacing  //расстояние между ними
-        );
-
-        for (int i = 0; i < selectedUnits.Count; i++)  //для каждого юнита 
+        foreach (var selectable in selectedUnits)
         {
-            var movement = selectedUnits[i].GetComponent<UnitMovement>();  //получаем движение 
+            // Рабочих руками не двигаем
+            if (selectable.TryGetComponent(out Worker worker))
+                continue;
+
+            var movement = selectable.GetComponent<UnitMovement>();
             if (movement != null)
-                movement.MoveTo(positions[i]);
+                movement.MoveTo(targetPos);
         }
     }
 }
