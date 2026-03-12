@@ -21,15 +21,23 @@ public class HousePanel : MonoBehaviour
     public void Show(House house)
     {
         if (house == null)
+            return;
+
+        if (currentHouse == house && gameObject.activeSelf)
         {
-            Debug.LogError("HousePanel.Show received null house!");
+            Refresh();
             return;
         }
+
+        Hide();
+
         currentHouse = house;
         gameObject.SetActive(true);
 
         currentHouse.OnWorkersChanged += Refresh;
-        ResourceStorage.Instance.OnResourcesChanged += Refresh;
+
+        if (ResourceStorage.Instance != null)
+            ResourceStorage.Instance.OnResourcesChanged += Refresh;
 
         Refresh();
     }
@@ -39,30 +47,34 @@ public class HousePanel : MonoBehaviour
         if (currentHouse != null)
         {
             currentHouse.OnWorkersChanged -= Refresh;
-            ResourceStorage.Instance.OnResourcesChanged -= Refresh;
+
+            if (ResourceStorage.Instance != null)
+                ResourceStorage.Instance.OnResourcesChanged -= Refresh;
         }
 
         currentHouse = null;
         gameObject.SetActive(false);
     }
+
     private void OnDisable()
     {
         if (currentHouse != null)
         {
             currentHouse.OnWorkersChanged -= Refresh;
-            ResourceStorage.Instance.OnResourcesChanged -= Refresh;
+
+            if (ResourceStorage.Instance != null)
+                ResourceStorage.Instance.OnResourcesChanged -= Refresh;
         }
     }
-
 
     private void Refresh()
     {
         if (currentHouse == null)
-            return; // панель закрыта или не назначена
+            return;
 
         limitText.text = $"Нанято {currentHouse.CurrentWorkers} / {currentHouse.MaxWorkers}";
         hireButton.interactable = currentHouse.CanHire();
-        costText.text = $"Для найма - Дерево: {currentHouse.CurrentWoodCost} / Золото: {currentHouse.CurrentGoldCost}"; 
+        costText.text = $"Для найма - Дерево: {currentHouse.CurrentWoodCost} / Золото: {currentHouse.CurrentGoldCost}";
         workerList.Refresh();
     }
 

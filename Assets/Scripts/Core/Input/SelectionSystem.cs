@@ -15,11 +15,10 @@ public class SelectionSystem : MonoBehaviour
     [SerializeField] private LayerMask ignoreRaycastLayer;
 
     private Camera cam;
-    private UnitSelectable currentSelection;  //текущий выделеный юнит
+    private UnitSelectable currentSelection;
     private CameraFocusController focusController;
 
-
-    private readonly List<UnitSelectable> selectedUnits = new();  //список всех выделеных юнитов
+    private readonly List<UnitSelectable> selectedUnits = new();
 
     private void Awake()
     {
@@ -34,99 +33,95 @@ public class SelectionSystem : MonoBehaviour
 
     private void HandleTouch()
     {
-        if (Touch.activeTouches.Count == 0)  //если косаний нет = выход
+        if (Touch.activeTouches.Count == 0)
             return;
 
-        var touch = Touch.activeTouches[0];  //первое касание
+        var touch = Touch.activeTouches[0];
 
-        if (touch.phase != TouchPhase.Ended) //обработка только завершеных косаний
+        if (touch.phase != TouchPhase.Ended)
             return;
 
         if (EventSystem.current != null &&
-            EventSystem.current.IsPointerOverGameObject(touch.touchId))  //проверка если находтся над UI = выход 
+            EventSystem.current.IsPointerOverGameObject(touch.touchId))
             return;
-         
-        ProcessTap(touch.screenPosition);  //передает позицию косания
+
+        ProcessTap(touch.screenPosition);
     }
 
     private void ProcessTap(Vector2 screenPos)
     {
-        Vector3 worldPos = cam.ScreenToWorldPoint(screenPos);  //координат косания в мировые Unity
-        int mask = ~ignoreRaycastLayer.value; //инвертируем маску 
+        Vector3 worldPos = cam.ScreenToWorldPoint(screenPos);
+        int mask = ~ignoreRaycastLayer.value;
 
-        RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero, 100f, mask);  //луч в точку косания с дистанцией в 100f
+        RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero, 100f, mask);
 
-        if (hit.collider != null)  //если попал в колайдер
+        if (hit.collider != null)
         {
-            //и это  Worker
-            if (hit.collider.TryGetComponent(out UnitSelectable selectable))
+            UnitSelectable selectable = hit.collider.GetComponentInParent<UnitSelectable>();
+            if (selectable != null)
             {
                 Select(selectable);
                 return;
             }
 
-            // и это House
-            if (hit.collider.TryGetComponent(out HouseSelectable houseSelectable))
+            HouseSelectable houseSelectable = hit.collider.GetComponentInParent<HouseSelectable>();
+            if (houseSelectable != null)
             {
+                ClearSelection();
                 housePanel.Show(houseSelectable.GetHouse());
                 return;
             }
         }
 
-        ClearSelection();  //если не один обьект не выделен (тап в пустое место_ сбрасывает)
+        ClearSelection();
     }
 
     private void Select(UnitSelectable selectable)
     {
-        if (currentSelection == selectable)  //если уже ввыделен = выход
+        if (currentSelection == selectable)
             return;
 
-        ClearSelection();  //сброс предыдущее выделение
+        ClearSelection();
 
-        currentSelection = selectable;  //новый выделеный обьект
-        selectable.Select();  
+        currentSelection = selectable;
+        selectable.Select();
+        selectedUnits.Add(selectable);
 
-        selectedUnits.Add(selectable);   //добавляем в список 
-
-        if (selectable.TryGetComponent(out Worker worker))  //если выделеный обьект = рабочий
+        if (selectable.TryGetComponent(out Worker worker))
         {
-            workerCommandPanel.ShowForWorker(worker);  //открывает панель
-            focusController?.FocusOn(worker.transform);  //фокусируем камеру
-            return;
+            workerCommandPanel.ShowForWorker(worker);
+            focusController?.FocusOn(worker.transform);
         }
 
-        if (selectable.TryGetComponent(out House house))  //если дом
+        if (selectable.TryGetComponent(out House house))
         {
-            housePanel.Show(house);  //открывает панель дома
-            return;
+            housePanel.Show(house);
         }
     }
 
-    public void SelectWorkerFromUI(Worker worker)  //выбрать рабочего из UI
+    public void SelectWorkerFromUI(Worker worker)
     {
         if (worker == null)
             return;
 
-        if (worker.TryGetComponent(out UnitSelectable selectable))  //получаем компонент у рабочего 
-            Select(selectable);  //вызов метода
+        if (worker.TryGetComponent(out UnitSelectable selectable))
+            Select(selectable);
     }
 
     public void ClearSelection()
     {
-        foreach (var unit in selectedUnits)  //снимает выделение с всех юнитов
+        foreach (var unit in selectedUnits)
             unit.Deselect();
 
-        selectedUnits.Clear();  //оищает список
-        currentSelection = null;  //текущее выделение очищает
+        selectedUnits.Clear();
+        currentSelection = null;
 
-        workerCommandPanel.Hide();  //скрывает панели
+        workerCommandPanel.Hide();
         housePanel.Hide();
-
-        focusController?.CancelFocus(); //отмета фокуса камеры
+        focusController?.CancelFocus();
     }
 
- 
-    public IReadOnlyList<UnitSelectable> GetSelectedUnits()  //возрощает неизменяемый список выделеных юнитов 
+    public IReadOnlyList<UnitSelectable> GetSelectedUnits()
     {
         return selectedUnits;
     }

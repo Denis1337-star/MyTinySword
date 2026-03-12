@@ -15,10 +15,15 @@ public class WorkerUnloadState : IWorkerState
     {
         worker.Animator.PlayAction(WorkerAction.Idle);
 
-        worker.CurrentJobLogic.GiveReward(worker.CarriedAmount);
+        if (worker.CurrentJobLogic != null && worker.CarriedAmount > 0)
+            worker.CurrentJobLogic.GiveReward(worker.CarriedAmount);
+
         worker.CarriedAmount = 0;
 
-        worker.ChangeState(new WorkerFindResourceState(worker));
+        if (worker.CurrentJob != WorkerJobType.None)
+            worker.ChangeState(new WorkerFindResourceState(worker));
+        else
+            worker.ChangeState(new WorkerIdleState(worker));
     }
 
     public void Update() { }

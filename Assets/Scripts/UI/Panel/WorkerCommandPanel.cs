@@ -9,22 +9,14 @@ public class WorkerCommandPanel : MonoBehaviour
     [SerializeField] private Button mineGoldButton;
     [SerializeField] private Button huntMeatButton;
 
-    [SerializeField] private SelectionSystem selectionSystem;
-
-
     private Worker currentWorker;
 
     private void Awake()
     {
-
         chopWoodButton.onClick.AddListener(OnChopWoodClicked);
         mineGoldButton.onClick.AddListener(OnMineGoldClicked);
-        huntMeatButton.onClick.AddListener (OnHuntMeatClicked);
+        huntMeatButton.onClick.AddListener(OnHuntMeatClicked);
         Hide();
-    }
-    private void OnDisable()
-    {
-        selectionSystem.ClearSelection();
     }
 
     public void ShowForWorker(Worker worker)
@@ -48,8 +40,9 @@ public class WorkerCommandPanel : MonoBehaviour
             return;
 
         currentWorker.AssignJob(WorkerJobType.ChopWood);
-        Hide(); 
+        Hide();
     }
+
     public void OnMineGoldClicked()
     {
         if (currentWorker == null)
@@ -58,9 +51,13 @@ public class WorkerCommandPanel : MonoBehaviour
         currentWorker.AssignJob(WorkerJobType.MineGold);
         Hide();
     }
+
     public void OnHuntMeatClicked()
     {
-        currentWorker?.AssignJob(WorkerJobType.HuntMeat);
+        if (currentWorker == null)
+            return;
+
+        currentWorker.AssignJob(WorkerJobType.HuntMeat);
         Hide();
     }
 }

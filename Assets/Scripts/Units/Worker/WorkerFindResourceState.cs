@@ -13,8 +13,13 @@ public class WorkerFindResourceState : IWorkerState
 
     public void Enter()
     {
-        worker.TargetResource =
-            worker.CurrentJobLogic.FindResource(worker.transform.position);
+        if (worker.CurrentJobLogic == null)
+        {
+            worker.ChangeState(new WorkerIdleState(worker));
+            return;
+        }
+
+        worker.TargetResource = worker.CurrentJobLogic.FindResource(worker.transform.position);
 
         if (worker.TargetResource == null)
         {
@@ -22,13 +27,16 @@ public class WorkerFindResourceState : IWorkerState
             return;
         }
 
-        worker.TargetSlot = worker.TargetResource.GetFreeSlot(worker); // присвоение слота
+        // явно резервируем слот и сохран€ем его в worker
+        worker.TargetSlot = worker.TargetResource.GetFreeSlot(worker);
+
         if (worker.TargetSlot == null)
         {
+            worker.TargetResource = null;
             worker.ChangeState(new WorkerIdleState(worker));
             return;
         }
-        // Ќастраиваем анимацию и идЄм к ресурсу
+
         worker.Animator.SetEquipment(GetTool());
         worker.Movement.MoveTo(worker.TargetSlot.Position);
         worker.ChangeState(new WorkerGoToResourceState(worker));

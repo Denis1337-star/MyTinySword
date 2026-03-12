@@ -5,7 +5,6 @@ using UnityEngine;
 public class WorkerWorkState : IWorkerState
 {
     private readonly Worker worker;
-    private bool isWorking;
 
     public WorkerWorkState(Worker worker)
     {
@@ -14,35 +13,36 @@ public class WorkerWorkState : IWorkerState
 
     public void Enter()
     {
-        worker.Animator.PlayAction(WorkerAction.Work);
-
         if (worker.TargetResource == null || worker.TargetSlot == null)
         {
             worker.ChangeState(new WorkerIdleState(worker));
             return;
         }
 
-        isWorking = worker.TargetResource.TryStartWork(worker, OnFinished);
+        worker.Animator.PlayAction(WorkerAction.Work);
 
-        if (!isWorking)
+        bool started = worker.TargetResource.TryStartWork(worker, OnFinished);
+
+        if (!started)
         {
-            // если ресурс не доступен Idle
-            worker.ChangeState(new WorkerIdleState(worker));
+            worker.TargetResource.CancelWork(worker);
+            worker.TargetResource = null;
+            worker.TargetSlot = null;
+            worker.ChangeState(new WorkerFindResourceState(worker));
         }
-
-       // worker.TargetResource.StartWork(OnFinished);
     }
 
     private void OnFinished(int amount)
     {
         worker.CarriedAmount = amount;
 
-        worker.TargetResource.CancelWork(worker);
+        if (worker.TargetResource != null)
+            worker.TargetResource.CancelWork(worker);
 
         worker.TargetResource = null;
         worker.TargetSlot = null;
-        worker.ChangeState(new WorkerCarryState(worker));
 
+        worker.ChangeState(new WorkerCarryState(worker));
     }
 
     public void Update() { }

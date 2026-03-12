@@ -7,19 +7,18 @@ public static class ResourceFinder
 {
     public static T FindBest<T>(Vector2 from) where T : ResourceNodeBase
     {
+        if (ResourceRegistry.Instance == null)
+            return null;
+
         T best = null;
         float bestScore = float.MinValue;
 
         foreach (var node in ResourceRegistry.Instance.Nodes)
         {
-            if (node is not T typed)
+            if (node is not T typed || !typed.IsAvailable)
                 continue;
 
-            var freeSlot = typed.GetFreeSlot(null); // проверяем доступность слота
-            if (freeSlot == null)
-                continue; // нет свободных слотов → пропускаем
-
-            float dist = Vector2.Distance(from, typed.WorkPosition);
+            float dist = Vector2.Distance(from, typed.GetWorkPosition(null));
             float score = typed.Priority * 100f - dist;
 
             if (score > bestScore)

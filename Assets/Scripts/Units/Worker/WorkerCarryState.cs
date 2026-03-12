@@ -21,9 +21,9 @@ public class WorkerCarryState : IWorkerState
     {
         if (!worker.Movement.HasTarget)
         {
-            worker.CurrentJobLogic.GiveReward(worker.CarriedAmount); // кладём ресурс
+            worker.CurrentJobLogic.GiveReward(worker.CarriedAmount); 
             worker.CarriedAmount = 0;
-            worker.ChangeState(new WorkerFindResourceState(worker)); // снова ищем ресурс
+            worker.ChangeState(new WorkerFindResourceState(worker)); 
         }
     }
 
