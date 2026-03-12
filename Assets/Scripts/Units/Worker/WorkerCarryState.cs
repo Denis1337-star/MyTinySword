@@ -22,9 +22,19 @@ public class WorkerCarryState : IWorkerState
     {
         if (!worker.Movement.HasTarget)
         {
-            worker.CurrentJobLogic.GiveReward(worker.CarriedAmount); 
+            if (worker.CurrentJobLogic != null && worker.CarriedAmount > 0)
+                worker.CurrentJobLogic.GiveReward(worker.CarriedAmount);
+
             worker.CarriedAmount = 0;
-            worker.ChangeState(new WorkerFindResourceState(worker)); 
+
+            // После сдачи сначала применяем новую отложенную профессию
+            if (worker.PendingJob != WorkerJobType.None)
+            {
+                worker.ApplyPendingJobIfAny();
+                return;
+            }
+
+            worker.ChangeState(new WorkerFindResourceState(worker));
         }
     }
 

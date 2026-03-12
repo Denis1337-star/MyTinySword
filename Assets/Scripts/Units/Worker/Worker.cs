@@ -23,19 +23,21 @@ public enum WorkerJobType
 [RequireComponent(typeof(UnitMovement))]
 public class Worker : MonoBehaviour
 {
-    public WorkerStateMachine StateMachine { get; private set; }
+   public WorkerStateMachine StateMachine { get; private set; }
     public UnitMovement Movement { get; private set; }
     public WorkerAnimator Animator { get; private set; }
     public House Home { get; private set; }
     public IWorkerJob CurrentJobLogic { get; private set; }
     public WorkerJobType CurrentJob { get; private set; }
 
+    public WorkerJobType PendingJob { get; private set; } = WorkerJobType.None;
+
     public ResourceNodeBase TargetResource { get; set; }
     public WorkSlot TargetSlot { get; set; }
     public int CarriedAmount { get; set; }
 
-    public event Action<Worker> OnJobChanged;
-    public event Action<Worker> OnActivityChanged;
+    public event Action OnJobChanged;
+    public event Action OnActivityChanged;
 
     private void Awake()
     {
@@ -70,6 +72,35 @@ public class Worker : MonoBehaviour
         if (Home == null)
             return;
 
+        // Если сейчас ничего не делает и не несёт ресурс — можно сразу переключать
+        bool canSwitchNow =
+            TargetResource == null &&
+            TargetSlot == null &&
+            CarriedAmount == 0 &&
+            !Movement.HasTarget;
+
+        if (canSwitchNow || CurrentJob == WorkerJobType.None)
+        {
+            ApplyJobImmediately(job);
+            return;
+        }
+
+        // Иначе ставим новую работу в очередь
+        PendingJob = job;
+    }
+
+    public void ApplyPendingJobIfAny()
+    {
+        if (PendingJob == WorkerJobType.None)
+            return;
+
+        WorkerJobType nextJob = PendingJob;
+        PendingJob = WorkerJobType.None;
+        ApplyJobImmediately(nextJob);
+    }
+
+    private void ApplyJobImmediately(WorkerJobType job)
+    {
         if (TargetResource != null)
             TargetResource.CancelWork(this);
 
@@ -80,13 +111,13 @@ public class Worker : MonoBehaviour
         CurrentJob = job;
         CurrentJobLogic = WorkerJobFactory.Create(job);
 
-        OnJobChanged?.Invoke(this);
+        OnJobChanged?.Invoke();
         ChangeState(new WorkerFindResourceState(this));
     }
 
     public void ChangeState(IWorkerState state)
     {
         StateMachine.ChangeState(state);
-        OnActivityChanged?.Invoke(this);
+        OnActivityChanged?.Invoke();
     }
 }

@@ -67,16 +67,11 @@ public class SelectionSystem : MonoBehaviour
             HouseSelectable houseSelectable = hit.collider.GetComponentInParent<HouseSelectable>();
             if (houseSelectable != null)
             {
-                House house = houseSelectable.GetHouse();
-                if (house != null)
-                {
-                    ClearSelection();
-                    housePanel.Show(house);
-                    return;
-                }
+                ClearSelection();
+                housePanel.Show(houseSelectable.GetHouse());
+                return;
             }
         }
-
         ClearSelection();
     }
 
@@ -88,7 +83,7 @@ public class SelectionSystem : MonoBehaviour
         Worker worker = selectable.GetComponentInParent<Worker>();
         House house = selectable.GetComponentInParent<House>();
 
-        // если ткнули в уже выбранный объект — просто заново открыть нужную панель
+        // Если тыкнули в уже выбранный объект — просто снова показать правильную панель
         if (currentSelection == selectable)
         {
             if (worker != null)
@@ -132,7 +127,8 @@ public class SelectionSystem : MonoBehaviour
         if (worker == null)
             return;
 
-        if (worker.TryGetComponent(out UnitSelectable selectable))
+        UnitSelectable selectable = worker.GetComponentInParent<UnitSelectable>();
+        if (selectable != null)
             Select(selectable);
     }
 
