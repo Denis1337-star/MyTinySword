@@ -17,7 +17,8 @@ public class WorkerCommandPanel : MonoBehaviour
         chopWoodButton.onClick.AddListener(OnChopWoodClicked);
         mineGoldButton.onClick.AddListener(OnMineGoldClicked);
         huntMeatButton.onClick.AddListener(OnHuntMeatClicked);
-        Hide();
+
+        gameObject.SetActive(false);
     }
 
     public void ShowForWorker(Worker worker)
@@ -32,7 +33,6 @@ public class WorkerCommandPanel : MonoBehaviour
     public void Hide()
     {
         currentWorker = null;
-        selectionSystem.ClearSelection();
         gameObject.SetActive(false);
         
     }
@@ -43,7 +43,7 @@ public class WorkerCommandPanel : MonoBehaviour
             return;
 
         currentWorker.AssignJob(WorkerJobType.ChopWood);
-        Hide();
+        selectionSystem.ClearSelection();
     }
 
     public void OnMineGoldClicked()
@@ -52,7 +52,7 @@ public class WorkerCommandPanel : MonoBehaviour
             return;
 
         currentWorker.AssignJob(WorkerJobType.MineGold);
-        Hide();
+        selectionSystem.ClearSelection();
     }
 
     public void OnHuntMeatClicked()
@@ -61,6 +61,6 @@ public class WorkerCommandPanel : MonoBehaviour
             return;
 
         currentWorker.AssignJob(WorkerJobType.HuntMeat);
-        Hide();
+        selectionSystem.ClearSelection();
     }
 }

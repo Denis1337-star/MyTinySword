@@ -116,8 +116,12 @@ public class SelectionSystem : MonoBehaviour
         selectedUnits.Clear();
         currentSelection = null;
 
-        workerCommandPanel.Hide();
-        housePanel.Hide();
+        if (workerCommandPanel != null && workerCommandPanel.gameObject.activeSelf)
+            workerCommandPanel.Hide();
+
+        if (housePanel != null && housePanel.gameObject.activeSelf)
+            housePanel.Hide();
+
         focusController?.CancelFocus();
     }
 
