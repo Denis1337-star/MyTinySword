@@ -19,11 +19,13 @@ public class WorkerGoToResourceState : IWorkerState
     {
         if (worker.TargetResource == null || worker.TargetSlot == null)
         {
-            worker.ChangeState(new WorkerIdleState(worker));
+            worker.GoIdle();
             return;
         }
 
-        if (Vector2.Distance(worker.transform.position, worker.TargetSlot.Position) <= 0.15f)
+        float distance = Vector2.Distance(worker.transform.position, worker.TargetSlot.Position);
+
+        if (distance <= 0.3f)
         {
             worker.Movement.Stop();
             worker.ChangeState(new WorkerWorkState(worker));

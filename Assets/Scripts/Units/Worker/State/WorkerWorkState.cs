@@ -15,7 +15,7 @@ public class WorkerWorkState : IWorkerState
     {
         if (worker.TargetResource == null || worker.TargetSlot == null)
         {
-            worker.ChangeState(new WorkerIdleState(worker));
+            worker.GoIdle();
             return;
         }
 
@@ -23,15 +23,8 @@ public class WorkerWorkState : IWorkerState
 
         if (!started)
         {
-            worker.Animator.SetWorking(false);
-
-            if (worker.TargetResource != null)
-                worker.TargetResource.CancelWork(worker);
-
-            worker.TargetResource = null;
-            worker.TargetSlot = null;
-
-            worker.ChangeState(new WorkerIdleState(worker));
+            worker.ClearCurrentAssignment();
+            worker.StartFindingResource();
             return;
         }
 
