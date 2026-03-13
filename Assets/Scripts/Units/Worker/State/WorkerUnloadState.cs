@@ -15,11 +15,7 @@ public class WorkerUnloadState : IWorkerState
     {
         worker.Animator.SetWorking(false);
 
-        if (worker.CurrentJobLogic != null && worker.Inventory.HasCargo)
-        {
-            int amount = worker.Inventory.TakeCargo();
-            worker.CurrentJobLogic.GiveReward(amount);
-        }
+        worker.DeliverCargo();
 
         // применяем отложенную работу через Brain
         if (worker.PendingJob != WorkerJobType.None)

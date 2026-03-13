@@ -41,6 +41,8 @@ public class House : MonoBehaviour
     public int CurrentGoldCost => baseGoldCost + CurrentWorkers * goldIncreasePerWorker;
 
     public event Action OnWorkersChanged;
+    public event Action<Worker> OnWorkerAdded;
+    public event Action<Worker> OnWorkerRemoved;
 
     private void Awake()
     {
@@ -84,7 +86,9 @@ public class House : MonoBehaviour
         Vector2 idlePos = GetIdlePosition(worker);
         worker.transform.position = idlePos;
 
+        OnWorkerAdded?.Invoke(worker);
         OnWorkersChanged?.Invoke();
+
         return worker;
     }
 
@@ -116,6 +120,7 @@ public class House : MonoBehaviour
         if (workers.Remove(worker))
         {
             ReleaseIdlePosition(worker);
+            OnWorkerRemoved?.Invoke(worker);
             OnWorkersChanged?.Invoke();
         }
     }
@@ -151,9 +156,9 @@ public class House : MonoBehaviour
         if (occupiedIdlePoints.ContainsKey(worker))
             occupiedIdlePoints.Remove(worker);
     }
+
     public void OnSelected(SelectionSystem selectionSystem)
     {
-
     }
 
     public void OnDeselected()

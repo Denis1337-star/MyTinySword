@@ -22,11 +22,7 @@ public class WorkerCarryState : IWorkerState
     {
         if (!worker.Movement.HasTarget)
         {
-            if (worker.CurrentJobLogic != null && worker.Inventory.HasCargo)
-            {
-                int amount = worker.Inventory.TakeCargo();
-                worker.CurrentJobLogic.GiveReward(amount);
-            }
+            worker.DeliverCargo();
 
             if (worker.PendingJob != WorkerJobType.None)
             {
@@ -34,7 +30,7 @@ public class WorkerCarryState : IWorkerState
                 return;
             }
 
-            worker.ChangeState(new WorkerFindResourceState(worker));
+            worker.StartFindingResource();
         }
     }
 

@@ -15,7 +15,7 @@ public class WorkerWorkState : IWorkerState
     {
         if (worker.TargetResource == null || worker.TargetSlot == null)
         {
-            worker.ChangeState(new WorkerIdleState(worker));
+            worker.GoIdle();
             return;
         }
 
@@ -26,27 +26,16 @@ public class WorkerWorkState : IWorkerState
         if (!started)
         {
             worker.Animator.SetWorking(false);
-
-            worker.TargetResource.CancelWork(worker);
-            worker.TargetResource = null;
-            worker.TargetSlot = null;
-
-            worker.ChangeState(new WorkerFindResourceState(worker));
+            worker.ClearCurrentAssignment();
+            worker.StartFindingResource();
         }
     }
 
     private void OnFinished(int amount)
     {
         worker.Animator.SetWorking(false);
-
         worker.Inventory.SetCargo(amount);
-
-        if (worker.TargetResource != null)
-            worker.TargetResource.CancelWork(worker);
-
-        worker.TargetResource = null;
-        worker.TargetSlot = null;
-
+        worker.ClearCurrentAssignment();
         worker.ChangeState(new WorkerCarryState(worker));
     }
 

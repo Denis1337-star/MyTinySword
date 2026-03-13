@@ -15,7 +15,7 @@ public class WorkerFindResourceState : IWorkerState
     {
         if (worker.CurrentJobLogic == null)
         {
-            worker.ChangeState(new WorkerIdleState(worker));
+            worker.GoIdle();
             return;
         }
 
@@ -25,7 +25,7 @@ public class WorkerFindResourceState : IWorkerState
 
         if (!assigned)
         {
-            worker.ChangeState(new WorkerIdleState(worker));
+            worker.GoIdle();
             return;
         }
 

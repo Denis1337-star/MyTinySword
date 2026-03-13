@@ -107,4 +107,51 @@ public class Worker : MonoBehaviour
     {
         // Пока ничего не делаем, но точка расширения уже есть
     }
+    public bool CanSwitchJobImmediately()
+    {
+        return TargetResource == null &&
+               TargetSlot == null &&
+               !Inventory.HasCargo &&
+               !Movement.HasTarget;
+    }
+
+    public void ClearCurrentAssignment()
+    {
+        if (TargetResource != null)
+            TargetResource.CancelWork(this);
+
+        TargetResource = null;
+        TargetSlot = null;
+    }
+
+    public void ResetTaskState()
+    {
+        ClearCurrentAssignment();
+        Inventory.Clear();
+    }
+
+    public void DeliverCargo()
+    {
+        if (CurrentJobLogic == null)
+            return;
+
+        if (!Inventory.HasCargo)
+            return;
+
+        if (ResourceDepositService.Instance == null)
+            return;
+
+        int amount = Inventory.TakeCargo();
+        ResourceDepositService.Instance.Deposit(CurrentJobLogic.RewardType, amount);
+    }
+
+    public void StartFindingResource()
+    {
+        ChangeState(new WorkerFindResourceState(this));
+    }
+
+    public void GoIdle()
+    {
+        ChangeState(new WorkerIdleState(this));
+    }
 }

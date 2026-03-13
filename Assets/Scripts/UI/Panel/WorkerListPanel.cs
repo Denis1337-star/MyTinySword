@@ -20,9 +20,18 @@ public class WorkerListPanel : MonoBehaviour
             return;
         }
 
+        UnsubscribeFromHouse();
         ClearAllItems();
+
         currentHouse = house;
+
+        SubscribeToHouse();
         Refresh();
+    }
+
+    private void OnDisable()
+    {
+        UnsubscribeFromHouse();
     }
 
     public void Refresh()
@@ -41,6 +50,47 @@ public class WorkerListPanel : MonoBehaviour
         CleanupNullEntries();
     }
 
+    private void SubscribeToHouse()
+    {
+        if (currentHouse == null)
+            return;
+
+        currentHouse.OnWorkerAdded += OnWorkerAdded;
+        currentHouse.OnWorkerRemoved += OnWorkerRemoved;
+        currentHouse.OnWorkersChanged += OnWorkersChanged;
+    }
+
+    private void UnsubscribeFromHouse()
+    {
+        if (currentHouse == null)
+            return;
+
+        currentHouse.OnWorkerAdded -= OnWorkerAdded;
+        currentHouse.OnWorkerRemoved -= OnWorkerRemoved;
+        currentHouse.OnWorkersChanged -= OnWorkersChanged;
+    }
+
+    private void OnWorkerAdded(Worker worker)
+    {
+        if (worker == null)
+            return;
+
+        AddWorkerItem(worker);
+    }
+
+    private void OnWorkerRemoved(Worker worker)
+    {
+        if (worker == null)
+            return;
+
+        RemoveItem(worker);
+    }
+
+    private void OnWorkersChanged()
+    {
+        Refresh();
+    }
+
     private void RemoveMissingWorkers()
     {
         List<Worker> toRemove = new();
@@ -49,7 +99,7 @@ public class WorkerListPanel : MonoBehaviour
         {
             Worker worker = pair.Key;
 
-            if (worker == null || currentHouse.Workers == null || !currentHouse.Workers.Contains(worker))
+            if (worker == null || currentHouse.Workers == null || !ContainsWorker(currentHouse.Workers, worker))
                 toRemove.Add(worker);
         }
 
@@ -66,16 +116,21 @@ public class WorkerListPanel : MonoBehaviour
 
         foreach (Worker worker in currentHouse.Workers)
         {
-            if (worker == null)
-                continue;
-
-            if (itemsByWorker.ContainsKey(worker))
-                continue;
-
-            WorkerListItem item = Instantiate(itemPrefab, contentRoot);
-            item.Bind(worker, selectionSystem);
-            itemsByWorker.Add(worker, item);
+            AddWorkerItem(worker);
         }
+    }
+
+    private void AddWorkerItem(Worker worker)
+    {
+        if (worker == null || itemPrefab == null || contentRoot == null)
+            return;
+
+        if (itemsByWorker.ContainsKey(worker))
+            return;
+
+        WorkerListItem item = Instantiate(itemPrefab, contentRoot);
+        item.Bind(worker, selectionSystem);
+        itemsByWorker.Add(worker, item);
     }
 
     private void RemoveItem(Worker worker)
@@ -117,5 +172,19 @@ public class WorkerListPanel : MonoBehaviour
         }
 
         itemsByWorker.Clear();
+    }
+
+    private bool ContainsWorker(IReadOnlyList<Worker> workers, Worker target)
+    {
+        if (workers == null || target == null)
+            return false;
+
+        for (int i = 0; i < workers.Count; i++)
+        {
+            if (workers[i] == target)
+                return true;
+        }
+
+        return false;
     }
 }

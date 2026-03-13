@@ -9,18 +9,48 @@ public class ResourceStorageView : MonoBehaviour
     [SerializeField] private Text goldText;
     [SerializeField] private Text meatText;
 
+    private ResourceStorage subscribedStorage;
+
     private void OnEnable()
     {
-        if (ResourceStorage.Instance != null)
-            ResourceStorage.Instance.OnResourcesChanged += Refresh;
-
+        TrySubscribe();
         Refresh();
+    }
+
+    private void Update()
+    {
+        if (subscribedStorage == null && ResourceStorage.Instance != null)
+        {
+            TrySubscribe();
+            Refresh();
+        }
     }
 
     private void OnDisable()
     {
-        if (ResourceStorage.Instance != null)
-            ResourceStorage.Instance.OnResourcesChanged -= Refresh;
+        Unsubscribe();
+    }
+
+    private void TrySubscribe()
+    {
+        if (ResourceStorage.Instance == null)
+            return;
+
+        if (subscribedStorage == ResourceStorage.Instance)
+            return;
+
+        Unsubscribe();
+        subscribedStorage = ResourceStorage.Instance;
+        subscribedStorage.OnResourcesChanged += Refresh;
+    }
+
+    private void Unsubscribe()
+    {
+        if (subscribedStorage == null)
+            return;
+
+        subscribedStorage.OnResourcesChanged -= Refresh;
+        subscribedStorage = null;
     }
 
     private void Refresh()

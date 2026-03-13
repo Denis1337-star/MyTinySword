@@ -16,11 +16,7 @@ public class WorkerBrain : MonoBehaviour
         if (worker == null || worker.Home == null)
             return;
 
-        bool canSwitchNow =
-            worker.TargetResource == null &&
-            worker.TargetSlot == null &&
-            !worker.Inventory.HasCargo &&
-            !worker.Movement.HasTarget;
+        bool canSwitchNow = worker.CanSwitchJobImmediately();
 
         if (canSwitchNow || worker.CurrentJob == WorkerJobType.None)
         {
@@ -43,14 +39,9 @@ public class WorkerBrain : MonoBehaviour
 
     public void ApplyJobImmediately(WorkerJobType job)
     {
-        if (worker.TargetResource != null)
-            worker.TargetResource.CancelWork(worker);
-
-        worker.TargetResource = null;
-        worker.TargetSlot = null;
-        worker.Inventory.Clear();
+        worker.ResetTaskState();
 
         worker.SetCurrentJob(job, WorkerJobFactory.Create(job));
-        worker.ChangeState(new WorkerFindResourceState(worker));
+        worker.StartFindingResource();
     }
 }
