@@ -35,6 +35,10 @@ public class Worker : MonoBehaviour
     public event Action OnJobChanged;
     public event Action OnActivityChanged;
 
+    public string CurrentStateName => StateMachine.CurrentStateName;
+    public bool HasCargo => Inventory != null && Inventory.HasCargo;
+    public bool HasPendingJob => PendingJob != WorkerJobType.None;
+
     private void Awake()
     {
         Movement = GetComponent<UnitMovement>();
