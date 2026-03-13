@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.EnhancedTouch;
@@ -8,18 +9,22 @@ using TouchPhase = UnityEngine.InputSystem.TouchPhase;
 
 public class SelectionSystem : MonoBehaviour
 {
-    [Header("Panels")]
-    [SerializeField] private WorkerCommandPanel workerCommandPanel;
-    [SerializeField] private HousePanel housePanel;
-
     [Header("Raycast")]
-    [SerializeField] private LayerMask ignoreRaycastLayer;
+    [SerializeField] private LayerMask ignoredLayers;
 
-    private Camera cam;
-    private UnitSelectable currentSelection;
-    private CameraFocusController focusController;
+    private Camera _camera;
+    private readonly List<UnitSelectable> _selected = new();
 
-    private readonly List<UnitSelectable> selectedUnits = new();
+    public UnitSelectable CurrentSelection { get; private set; }
+    public IReadOnlyList<UnitSelectable> SelectedUnits => _selected;
+
+    public event Action<UnitSelectable> SelectionChanged;
+    public event Action SelectionCleared;
+
+    private void Awake()
+    {
+        _camera = Camera.main;
+    }
 
     private void OnEnable()
     {
@@ -29,13 +34,6 @@ public class SelectionSystem : MonoBehaviour
     private void OnDisable()
     {
         EnhancedTouchSupport.Disable();
-    }
-    private void Awake()
-    {
-        cam = Camera.main;
-        focusController = FindObjectOfType<CameraFocusController>();
-
-        Debug.Log($"[SelectionSystem] Awake. Camera = {(cam != null ? cam.name : "NULL")}", this);
     }
 
     private void Update()
@@ -49,103 +47,87 @@ public class SelectionSystem : MonoBehaviour
             return;
 
         var touch = Touch.activeTouches[0];
-
         if (touch.phase != TouchPhase.Ended)
             return;
 
-        if (EventSystem.current != null &&
-            EventSystem.current.IsPointerOverGameObject(touch.touchId))
-        {
-            Debug.Log("[SelectionSystem] Touch over UI, ignore.");
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(touch.touchId))
             return;
-        }
 
-        ProcessTap(touch.screenPosition);
+        TrySelectAtScreenPosition(touch.screenPosition);
     }
 
-    private void ProcessTap(Vector2 screenPos)
+    private void TrySelectAtScreenPosition(Vector2 screenPosition)
     {
-        if (cam == null)
-        {
-            Debug.LogError("[SelectionSystem] Camera.main is NULL", this);
+        if (_camera == null)
             return;
-        }
 
-        Vector3 worldPos3 = cam.ScreenToWorldPoint(screenPos);
-        Vector2 worldPos = new Vector2(worldPos3.x, worldPos3.y);
-        int mask = ~ignoreRaycastLayer.value;
+        Vector3 world3 = _camera.ScreenToWorldPoint(screenPosition);
+        Vector2 world = new(world3.x, world3.y);
 
-        Debug.Log($"[SelectionSystem] Tap screen={screenPos} world={worldPos} mask={mask}");
-
-        RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero, 100f, mask);
+        int mask = ~ignoredLayers.value;
+        RaycastHit2D hit = Physics2D.Raycast(world, Vector2.zero, 100f, mask);
 
         if (hit.collider == null)
         {
-            Debug.Log("[SelectionSystem] Raycast hit NOTHING");
             ClearSelection();
             return;
         }
-
-        Debug.Log($"[SelectionSystem] Hit collider = {hit.collider.name}, layer = {LayerMask.LayerToName(hit.collider.gameObject.layer)}");
 
         UnitSelectable selectable = hit.collider.GetComponentInParent<UnitSelectable>();
-
         if (selectable == null)
         {
-            Debug.Log("[SelectionSystem] UnitSelectable NOT found in parent chain");
             ClearSelection();
             return;
         }
 
-        Debug.Log($"[SelectionSystem] Selectable found on {selectable.name}");
         Select(selectable);
     }
 
-    private void Select(UnitSelectable selectable)
+    public void Select(UnitSelectable selectable)
     {
         if (selectable == null)
             return;
 
-        Worker worker = selectable.GetComponentInParent<Worker>();
-        House house = selectable.GetComponentInParent<House>();
-
-        Debug.Log($"[SelectionSystem] Select -> selectable={selectable.name}, worker={(worker != null ? worker.name : "null")}, house={(house != null ? house.name : "null")}");
-
-        if (currentSelection == selectable)
-        {
-            if (worker != null)
-            {
-                workerCommandPanel.ShowForWorker(worker);
-                focusController?.FocusOn(worker.transform);
-                return;
-            }
-
-            if (house != null)
-            {
-                housePanel.Show(house);
-                return;
-            }
-
+        if (CurrentSelection == selectable)
             return;
-        }
 
-        ClearSelection();
+        ClearSelectionInternal();
 
-        currentSelection = selectable;
-        selectedUnits.Add(selectable);
+        CurrentSelection = selectable;
+        _selected.Add(selectable);
         selectable.Select();
 
-        if (worker != null)
-        {
-            workerCommandPanel.ShowForWorker(worker);
-            focusController?.FocusOn(worker.transform);
+        SelectionChanged?.Invoke(selectable);
+    }
+
+    public void ClearSelection()
+    {
+        if (CurrentSelection == null && _selected.Count == 0)
             return;
+
+        ClearSelectionInternal();
+        SelectionCleared?.Invoke();
+    }
+
+    private void ClearSelectionInternal()
+    {
+        foreach (var selectable in _selected)
+        {
+            if (selectable != null)
+                selectable.Deselect();
         }
 
-        if (house != null)
-        {
-            housePanel.Show(house);
-        }
+        _selected.Clear();
+        CurrentSelection = null;
+    }
+
+    // =========================
+    // Temporary compatibility API
+    // =========================
+
+    public IReadOnlyList<UnitSelectable> GetSelectedUnits()
+    {
+        return _selected;
     }
 
     public void SelectWorkerFromUI(Worker worker)
@@ -153,34 +135,24 @@ public class SelectionSystem : MonoBehaviour
         if (worker == null)
             return;
 
-        UnitSelectable selectable = worker.GetComponentInParent<UnitSelectable>();
+        UnitSelectable selectable = worker.GetComponent<UnitSelectable>();
+        if (selectable == null)
+            selectable = worker.GetComponentInParent<UnitSelectable>();
+
         if (selectable != null)
             Select(selectable);
     }
 
-    public void ClearSelection()
+    public void ShowWorkerUI(Worker worker)
     {
-        foreach (var unit in selectedUnits)
-        {
-            if (unit != null)
-                unit.Deselect();
-        }
-
-        selectedUnits.Clear();
-        currentSelection = null;
-
-        if (workerCommandPanel != null && workerCommandPanel.gameObject.activeSelf)
-            workerCommandPanel.Hide();
-
-        if (housePanel != null && housePanel.gameObject.activeSelf)
-            housePanel.Hide();
-
-        focusController?.CancelFocus();
+        // compatibility shim
+        // UI is now handled by SelectionUiPresenter
     }
 
-    public IReadOnlyList<UnitSelectable> GetSelectedUnits()
+    public void ShowHouseUI(House house)
     {
-        return selectedUnits;
+        // compatibility shim
+        // UI is now handled by SelectionUiPresenter
     }
 }
 

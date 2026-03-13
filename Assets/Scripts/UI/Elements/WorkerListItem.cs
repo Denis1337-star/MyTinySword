@@ -65,7 +65,7 @@ public class WorkerListItem : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        selectionSystem?.SelectWorkerFromUI(worker);
+        selectionSystem?.ShowWorkerUI(worker);
     }
 
 }

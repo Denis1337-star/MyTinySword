@@ -153,10 +153,7 @@ public class House : MonoBehaviour
     }
     public void OnSelected(SelectionSystem selectionSystem)
     {
-        if (selectionSystem == null)
-            return;
 
-        //selectionSystem.ShowHouseUI(this);
     }
 
     public void OnDeselected()

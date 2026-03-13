@@ -102,10 +102,6 @@ public class Worker : MonoBehaviour
     }
     public void OnSelected(SelectionSystem selectionSystem)
     {
-        if (selectionSystem == null)
-            return;
-
-       // selectionSystem.ShowWorkerUI(this);
     }
     public void OnDeselected()
     {
