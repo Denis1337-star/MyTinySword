@@ -21,19 +21,10 @@ public class WorkerFindResourceState : IWorkerState
 
         worker.Animator.SetWorking(false);
 
-        worker.TargetResource = worker.CurrentJobLogic.FindResource(worker.transform.position);
+        bool assigned = WorkerResourceSelector.TryAssignResourceAndSlot(worker);
 
-        if (worker.TargetResource == null)
+        if (!assigned)
         {
-            worker.ChangeState(new WorkerIdleState(worker));
-            return;
-        }
-
-        worker.TargetSlot = worker.TargetResource.GetFreeSlot(worker);
-
-        if (worker.TargetSlot == null)
-        {
-            worker.TargetResource = null;
             worker.ChangeState(new WorkerIdleState(worker));
             return;
         }
@@ -44,6 +35,7 @@ public class WorkerFindResourceState : IWorkerState
     }
 
     public void Update() { }
+
     public void Exit() { }
 
     private EquipmentType GetTool()
