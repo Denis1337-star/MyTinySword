@@ -17,7 +17,7 @@ public class CameraFocusController : MonoBehaviour
 
     private void Awake()
     {
-        cameraController = GameServices.Instance.GetComponent<CameraController>();
+        cameraController = FindObjectOfType<CameraController>();
     }
 
     public void FocusOn(Transform target)

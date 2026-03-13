@@ -19,7 +19,6 @@ public class ResourceRegistry : MonoBehaviour
 
     public void Register(IResourceNode node)
     {
-        Debug.Log("Register resource: " + node);
         if (!nodes.Contains(node))
             nodes.Add(node);
     }

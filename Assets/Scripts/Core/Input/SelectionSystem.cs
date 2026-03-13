@@ -23,7 +23,7 @@ public class SelectionSystem : MonoBehaviour
     private void Awake()
     {
         cam = Camera.main;
-        focusController = GameServices.Instance.GetComponent<CameraFocusController>();
+        focusController = FindObjectOfType<CameraFocusController>();
     }
 
     private void Update()
