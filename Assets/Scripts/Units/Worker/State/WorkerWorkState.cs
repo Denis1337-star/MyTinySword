@@ -25,9 +25,12 @@ public class WorkerWorkState : IWorkerState
 
         if (!started)
         {
+            worker.Animator.SetWorking(false);
+
             worker.TargetResource.CancelWork(worker);
             worker.TargetResource = null;
             worker.TargetSlot = null;
+
             worker.ChangeState(new WorkerFindResourceState(worker));
         }
     }
@@ -36,7 +39,7 @@ public class WorkerWorkState : IWorkerState
     {
         worker.Animator.SetWorking(false);
 
-        worker.CarriedAmount = amount;
+        worker.Inventory.SetCargo(amount);
 
         if (worker.TargetResource != null)
             worker.TargetResource.CancelWork(worker);

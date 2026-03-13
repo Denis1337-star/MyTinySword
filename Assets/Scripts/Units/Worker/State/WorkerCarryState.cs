@@ -22,12 +22,12 @@ public class WorkerCarryState : IWorkerState
     {
         if (!worker.Movement.HasTarget)
         {
-            if (worker.CurrentJobLogic != null && worker.CarriedAmount > 0)
-                worker.CurrentJobLogic.GiveReward(worker.CarriedAmount);
+            if (worker.CurrentJobLogic != null && worker.Inventory.HasCargo)
+            {
+                int amount = worker.Inventory.TakeCargo();
+                worker.CurrentJobLogic.GiveReward(amount);
+            }
 
-            worker.CarriedAmount = 0;
-
-            // После сдачи сначала применяем новую отложенную профессию
             if (worker.PendingJob != WorkerJobType.None)
             {
                 worker.ApplyPendingJobIfAny();

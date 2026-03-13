@@ -10,7 +10,7 @@ public class WorkerInventory : MonoBehaviour
 
     public void SetCargo(int amount)
     {
-        CarriedAmount = amount;
+        CarriedAmount = Mathf.Max(0, amount);
     }
 
     public int TakeCargo()

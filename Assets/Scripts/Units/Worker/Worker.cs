@@ -14,20 +14,25 @@ public enum WorkerJobType
 
 
 [RequireComponent(typeof(UnitMovement))]
+[RequireComponent(typeof(WorkerInventory))]
 public class Worker : MonoBehaviour
 {
    public WorkerStateMachine StateMachine { get; private set; }
     public UnitMovement Movement { get; private set; }
     public WorkerAnimator Animator { get; private set; }
+    public WorkerInventory Inventory { get; private set; }
+
+
     public House Home { get; private set; }
     public IWorkerJob CurrentJobLogic { get; private set; }
     public WorkerJobType CurrentJob { get; private set; }
 
     public WorkerJobType PendingJob { get; private set; } = WorkerJobType.None;
 
+
     public ResourceNodeBase TargetResource { get; set; }
     public WorkSlot TargetSlot { get; set; }
-    public int CarriedAmount { get; set; }
+
 
     public event Action OnJobChanged;
     public event Action OnActivityChanged;
@@ -36,6 +41,8 @@ public class Worker : MonoBehaviour
     {
         Movement = GetComponent<UnitMovement>();
         Animator = GetComponent<WorkerAnimator>();
+        Inventory = GetComponent<WorkerInventory>();
+
         StateMachine = new WorkerStateMachine();
         CurrentJob = WorkerJobType.None;
     }
@@ -65,11 +72,10 @@ public class Worker : MonoBehaviour
         if (Home == null)
             return;
 
-        // Если сейчас ничего не делает и не несёт ресурс — можно сразу переключать
         bool canSwitchNow =
             TargetResource == null &&
             TargetSlot == null &&
-            CarriedAmount == 0 &&
+            !Inventory.HasCargo &&
             !Movement.HasTarget;
 
         if (canSwitchNow || CurrentJob == WorkerJobType.None)
@@ -78,7 +84,6 @@ public class Worker : MonoBehaviour
             return;
         }
 
-        // Иначе ставим новую работу в очередь
         PendingJob = job;
         OnJobChanged?.Invoke();
     }
@@ -100,7 +105,7 @@ public class Worker : MonoBehaviour
 
         TargetResource = null;
         TargetSlot = null;
-        CarriedAmount = 0;
+        Inventory.Clear();
 
         CurrentJob = job;
         CurrentJobLogic = WorkerJobFactory.Create(job);
