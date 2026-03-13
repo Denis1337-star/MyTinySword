@@ -9,30 +9,28 @@ using UnityEngine.UIElements;
 /// </summary>
 public class UnitSelectable : MonoBehaviour
 {
-    [SerializeField] private GameObject selectionVisual;  //подстветка что выделено
-    private CameraFocusController focusController;
+    [SerializeField] private GameObject selectionVisual;
 
-    public bool IsSelected { get; private set; }  //флаг выделен или нет
+    public bool IsSelected { get; private set; }
+
+    private ISelectableEntity selectableEntity;
 
     private void Awake()
     {
-        if (selectionVisual != null)
-            selectionVisual.SetActive(false);  //проверка
+        selectableEntity = GetComponent<ISelectableEntity>();
 
-                                    
-        focusController = FindObjectOfType<CameraFocusController>();
+        if (selectionVisual != null)
+            selectionVisual.SetActive(false);
     }
 
-    public void Select()
+    public void Select(SelectionSystem selectionSystem)
     {
         IsSelected = true;
 
-        // Фокус на основном объекте, а не на selectionVisual
-        if (focusController != null)
-            focusController.FocusOn(transform);
-
         if (selectionVisual != null)
             selectionVisual.SetActive(true);
+
+        selectableEntity?.OnSelected(selectionSystem);
     }
 
     public void Deselect()
@@ -41,5 +39,7 @@ public class UnitSelectable : MonoBehaviour
 
         if (selectionVisual != null)
             selectionVisual.SetActive(false);
+
+        selectableEntity?.OnDeselected();
     }
 }

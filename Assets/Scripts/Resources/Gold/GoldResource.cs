@@ -12,20 +12,26 @@ public class GoldResource : ResourceNodeBase
     [SerializeField] private float growInterval = 5f;
 
     [Header("Visuals")]
-    [SerializeField] private Sprite[] sizeSprites; 
+    [SerializeField] private Sprite[] sizeSprites;
     [SerializeField] private Animator animator;
 
     private SpriteRenderer sr;
     private ResourceSize size = ResourceSize.Tiny;
+    private Coroutine growRoutine;
 
-    public override float Priority => 8;
+    public override float Priority => 8f;
     public override Vector2 WorkPosition => workSlots[0].Position;
 
     private void Awake()
     {
         sr = GetComponent<SpriteRenderer>();
         UpdateVisual();
-        StartCoroutine(GrowRoutine());
+    }
+
+    protected override void Start()
+    {
+        base.Start();
+        growRoutine = StartCoroutine(GrowRoutine());
     }
 
     public override void StartWork(Action<int> onFinished)
@@ -34,7 +40,10 @@ public class GoldResource : ResourceNodeBase
             return;
 
         available = false;
-        StopAllCoroutines();
+
+        if (growRoutine != null)
+            StopCoroutine(growRoutine);
+
         StartCoroutine(MineRoutine(onFinished));
     }
 
@@ -43,11 +52,14 @@ public class GoldResource : ResourceNodeBase
         yield return new WaitForSeconds(mineTime);
 
         int amount = (int)size;
-        sr.enabled = false;
+
+        if (sr != null)
+            sr.enabled = false;
 
         callback?.Invoke(amount);
 
         yield return new WaitForSeconds(respawnTime);
+
         Respawn();
     }
 
@@ -55,9 +67,12 @@ public class GoldResource : ResourceNodeBase
     {
         available = true;
         size = ResourceSize.Tiny;
-        sr.enabled = true;
+
+        if (sr != null)
+            sr.enabled = true;
+
         UpdateVisual();
-        StartCoroutine(GrowRoutine());
+        growRoutine = StartCoroutine(GrowRoutine());
     }
 
     private IEnumerator GrowRoutine()
@@ -77,6 +92,8 @@ public class GoldResource : ResourceNodeBase
     private void UpdateVisual()
     {
         int index = Mathf.Clamp((int)size - 1, 0, sizeSprites.Length - 1);
-        animator.SetInteger("Size", index);
+
+        if (animator != null)
+            animator.SetInteger("Size", index);
     }
 }

@@ -15,14 +15,16 @@ public class TreeResource : ResourceNodeBase
 
     private SpriteRenderer sr;
     private Animator animator;
+
     public override Vector2 WorkPosition => workSlots[0].Position;
-    public override float Priority => 10;
+    public override float Priority => 10f;
 
     private void Awake()
     {
         animator = GetComponent<Animator>();
         sr = GetComponent<SpriteRenderer>();
-        sr.sprite = treeSprite;
+
+        SetTreeVisual();
     }
 
     public override void StartWork(Action<int> onFinished)
@@ -38,10 +40,8 @@ public class TreeResource : ResourceNodeBase
     {
         yield return new WaitForSeconds(chopTime);
 
-        sr.sprite = stumpSprite;
-        animator.SetBool("Stump", true);
-
         callback?.Invoke(3);
+        SetStumpVisual();
 
         yield return new WaitForSeconds(respawnTime);
 
@@ -51,8 +51,25 @@ public class TreeResource : ResourceNodeBase
     private void Respawn()
     {
         available = true;
-        sr.sprite = treeSprite;
-        animator.SetBool("Stump", false);
+        SetTreeVisual();
+    }
+
+    private void SetTreeVisual()
+    {
+        if (sr != null)
+            sr.sprite = treeSprite;
+
+        if (animator != null)
+            animator.SetBool("Stump", false);
+    }
+
+    private void SetStumpVisual()
+    {
+        if (sr != null)
+            sr.sprite = stumpSprite;
+
+        if (animator != null)
+            animator.SetBool("Stump", true);
     }
 }
 

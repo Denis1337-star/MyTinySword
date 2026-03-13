@@ -63,15 +63,8 @@ public class SelectionSystem : MonoBehaviour
                 Select(selectable);
                 return;
             }
-
-            HouseSelectable houseSelectable = hit.collider.GetComponentInParent<HouseSelectable>();
-            if (houseSelectable != null)
-            {
-                ClearSelection();
-                housePanel.Show(houseSelectable.GetHouse());
-                return;
-            }
         }
+
         ClearSelection();
     }
 
@@ -80,25 +73,9 @@ public class SelectionSystem : MonoBehaviour
         if (selectable == null)
             return;
 
-        Worker worker = selectable.GetComponentInParent<Worker>();
-        House house = selectable.GetComponentInParent<House>();
-
-        // Если тыкнули в уже выбранный объект — просто снова показать правильную панель
         if (currentSelection == selectable)
         {
-            if (worker != null)
-            {
-                workerCommandPanel.ShowForWorker(worker);
-                focusController?.FocusOn(worker.transform);
-                return;
-            }
-
-            if (house != null)
-            {
-                housePanel.Show(house);
-                return;
-            }
-
+            selectable.Select(this);
             return;
         }
 
@@ -106,20 +83,24 @@ public class SelectionSystem : MonoBehaviour
 
         currentSelection = selectable;
         selectedUnits.Add(selectable);
-        selectable.Select();
+        selectable.Select(this);
+    }
 
-        if (worker != null)
-        {
-            workerCommandPanel.ShowForWorker(worker);
-            focusController?.FocusOn(worker.transform);
+    public void ShowWorkerUI(Worker worker)
+    {
+        if (worker == null)
             return;
-        }
 
-        if (house != null)
-        {
-            housePanel.Show(house);
-        }
+        workerCommandPanel.ShowForWorker(worker);
+        focusController?.FocusOn(worker.transform);
+    }
 
+    public void ShowHouseUI(House house)
+    {
+        if (house == null)
+            return;
+
+        housePanel.Show(house);
     }
 
     public void SelectWorkerFromUI(Worker worker)

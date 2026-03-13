@@ -1,23 +1,27 @@
-using Cinemachine;
-using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using Cinemachine;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 public class CameraFocusController : MonoBehaviour
 {
     [SerializeField] private CinemachineVirtualCamera virtualCamera;
-    [SerializeField] private float focusDuration = 0.4f;
+    [SerializeField] private CameraController cameraController;
 
-    private Coroutine focusRoutine;
-    private Transform followTarget;
-    private CameraController cameraController;
-
-    public bool HasFocus => followTarget != null;
+    public bool HasFocus => virtualCamera != null && virtualCamera.Follow != null;
 
     private void Awake()
     {
-        cameraController = FindObjectOfType<CameraController>();
+        if (cameraController == null)
+            cameraController = FindObjectOfType<CameraController>();
+    }
+
+    private void Update()
+    {
+        if (cameraController != null && cameraController.IsDragging && !IsPointerOverUI())
+        {
+            CancelFocus();
+        }
     }
 
     public void FocusOn(Transform target)
@@ -25,42 +29,17 @@ public class CameraFocusController : MonoBehaviour
         if (virtualCamera == null || target == null)
             return;
 
-        followTarget = target;
-
-        if (focusRoutine != null)
-            StopCoroutine(focusRoutine);
-
-        focusRoutine = StartCoroutine(FocusRoutine());
+        virtualCamera.Follow = target;
     }
 
     public void CancelFocus()
     {
-        followTarget = null;
+        if (virtualCamera == null)
+            return;
+
         virtualCamera.Follow = null;
     }
 
-    private IEnumerator FocusRoutine()
-    {
-        virtualCamera.Follow = followTarget;
-
-        float timer = 0f;
-        Vector3 startPos = virtualCamera.transform.position;
-        Vector3 targetPos = followTarget.position;
-
-        while (timer < focusDuration)
-        {
-            // ѕровер€ем, двигает ли игрок, **но не учитываем тач по UI**
-            if (cameraController != null && cameraController.IsDragging() &&
-                !IsPointerOverUI())
-            {
-                CancelFocus();
-                yield break;
-            }
-
-            timer += Time.deltaTime;
-            yield return null;
-        }
-    }
     private bool IsPointerOverUI()
     {
         if (Touch.activeTouches.Count == 0)
@@ -70,7 +49,9 @@ public class CameraFocusController : MonoBehaviour
         {
             if (EventSystem.current != null &&
                 EventSystem.current.IsPointerOverGameObject(touch.touchId))
+            {
                 return true;
+            }
         }
 
         return false;

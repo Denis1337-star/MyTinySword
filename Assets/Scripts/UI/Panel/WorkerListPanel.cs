@@ -6,36 +6,34 @@ public class WorkerListPanel : MonoBehaviour
 {
     [SerializeField] private Transform contentRoot;
     [SerializeField] private WorkerListItem itemPrefab;
+    [SerializeField] private SelectionSystem selectionSystem;
 
-    private void Start()
-    {
-        Refresh(); // обновляем список, если рабочие уже есть
-    }
-    private void Awake()
-    {
-        WorkerRegistry.Instance.OnWorkerAdded += CreateItem;
-    }
+    private House currentHouse;
 
-    private void OnDestroy()
+    public void Bind(House house)
     {
-        if (WorkerRegistry.Instance != null)
-            WorkerRegistry.Instance.OnWorkerAdded -= CreateItem;
+        currentHouse = house;
+        Refresh();
     }
 
-    private void CreateItem(Worker worker)
-    {
-        var item = Instantiate(itemPrefab, contentRoot);
-        item.Bind(worker);
-    }
     public void Refresh()
     {
+        if (contentRoot == null || itemPrefab == null)
+            return;
+
         foreach (Transform child in contentRoot)
             Destroy(child.gameObject);
 
-        foreach (var worker in WorkerRegistry.Instance.Workers)
+        if (currentHouse == null)
+            return;
+
+        foreach (Worker worker in currentHouse.Workers)
         {
-            var item = Instantiate(itemPrefab, contentRoot);
-            item.Bind(worker);
+            if (worker == null)
+                continue;
+
+            WorkerListItem item = Instantiate(itemPrefab, contentRoot);
+            item.Bind(worker, selectionSystem);
         }
     }
 }

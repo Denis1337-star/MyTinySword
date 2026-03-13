@@ -3,12 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class House : MonoBehaviour
+public class House : MonoBehaviour, ISelectableEntity
 {
     [Header("Spawn & Drop")]
     [SerializeField] private Transform spawnPoint;
     [SerializeField] private Transform dropPoint;
-    public Vector2 DropPoint => dropPoint.position;
 
     [Header("Idle Positions")]
     [SerializeField] private Transform idlePointsRoot;
@@ -30,55 +29,74 @@ public class House : MonoBehaviour
 
     private readonly List<Transform> idlePoints = new();
     private readonly Dictionary<Worker, Transform> occupiedIdlePoints = new();
+    private readonly List<Worker> workers = new();
+
+    public Vector2 DropPoint => dropPoint != null ? dropPoint.position : transform.position;
 
     public int MaxWorkers => maxWorkers;
-    public int CurrentWorkers => WorkerRegistry.Instance.Workers.Count;
+    public int CurrentWorkers => workers.Count;
+    public IReadOnlyList<Worker> Workers => workers;
+
+    public int CurrentWoodCost => baseWoodCost + CurrentWorkers * woodIncreasePerWorker;
+    public int CurrentGoldCost => baseGoldCost + CurrentWorkers * goldIncreasePerWorker;
 
     public event Action OnWorkersChanged;
 
     private void Awake()
     {
-        foreach (Transform child in idlePointsRoot)
-            idlePoints.Add(child);
+        CacheIdlePoints();
     }
+
     private void Start()
     {
         for (int i = 0; i < startWorkers; i++)
         {
             SpawnWorker();
         }
+
+        OnWorkersChanged?.Invoke();
     }
+
+    private void CacheIdlePoints()
+    {
+        idlePoints.Clear();
+
+        if (idlePointsRoot == null)
+            return;
+
+        foreach (Transform child in idlePointsRoot)
+            idlePoints.Add(child);
+    }
+
     private Worker SpawnWorker()
     {
+        if (workerPrefab == null || spawnPoint == null)
+        {
+            Debug.LogError($"House {name}: workerPrefab или spawnPoint не назначен.", this);
+            return null;
+        }
+
         Worker worker = Instantiate(workerPrefab, spawnPoint.position, Quaternion.identity);
 
         worker.SetHome(this);
-
-        var selectable = worker.GetComponent<UnitSelectable>();
-        if (selectable == null) selectable = worker.gameObject.AddComponent<UnitSelectable>();
+        workers.Add(worker);
 
         Vector2 idlePos = GetIdlePosition(worker);
         worker.transform.position = idlePos;
 
+        OnWorkersChanged?.Invoke();
         return worker;
     }
-
-    #region Hire
-    public int CurrentWoodCost =>
-    baseWoodCost + CurrentWorkers * woodIncreasePerWorker;
-
-    public int CurrentGoldCost =>
-        baseGoldCost + CurrentWorkers * goldIncreasePerWorker;
 
     public bool CanHire()
     {
         if (CurrentWorkers >= maxWorkers)
             return false;
 
-        return ResourceStorage.Instance.HasResources(
-            CurrentWoodCost,
-            CurrentGoldCost
-        );
+        if (ResourceStorage.Instance == null)
+            return false;
+
+        return ResourceStorage.Instance.HasResources(CurrentWoodCost, CurrentGoldCost);
     }
 
     public void HireWorker()
@@ -86,27 +104,35 @@ public class House : MonoBehaviour
         if (!CanHire())
             return;
 
-        ResourceStorage.Instance.SpendResources(
-            CurrentWoodCost,
-            CurrentGoldCost
-        );
-
+        ResourceStorage.Instance.SpendResources(CurrentWoodCost, CurrentGoldCost);
         SpawnWorker();
-
-        OnWorkersChanged?.Invoke();
     }
 
-    #endregion
+    public void RemoveWorker(Worker worker)
+    {
+        if (worker == null)
+            return;
 
-    #region Idle Positions
+        if (workers.Remove(worker))
+        {
+            ReleaseIdlePosition(worker);
+            OnWorkersChanged?.Invoke();
+        }
+    }
 
     public Vector2 GetIdlePosition(Worker worker)
     {
-        if (occupiedIdlePoints.TryGetValue(worker, out Transform existing))
+        if (worker == null)
+            return spawnPoint != null ? spawnPoint.position : transform.position;
+
+        if (occupiedIdlePoints.TryGetValue(worker, out Transform existing) && existing != null)
             return existing.position;
 
-        foreach (var point in idlePoints)
+        foreach (Transform point in idlePoints)
         {
+            if (point == null)
+                continue;
+
             if (!occupiedIdlePoints.ContainsValue(point))
             {
                 occupiedIdlePoints[worker] = point;
@@ -114,15 +140,27 @@ public class House : MonoBehaviour
             }
         }
 
-        // fallback — если точек не хватило
-        return spawnPoint.position;
+        return spawnPoint != null ? spawnPoint.position : transform.position;
     }
 
     public void ReleaseIdlePosition(Worker worker)
     {
+        if (worker == null)
+            return;
+
         if (occupiedIdlePoints.ContainsKey(worker))
             occupiedIdlePoints.Remove(worker);
     }
+    public void OnSelected(SelectionSystem selectionSystem)
+    {
+        if (selectionSystem == null)
+            return;
 
-    #endregion
+        selectionSystem.ShowHouseUI(this);
+    }
+
+    public void OnDeselected()
+    {
+        // Пока пусто
+    }
 }

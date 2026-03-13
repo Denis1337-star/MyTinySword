@@ -18,16 +18,15 @@ public class SheepResource : ResourceNodeBase
 
     private SheepAI sheepAI;
 
-    public override float Priority => 1;
+    public override float Priority => 1f;
     public override Vector2 WorkPosition => workSlots[0].Position;
 
     private void Awake()
     {
         sheepAI = GetComponent<SheepAI>();
 
-        // √ј–јЌ“»я: у овцы ровно 1 слот
         if (workSlots == null || workSlots.Length == 0)
-            Debug.LogError("Sheep MUST have exactly 1 WorkSlot");
+            Debug.LogError("SheepResource MUST have at least one WorkSlot", this);
     }
 
     public override void StartWork(Action<int> onFinished)
@@ -41,15 +40,18 @@ public class SheepResource : ResourceNodeBase
 
     private IEnumerator WorkRoutine(Action<int> callback)
     {
-        //  овца уже должна быть заморожена
         yield return new WaitForSeconds(workTime);
 
         callback?.Invoke(meatAmount);
 
-        spriteRenderer.enabled = false;
-        col.enabled = false;
+        if (spriteRenderer != null)
+            spriteRenderer.enabled = false;
+
+        if (col != null)
+            col.enabled = false;
 
         yield return new WaitForSeconds(respawnTime);
+
         Respawn();
     }
 
@@ -57,21 +59,21 @@ public class SheepResource : ResourceNodeBase
     {
         available = true;
 
-        spriteRenderer.enabled = true;
-        col.enabled = true;
+        if (spriteRenderer != null)
+            spriteRenderer.enabled = true;
+
+        if (col != null)
+            col.enabled = true;
 
         sheepAI?.SetFrozen(false);
     }
 
-    public override WorkSlot GetFreeSlot(Worker worker)
+    public override WorkSlot TryReserveSlot(Worker worker)
     {
-        var slot = base.GetFreeSlot(worker);
+        WorkSlot slot = base.TryReserveSlot(worker);
 
         if (slot != null)
-        {
-            // —–ј«” замораживаем овцу при резерве
             sheepAI?.SetFrozen(true);
-        }
 
         return slot;
     }

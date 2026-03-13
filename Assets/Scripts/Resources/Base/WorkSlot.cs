@@ -17,7 +17,6 @@ public class WorkSlot : MonoBehaviour
             return true;
         }
 
-        // Если слот уже за этим же рабочим — это тоже ок
         return reservedBy == worker;
     }
 

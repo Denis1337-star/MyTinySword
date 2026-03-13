@@ -14,7 +14,9 @@ public class HousePanel : MonoBehaviour
 
     private void Awake()
     {
-        hireButton.onClick.AddListener(OnHireClicked);
+        if (hireButton != null)
+            hireButton.onClick.AddListener(OnHireClicked);
+
         gameObject.SetActive(false);
     }
 
@@ -38,6 +40,9 @@ public class HousePanel : MonoBehaviour
 
         if (ResourceStorage.Instance != null)
             ResourceStorage.Instance.OnResourcesChanged += Refresh;
+
+        if (workerList != null)
+            workerList.Bind(currentHouse);
 
         Refresh();
     }
@@ -72,10 +77,18 @@ public class HousePanel : MonoBehaviour
         if (currentHouse == null)
             return;
 
-        limitText.text = $"Нанято {currentHouse.CurrentWorkers} / {currentHouse.MaxWorkers}";
-        hireButton.interactable = currentHouse.CanHire();
-        costText.text = $"Для найма - Дерево: {currentHouse.CurrentWoodCost} / Золото: {currentHouse.CurrentGoldCost}";
-        workerList.Refresh();
+        if (limitText != null)
+            limitText.text = $"Нанято {currentHouse.CurrentWorkers} / {currentHouse.MaxWorkers}";
+
+        if (hireButton != null)
+            hireButton.interactable = currentHouse.CanHire();
+
+        if (costText != null)
+            costText.text =
+                $"Для найма - Дерево: {currentHouse.CurrentWoodCost} / Золото: {currentHouse.CurrentGoldCost}";
+
+        if (workerList != null)
+            workerList.Refresh();
     }
 
     public void OnHireClicked()

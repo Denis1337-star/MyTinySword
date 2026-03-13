@@ -10,10 +10,12 @@ public class WorkerListItem : MonoBehaviour, IPointerClickHandler
     [SerializeField] private Text workerText;
 
     private Worker worker;
+    private SelectionSystem selectionSystem;
 
-    public void Bind(Worker worker)
+    public void Bind(Worker worker, SelectionSystem selectionSystem)
     {
         this.worker = worker;
+        this.selectionSystem = selectionSystem;
 
         worker.OnJobChanged += UpdateView;
         worker.OnActivityChanged += UpdateView;
@@ -31,14 +33,11 @@ public class WorkerListItem : MonoBehaviour, IPointerClickHandler
             ? WorkerJobLocalization.GetName(worker.PendingJob)
             : "Нет";
 
-        string cargoText = worker.HasCargo ? "Да" : "Нет";
-
         workerText.text =
             $"{worker.name}\n" +
             $"Работа: {currentJob}\n" +
             $"Следующая: {pendingJob}\n" +
-            $"Состояние: {GetReadableState(worker.CurrentStateName)}\n" +
-            $"Груз: {cargoText}";
+            $"Состояние: {GetReadableState(worker.CurrentStateName)}\n";
     }
 
     private string GetReadableState(string stateName)
@@ -66,7 +65,7 @@ public class WorkerListItem : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        GameServices.Instance.Selection?.SelectWorkerFromUI(worker);
+        selectionSystem?.SelectWorkerFromUI(worker);
     }
 
 }

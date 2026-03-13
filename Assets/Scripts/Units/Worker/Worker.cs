@@ -16,7 +16,7 @@ public enum WorkerJobType
 [RequireComponent(typeof(UnitMovement))]
 [RequireComponent(typeof(WorkerInventory))]
 [RequireComponent(typeof(WorkerBrain))]
-public class Worker : MonoBehaviour
+public class Worker : MonoBehaviour, ISelectableEntity
 {
     public WorkerStateMachine StateMachine { get; private set; }
     public UnitMovement Movement { get; private set; }
@@ -60,6 +60,7 @@ public class Worker : MonoBehaviour
         if (TargetResource != null)
             TargetResource.CancelWork(this);
 
+        Home?.RemoveWorker(this);
         WorkerRegistry.Instance?.Unregister(this);
     }
 
@@ -98,5 +99,16 @@ public class Worker : MonoBehaviour
     {
         StateMachine.ChangeState(state);
         OnActivityChanged?.Invoke();
+    }
+    public void OnSelected(SelectionSystem selectionSystem)
+    {
+        if (selectionSystem == null)
+            return;
+
+        selectionSystem.ShowWorkerUI(this);
+    }
+    public void OnDeselected()
+    {
+        // Пока ничего не делаем, но точка расширения уже есть
     }
 }

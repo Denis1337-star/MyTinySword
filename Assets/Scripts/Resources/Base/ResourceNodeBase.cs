@@ -6,6 +6,7 @@ public abstract class ResourceNodeBase : MonoBehaviour, IResourceNode
     [SerializeField] protected WorkSlot[] workSlots;
 
     protected bool available = true;
+
     public bool IsAvailable => available;
 
     public abstract float Priority { get; }
@@ -22,7 +23,7 @@ public abstract class ResourceNodeBase : MonoBehaviour, IResourceNode
             ResourceRegistry.Instance.Unregister(this);
     }
 
-    public virtual WorkSlot GetFreeSlot(Worker worker)
+    public virtual WorkSlot TryReserveSlot(Worker worker)
     {
         foreach (var slot in workSlots)
         {
@@ -46,8 +47,7 @@ public abstract class ResourceNodeBase : MonoBehaviour, IResourceNode
         if (!available)
             return false;
 
-        // Работа может стартовать только если рабочий уже имеет слот
-        if (worker.TargetSlot == null)
+        if (worker == null || worker.TargetSlot == null)
             return false;
 
         if (!worker.TargetSlot.IsReservedBy(worker))
@@ -59,11 +59,16 @@ public abstract class ResourceNodeBase : MonoBehaviour, IResourceNode
 
     public virtual Vector2 GetWorkPosition(Worker worker)
     {
-        if (worker.TargetSlot != null && worker.TargetSlot.IsReservedBy(worker))
+        if (worker != null &&
+            worker.TargetSlot != null &&
+            worker.TargetSlot.IsReservedBy(worker))
+        {
             return worker.TargetSlot.Position;
+        }
 
-        var slot = GetFreeSlot(worker);
-        return slot != null ? slot.Position : (Vector2)transform.position;
+        return workSlots != null && workSlots.Length > 0
+            ? workSlots[0].Position
+            : transform.position;
     }
 
     public virtual void CancelWork(Worker worker)

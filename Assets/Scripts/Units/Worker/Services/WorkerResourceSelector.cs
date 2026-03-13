@@ -17,7 +17,7 @@ public static class WorkerResourceSelector
         if (worker == null || resource == null)
             return null;
 
-        return resource.GetFreeSlot(worker);
+        return resource.TryReserveSlot(worker);
     }
 
     public static bool TryAssignResourceAndSlot(Worker worker)

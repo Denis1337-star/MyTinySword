@@ -6,20 +6,46 @@ public class GameServices : MonoBehaviour
 {
     public static GameServices Instance { get; private set; }
 
-    public SelectionSystem Selection { get; private set; }
-    public ResourceStorage Resources { get; private set; }
-    public WorkerRegistry Workers { get; private set; }
-    public ResourceRegistry ResourcesNodes { get; private set; }
-    public CameraFocusController CameraFocus { get; private set; }
+    [Header("Scene References")]
+    [SerializeField] private SelectionSystem selection;
+    [SerializeField] private ResourceStorage resources;
+    [SerializeField] private WorkerRegistry workers;
+    [SerializeField] private ResourceRegistry resourceNodes;
+    [SerializeField] private CameraFocusController cameraFocus;
+
+    public SelectionSystem Selection => selection;
+    public ResourceStorage Resources => resources;
+    public WorkerRegistry Workers => workers;
+    public ResourceRegistry ResourceNodes => resourceNodes;
+    public CameraFocusController CameraFocus => cameraFocus;
 
     private void Awake()
     {
-        Instance = this;
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
 
-        Selection = FindObjectOfType<SelectionSystem>();
-        Resources = FindObjectOfType<ResourceStorage>();
-        Workers = FindObjectOfType<WorkerRegistry>();
-        ResourcesNodes = FindObjectOfType<ResourceRegistry>();
-        CameraFocus = FindObjectOfType<CameraFocusController>();
+        Instance = this;
+        ResolveMissingReferences();
+    }
+
+    private void ResolveMissingReferences()
+    {
+        if (selection == null)
+            selection = FindObjectOfType<SelectionSystem>();
+
+        if (resources == null)
+            resources = FindObjectOfType<ResourceStorage>();
+
+        if (workers == null)
+            workers = FindObjectOfType<WorkerRegistry>();
+
+        if (resourceNodes == null)
+            resourceNodes = FindObjectOfType<ResourceRegistry>();
+
+        if (cameraFocus == null)
+            cameraFocus = FindObjectOfType<CameraFocusController>();
     }
 }
