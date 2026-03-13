@@ -6,20 +6,22 @@ public class WorkerInventory : MonoBehaviour
 {
     public int CarriedAmount { get; private set; }
 
-    public void SetAmount(int amount)
+    public bool HasCargo => CarriedAmount > 0;
+
+    public void SetCargo(int amount)
     {
         CarriedAmount = amount;
     }
 
-    public int TakeAll()
+    public int TakeCargo()
     {
         int amount = CarriedAmount;
         CarriedAmount = 0;
         return amount;
     }
 
-    public bool HasResources()
+    public void Clear()
     {
-        return CarriedAmount > 0;
+        CarriedAmount = 0;
     }
 }
