@@ -17,7 +17,7 @@ public class UnitSelectable : MonoBehaviour
 
     private void Awake()
     {
-        selectableEntity = GetComponent<ISelectableEntity>();
+        selectableEntity = GetComponentInParent<ISelectableEntity>();
 
         if (selectionVisual != null)
             selectionVisual.SetActive(false);
