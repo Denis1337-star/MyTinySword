@@ -25,7 +25,7 @@ public class WorkerWorkState : IWorkerState
 
         if (!started)
         {
-            worker.Animator.SetWorking(false);
+           // worker.Animator.SetWorking(false);
             worker.ClearCurrentAssignment();
             worker.StartFindingResource();
         }

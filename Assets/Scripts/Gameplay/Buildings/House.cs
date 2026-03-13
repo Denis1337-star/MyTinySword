@@ -32,6 +32,7 @@ public class House : MonoBehaviour
     private readonly List<Worker> workers = new();
 
     public Vector2 DropPoint => dropPoint != null ? dropPoint.position : transform.position;
+    [SerializeField] private float dropRadius = 0.6f;
 
     public int MaxWorkers => maxWorkers;
     public int CurrentWorkers => workers.Count;
@@ -156,13 +157,21 @@ public class House : MonoBehaviour
         if (occupiedIdlePoints.ContainsKey(worker))
             occupiedIdlePoints.Remove(worker);
     }
-
-    public void OnSelected(SelectionSystem selectionSystem)
+    public Vector2 GetDropPosition(Worker worker)
     {
-    }
+        Vector2 center = DropPoint;
 
-    public void OnDeselected()
-    {
-        // Пока пусто
+        if (worker == null || workers.Count <= 1)
+            return center;
+
+        int index = workers.IndexOf(worker);
+        if (index < 0)
+            return center;
+
+        float angleStep = 360f / Mathf.Max(1, workers.Count);
+        float angle = angleStep * index * Mathf.Deg2Rad;
+
+        Vector2 offset = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * dropRadius;
+        return center + offset;
     }
 }

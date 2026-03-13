@@ -15,7 +15,7 @@ public class WorkerCarryState : IWorkerState
     {
         worker.Animator.SetWorking(false);
         worker.Animator.SetEquipment(GetCarry());
-        worker.Movement.MoveTo(worker.Home.DropPoint);
+        worker.Movement.MoveTo(worker.Home.GetDropPosition(worker));
     }
 
     public void Update()

@@ -22,7 +22,7 @@ public class UnitMovement : MonoBehaviour
 
         agent.updateRotation = false;
         agent.updateUpAxis = false;
-        agent.stoppingDistance = 0.05f;
+        agent.stoppingDistance = 0.2f;
 
         PlaceOnNavMesh();
     }
