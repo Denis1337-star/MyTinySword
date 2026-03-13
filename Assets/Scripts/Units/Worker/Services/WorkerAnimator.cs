@@ -30,6 +30,7 @@ public class WorkerAnimator : MonoBehaviour
 
     public void SetWorking(bool value)
     {
+        Debug.Log($"[WorkerAnimator] SetWorking({value}) on {name}", this);
         animator.SetBool("IsWorking", value);
     }
 
