@@ -16,7 +16,7 @@ public enum WorkerJobType
 [RequireComponent(typeof(UnitMovement))]
 [RequireComponent(typeof(WorkerInventory))]
 [RequireComponent(typeof(WorkerBrain))]
-public class Worker : MonoBehaviour, ISelectableEntity
+public class Worker : MonoBehaviour
 {
     public WorkerStateMachine StateMachine { get; private set; }
     public UnitMovement Movement { get; private set; }
@@ -105,7 +105,7 @@ public class Worker : MonoBehaviour, ISelectableEntity
         if (selectionSystem == null)
             return;
 
-        selectionSystem.ShowWorkerUI(this);
+       // selectionSystem.ShowWorkerUI(this);
     }
     public void OnDeselected()
     {

@@ -13,24 +13,22 @@ public class UnitSelectable : MonoBehaviour
 
     public bool IsSelected { get; private set; }
 
-    private ISelectableEntity selectableEntity;
-
     private void Awake()
     {
-        selectableEntity = GetComponentInParent<ISelectableEntity>();
-
         if (selectionVisual != null)
             selectionVisual.SetActive(false);
+
+        Debug.Log($"[UnitSelectable] Awake on {name}", this);
     }
 
-    public void Select(SelectionSystem selectionSystem)
+    public void Select()
     {
         IsSelected = true;
 
+        Debug.Log($"[UnitSelectable] Select {name}", this);
+
         if (selectionVisual != null)
             selectionVisual.SetActive(true);
-
-        selectableEntity?.OnSelected(selectionSystem);
     }
 
     public void Deselect()
@@ -39,7 +37,5 @@ public class UnitSelectable : MonoBehaviour
 
         if (selectionVisual != null)
             selectionVisual.SetActive(false);
-
-        selectableEntity?.OnDeselected();
     }
 }

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class House : MonoBehaviour, ISelectableEntity
+public class House : MonoBehaviour
 {
     [Header("Spawn & Drop")]
     [SerializeField] private Transform spawnPoint;
@@ -156,7 +156,7 @@ public class House : MonoBehaviour, ISelectableEntity
         if (selectionSystem == null)
             return;
 
-        selectionSystem.ShowHouseUI(this);
+        //selectionSystem.ShowHouseUI(this);
     }
 
     public void OnDeselected()
