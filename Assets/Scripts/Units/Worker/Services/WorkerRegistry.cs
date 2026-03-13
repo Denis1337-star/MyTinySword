@@ -7,11 +7,13 @@ public class WorkerRegistry : MonoBehaviour
 {
     public static WorkerRegistry Instance { get; private set; }
 
-    public readonly List<Worker> Workers = new();
     public event Action<Worker> OnWorkerAdded;
     public event Action<Worker> OnWorkerRemoved;
 
+    private readonly List<Worker> workers = new();
     private int workerCounter = 0;
+
+    public IReadOnlyList<Worker> Workers => workers;
 
     private void Awake()
     {
@@ -20,20 +22,39 @@ public class WorkerRegistry : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
         Instance = this;
     }
+
     public void Register(Worker worker)
     {
-        workerCounter++;
+        if (worker == null)
+            return;
 
-        worker.name = $"Worker {workerCounter}"; 
-        Workers.Add(worker);
+        if (workers.Contains(worker))
+            return;
+
+        workerCounter++;
+        worker.name = $"Worker {workerCounter}";
+
+        workers.Add(worker);
         OnWorkerAdded?.Invoke(worker);
     }
 
     public void Unregister(Worker worker)
     {
-        Workers.Remove(worker);
+        if (worker == null)
+            return;
+
+        bool removed = workers.Remove(worker);
+        if (!removed)
+            return;
+
         OnWorkerRemoved?.Invoke(worker);
+    }
+
+    public bool Contains(Worker worker)
+    {
+        return worker != null && workers.Contains(worker);
     }
 }

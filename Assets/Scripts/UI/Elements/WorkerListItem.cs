@@ -1,11 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class WorkerListItem : MonoBehaviour, IPointerClickHandler
-
 {
     [SerializeField] private Text workerText;
 
@@ -17,8 +14,11 @@ public class WorkerListItem : MonoBehaviour, IPointerClickHandler
         this.worker = worker;
         this.selectionSystem = selectionSystem;
 
-        worker.OnJobChanged += UpdateView;
-        worker.OnActivityChanged += UpdateView;
+        if (worker != null)
+        {
+            worker.OnJobChanged += UpdateView;
+            worker.OnActivityChanged += UpdateView;
+        }
 
         UpdateView();
     }
@@ -65,7 +65,9 @@ public class WorkerListItem : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        selectionSystem?.ShowWorkerUI(worker);
-    }
+        if (worker == null || selectionSystem == null)
+            return;
 
+        selectionSystem.SelectWorkerFromUI(worker);
+    }
 }
