@@ -18,7 +18,9 @@ public class WorkerFindResourceState : IWorkerState
             worker.ChangeState(new WorkerIdleState(worker));
             return;
         }
+
         worker.Animator.SetWorking(false);
+
         worker.TargetResource = worker.CurrentJobLogic.FindResource(worker.transform.position);
 
         if (worker.TargetResource == null)
@@ -27,7 +29,6 @@ public class WorkerFindResourceState : IWorkerState
             return;
         }
 
-        // явно резервируем слот и сохран€ем его в worker
         worker.TargetSlot = worker.TargetResource.GetFreeSlot(worker);
 
         if (worker.TargetSlot == null)

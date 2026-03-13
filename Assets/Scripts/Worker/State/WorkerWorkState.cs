@@ -35,6 +35,7 @@ public class WorkerWorkState : IWorkerState
     private void OnFinished(int amount)
     {
         worker.Animator.SetWorking(false);
+
         worker.CarriedAmount = amount;
 
         if (worker.TargetResource != null)

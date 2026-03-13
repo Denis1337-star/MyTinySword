@@ -3,14 +3,7 @@ using System.Collections;
 using UnityEngine;
 
 
-//public enum WorkerState
-//{
-//    Idle,               // стоит, ждёт приказа
-//    GoingToResource,    // идёт к ресурсу
-//    Working,            // работает (рубит / добывает)
-//    CarryingToHouse,     // несёт ресурсы домой
-//    Unloading
-//}
+
 public enum WorkerJobType
 {
     None,
@@ -87,6 +80,7 @@ public class Worker : MonoBehaviour
 
         // Иначе ставим новую работу в очередь
         PendingJob = job;
+        OnJobChanged?.Invoke();
     }
 
     public void ApplyPendingJobIfAny()
