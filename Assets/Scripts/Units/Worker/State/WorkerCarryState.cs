@@ -30,7 +30,7 @@ public class WorkerCarryState : IWorkerState
 
             if (worker.PendingJob != WorkerJobType.None)
             {
-                worker.ApplyPendingJobIfAny();
+                worker.Brain.ApplyPendingJobIfAny();
                 return;
             }
 

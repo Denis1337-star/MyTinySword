@@ -15,24 +15,22 @@ public enum WorkerJobType
 
 [RequireComponent(typeof(UnitMovement))]
 [RequireComponent(typeof(WorkerInventory))]
+[RequireComponent(typeof(WorkerBrain))]
 public class Worker : MonoBehaviour
 {
-   public WorkerStateMachine StateMachine { get; private set; }
+    public WorkerStateMachine StateMachine { get; private set; }
     public UnitMovement Movement { get; private set; }
     public WorkerAnimator Animator { get; private set; }
     public WorkerInventory Inventory { get; private set; }
-
+    public WorkerBrain Brain { get; private set; }
 
     public House Home { get; private set; }
     public IWorkerJob CurrentJobLogic { get; private set; }
     public WorkerJobType CurrentJob { get; private set; }
-
     public WorkerJobType PendingJob { get; private set; } = WorkerJobType.None;
-
 
     public ResourceNodeBase TargetResource { get; set; }
     public WorkSlot TargetSlot { get; set; }
-
 
     public event Action OnJobChanged;
     public event Action OnActivityChanged;
@@ -42,6 +40,7 @@ public class Worker : MonoBehaviour
         Movement = GetComponent<UnitMovement>();
         Animator = GetComponent<WorkerAnimator>();
         Inventory = GetComponent<WorkerInventory>();
+        Brain = GetComponent<WorkerBrain>();
 
         StateMachine = new WorkerStateMachine();
         CurrentJob = WorkerJobType.None;
@@ -69,49 +68,26 @@ public class Worker : MonoBehaviour
 
     public void AssignJob(WorkerJobType job)
     {
-        if (Home == null)
-            return;
+        Brain.AssignJob(job);
+    }
 
-        bool canSwitchNow =
-            TargetResource == null &&
-            TargetSlot == null &&
-            !Inventory.HasCargo &&
-            !Movement.HasTarget;
+    public void SetCurrentJob(WorkerJobType job, IWorkerJob logic)
+    {
+        CurrentJob = job;
+        CurrentJobLogic = logic;
+        OnJobChanged?.Invoke();
+    }
 
-        if (canSwitchNow || CurrentJob == WorkerJobType.None)
-        {
-            ApplyJobImmediately(job);
-            return;
-        }
-
+    public void SetPendingJob(WorkerJobType job)
+    {
         PendingJob = job;
         OnJobChanged?.Invoke();
     }
 
-    public void ApplyPendingJobIfAny()
+    public void ClearPendingJob()
     {
-        if (PendingJob == WorkerJobType.None)
-            return;
-
-        WorkerJobType nextJob = PendingJob;
         PendingJob = WorkerJobType.None;
-        ApplyJobImmediately(nextJob);
-    }
-
-    private void ApplyJobImmediately(WorkerJobType job)
-    {
-        if (TargetResource != null)
-            TargetResource.CancelWork(this);
-
-        TargetResource = null;
-        TargetSlot = null;
-        Inventory.Clear();
-
-        CurrentJob = job;
-        CurrentJobLogic = WorkerJobFactory.Create(job);
-
         OnJobChanged?.Invoke();
-        ChangeState(new WorkerFindResourceState(this));
     }
 
     public void ChangeState(IWorkerState state)
