@@ -47,26 +47,15 @@
 
 # Использованные технологии
 
-### Unity
-Основной игровой движок.
-
-### C#
-Основной язык программирования.
-
-### NavMeshPlus
-Навигация юнитов в 2D.
-
-### Cinemachine
-Управление игровой камерой.
-
-### Tilemap + Rule Tiles
-Построение карты и автоматическая стыковка тайлов.
-
-### Animator + Blend Tree
-Плавное переключение анимаций.
-
-### UI System
-Интерфейс игрока.
+- **Unity**
+- **C#**
+- **NavMeshPlus**
+- **Cinemachine**
+- **Tilemap**
+- **Rule Tiles**
+- **Animator**
+- **Blend Tree**
+- **Unity UI**
 
 ---
 
@@ -74,7 +63,8 @@
 
 Проект разделён на несколько логических подсистем.
 
-- Input / Selection
+- Input System
+- Selection System
 - Command System
 - Units
 - Worker Logic
@@ -82,7 +72,6 @@
 - Resources
 - UI
 - Animation
-- Unity Systems
 
 ---
 
@@ -130,3 +119,49 @@ UI --> Buildings
 
 Map --> NavMesh
 Camera --> Player
+# Взаимодействие скриптов
+
+В проекте используется разделение логики между несколькими основными системами.
+
+Каждая система отвечает за отдельную часть геймплея:
+
+- управление игроком
+- обработка ввода
+- логика юнитов
+- взаимодействие с ресурсами
+- работа построек
+- UI
+
+Ниже показана схема взаимодействия основных игровых скриптов.
+
+```mermaid
+flowchart LR
+
+SelectionSystem[SelectionSystem]
+UnitSelectable[UnitSelectable]
+CommandSystem[CommandSystem]
+
+Worker[Worker]
+House[House]
+ResourceNode[ResourceNode]
+
+WorkerAnimator[Animator Controller]
+NavMeshAgent[NavMeshPlus Agent]
+
+UIWorkerItem[WorkerListItem]
+UI[Gameplay UI]
+
+SelectionSystem --> UnitSelectable
+SelectionSystem --> UIWorkerItem
+
+CommandSystem --> Worker
+
+House --> Worker
+
+Worker --> ResourceNode
+Worker --> WorkerAnimator
+Worker --> NavMeshAgent
+
+UI --> SelectionSystem
+UI --> House
+UIWorkerItem --> SelectionSystem
