@@ -92,7 +92,7 @@
 # Архитектурная схема проекта
 
 ![Architecture](Docs/architecture.png)
-
+https://github.com/Denis1337-star/MyTinySword/blob/main/Docs/achitecture.png
 ---
 
 # Взаимодействие игровых систем
