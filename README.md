@@ -91,7 +91,7 @@
 ---
 # Архитектурная схема проекта
 
-![Architecture](Docs/architecture.png)
+![Architecture](Docs/achitecture.png)
 
 ---
 
