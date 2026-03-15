@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 /// <summary>
 /// Компонент юнита, который ТОЛЬКО:
@@ -17,15 +14,14 @@ public class UnitSelectable : MonoBehaviour
     {
         if (selectionVisual != null)
             selectionVisual.SetActive(false);
-
-        Debug.Log($"[UnitSelectable] Awake on {name}", this);
     }
 
     public void Select()
     {
-        IsSelected = true;
+        if (IsSelected)
+            return;
 
-        Debug.Log($"[UnitSelectable] Select {name}", this);
+        IsSelected = true;
 
         if (selectionVisual != null)
             selectionVisual.SetActive(true);
@@ -33,6 +29,9 @@ public class UnitSelectable : MonoBehaviour
 
     public void Deselect()
     {
+        if (!IsSelected)
+            return;
+
         IsSelected = false;
 
         if (selectionVisual != null)

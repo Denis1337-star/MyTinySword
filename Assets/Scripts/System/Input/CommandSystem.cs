@@ -4,16 +4,23 @@ using UnityEngine.EventSystems;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 using TouchPhase = UnityEngine.InputSystem.TouchPhase;
 
+/// <summary>
+/// ќбрабатывает команды игрока после выбора объектов
+/// ќсновна€ задача:
+/// - отследить тап по игровому миру
+/// - убедитьс€, что это не UI и не selectable-объект
+/// - передать команду движени€ выбранным юнитам
+/// </summary>
 public class CommandSystem : MonoBehaviour
 {
     [SerializeField] private SelectionSystem selectionSystem;
 
-    private Camera cam;
+    private Camera mainCamera;
+
 
     private void Awake()
     {
-        cam = Camera.main;
-        EnhancedTouchSupport.Enable();
+        mainCamera = Camera.main;
     }
 
     private void Update()
@@ -23,30 +30,38 @@ public class CommandSystem : MonoBehaviour
 
     private void HandleMoveCommand()
     {
-        if (Touch.activeTouches.Count == 0)  //если нет косаний = выход
+        if (Touch.activeTouches.Count == 0)  
             return;
 
-        var touch = Touch.activeTouches[0];  //первое активное косание
+        var touch = Touch.activeTouches[0];  
 
-        // команда “ќЋ№ ќ по тапу
+
         if (touch.phase != TouchPhase.Ended)
             return;
 
-        // если UI Ч выходим
+
         if (EventSystem.current != null &&
             EventSystem.current.IsPointerOverGameObject(touch.touchId))
             return;
 
-        Vector2 worldPos = cam.ScreenToWorldPoint(touch.screenPosition);  //экранные в мировые сцены координаты
+        Vector2 worldPos = mainCamera.ScreenToWorldPoint(touch.screenPosition); 
 
-        // если тап по юниту Ч Ќ≈ двигаем
-        RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero);  //проверка если там юнит 
-        if (hit.collider != null && hit.collider.GetComponent<UnitSelectable>() != null)  //выделеем 
-            return;
 
-        IssueMoveCommand(worldPos);  //команды идти в точку 
+        RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero);
+        if (hit.collider != null)
+        {
+            UnitSelectable selectable = hit.collider.GetComponentInParent<UnitSelectable>();
+            if (selectable != null)
+                return;
+        }
+
+        IssueMoveCommand(worldPos); 
     }
 
+    /// <summary>
+    /// ќтправл€ет команду движени€ всем выбранным объектам,
+    /// у которых есть компонент UnitMovement.
+    /// </summary>
     private void IssueMoveCommand(Vector2 targetPos)
     {
         var selectedUnits = selectionSystem.GetSelectedUnits();

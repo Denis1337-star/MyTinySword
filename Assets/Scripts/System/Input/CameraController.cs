@@ -24,16 +24,6 @@ public class CameraController : MonoBehaviour
 
     public bool IsDragging => isDragging;
 
-    private void OnEnable()
-    {
-        EnhancedTouchSupport.Enable();
-    }
-
-    private void OnDisable()
-    {
-        EnhancedTouchSupport.Disable();
-    }
-
     private void Update()
     {
         if (virtualCamera == null)
@@ -87,7 +77,7 @@ public class CameraController : MonoBehaviour
         {
             Vector2 delta = touch.screenPosition - lastTouchPos;
 
-            if (delta.sqrMagnitude > 0.01f)
+            if (delta.sqrMagnitude > 0.1f)
             {
                 isDragging = true;
                 Move(delta);

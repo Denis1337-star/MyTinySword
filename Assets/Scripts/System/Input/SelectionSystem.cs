@@ -6,18 +6,27 @@ using UnityEngine.InputSystem.EnhancedTouch;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 using TouchPhase = UnityEngine.InputSystem.TouchPhase;
 
-
+/// <summary>
+/// Отвечает за выбор игровых объектов игроком через touch input.
+/// 
+/// Основные задачи:
+/// - обработать тап по экрану
+/// - определить, попал ли игрок по selectable-объекту
+/// - выделить найденный объект
+/// - снять выделение при тапе в пустое место
+/// - уведомить другие системы о смене выбора через события
+/// </summary>
 public class SelectionSystem : MonoBehaviour
 {
-    public event Action<UnitSelectable> SelectionChanged;
-    public event Action SelectionCleared;
+    public event Action<UnitSelectable> SelectionChanged;  // Передаёт текущий выбранный UnitSelectable.
+    public event Action SelectionCleared;  // Вызывается, когда выделение полностью очищено.
 
     [Header("Raycast")]
     [SerializeField] private LayerMask ignoreRaycastLayer;
 
-    private Camera cam;
-    private UnitSelectable currentSelection;
-    private readonly List<UnitSelectable> selectedUnits = new();
+    private Camera mainCamera;
+    private UnitSelectable currentSelection;     // Текущий выбранный объект.
+    private readonly List<UnitSelectable> selectedUnits = new();      // Список выделенных объектов.
 
     private void OnEnable()
     {
@@ -31,8 +40,7 @@ public class SelectionSystem : MonoBehaviour
 
     private void Awake()
     {
-        cam = Camera.main;
-        Debug.Log($"[SelectionSystem] Awake. Camera = {(cam != null ? cam.name : "NULL")}", this);
+        mainCamera = Camera.main;
     }
 
     private void Update()
@@ -40,6 +48,10 @@ public class SelectionSystem : MonoBehaviour
         HandleTouch();
     }
 
+    /// <summary>
+    /// Проверяет активное касание и запускает выбор объекта,
+    /// если пользователь закончил тап по игровому миру.
+    /// </summary>
     private void HandleTouch()
     {
         if (Touch.activeTouches.Count == 0)
@@ -50,23 +62,31 @@ public class SelectionSystem : MonoBehaviour
         if (touch.phase != TouchPhase.Ended)
             return;
 
+        // Если тап был по UI, игровой выбор не обрабатываем.
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(touch.touchId))
             return;
 
         ProcessTap(touch.screenPosition);
     }
 
+    /// <summary>
+    /// Обрабатывает тап по экрану:
+    /// переводит координаты в мир,
+    /// ищет collider,
+    /// пытается получить UnitSelectable
+    /// и либо выбирает объект, либо очищает текущее выделение.
+    /// </summary>
     private void ProcessTap(Vector2 screenPos)
     {
-        if (cam == null)
+        if (mainCamera == null)
         {
-            Debug.LogError("[SelectionSystem] Camera.main is NULL", this);
             return;
         }
 
-        Vector3 worldPos3 = cam.ScreenToWorldPoint(screenPos);
+        Vector3 worldPos3 = mainCamera.ScreenToWorldPoint(screenPos);
         Vector2 worldPos = new(worldPos3.x, worldPos3.y);
 
+        // Инвертирует маску, чтобы исключить ignoreRaycastLayer из проверки.
         int mask = ~ignoreRaycastLayer.value;
         RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero, 100f, mask);
 
@@ -87,6 +107,10 @@ public class SelectionSystem : MonoBehaviour
         Select(selectable);
     }
 
+    /// <summary>
+    /// Позволяет UI выбрать рабочего через ссылку на Worker.
+    /// Используется, например, при клике по элементу списка рабочих.
+    /// </summary>
     public void SelectWorkerFromUI(Worker worker)
     {
         if (worker == null)
@@ -96,13 +120,17 @@ public class SelectionSystem : MonoBehaviour
 
         if (selectable == null)
         {
-            Debug.LogWarning($"[SelectionSystem] Worker {worker.name} has no UnitSelectable in parents.", worker);
             return;
         }
 
         Select(selectable);
     }
 
+    /// <summary>
+    /// Выбирает переданный объект
+    /// Если объект уже выбран, повторно отправляет событие SelectionChanged,
+    /// чтобы UI или другие системы могли обновиться.
+    /// </summary>
     public void Select(UnitSelectable selectable)
     {
         if (selectable == null)
@@ -131,6 +159,14 @@ public class SelectionSystem : MonoBehaviour
         ClearSelectionInternal(notify: true);
     }
 
+
+    /// <summary>
+    /// Внутренний метод очистки выделения.
+    /// notify = true:
+    ///     отправляет событие SelectionCleared
+    /// notify = false:
+    ///     просто очищает состояние без уведомления
+    /// </summary>
     private void ClearSelectionInternal(bool notify)
     {
         foreach (var unit in selectedUnits)
