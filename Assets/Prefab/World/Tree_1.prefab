@@ -214,8 +214,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   workSlots:
   - {fileID: 888455000610138045}
-  chopTime: 2
-  respawnTime: 60
+  config: {fileID: 11400000, guid: b4359cc958472e94bb886c5a538d1447, type: 2}
   treeSprite: {fileID: 6215267202064938543, guid: c5a6a054a96fc4546851fdd38f73c8bb, type: 3}
   stumpSprite: {fileID: 21300000, guid: 7951e8106b28e48e0b11aed17a9978d1, type: 3}
 --- !u!95 &3892778098849339368

@@ -161,16 +161,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 315dc0f965815074eb10bde54b671786, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  config: {fileID: 11400000, guid: e578381acf1390e47bd9bd49568a46e3, type: 2}
   spawnPoint: {fileID: 1492884252047116931}
   dropPoint: {fileID: 1924322427756946528}
   idlePointsRoot: {fileID: 9043028756338710659}
-  maxWorkers: 5
   workerPrefab: {fileID: 4596641850069108570, guid: f508677d4c21cf44da86baaf33f36fb8, type: 3}
-  baseWoodCost: 5
-  baseGoldCost: 2
-  woodIncreasePerWorker: 2
-  goldIncreasePerWorker: 1
-  startWorkers: 1
+  dropRadius: 0.6
 --- !u!1 &2306703238688880557
 GameObject:
   m_ObjectHideFlags: 0

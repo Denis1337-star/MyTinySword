@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,6 +9,7 @@ public class HousePanel : MonoBehaviour
     [SerializeField] private Text costText;
 
     private House currentHouse;
+    private ResourceStorage subscribedStorage;
 
     private void Awake()
     {
@@ -34,12 +33,8 @@ public class HousePanel : MonoBehaviour
         Hide();
 
         currentHouse = house;
+        Subscribe();
         gameObject.SetActive(true);
-
-        currentHouse.OnWorkersChanged += Refresh;
-
-        if (ResourceStorage.Instance != null)
-            ResourceStorage.Instance.OnResourcesChanged += Refresh;
 
         if (workerList != null)
             workerList.Bind(currentHouse);
@@ -49,26 +44,42 @@ public class HousePanel : MonoBehaviour
 
     public void Hide()
     {
-        if (currentHouse != null)
-        {
-            currentHouse.OnWorkersChanged -= Refresh;
-
-            if (ResourceStorage.Instance != null)
-                ResourceStorage.Instance.OnResourcesChanged -= Refresh;
-        }
+        Unsubscribe();
 
         currentHouse = null;
         gameObject.SetActive(false);
+
+        if (workerList != null)
+            workerList.Bind(null);
     }
 
     private void OnDisable()
     {
+        Unsubscribe();
+    }
+
+    private void Subscribe()
+    {
         if (currentHouse != null)
+            currentHouse.OnWorkersChanged += Refresh;
+
+        ResourceStorage storage = ResourceStorage.Instance;
+        if (storage != null)
         {
+            subscribedStorage = storage;
+            subscribedStorage.OnResourcesChanged += Refresh;
+        }
+    }
+
+    private void Unsubscribe()
+    {
+        if (currentHouse != null)
             currentHouse.OnWorkersChanged -= Refresh;
 
-            if (ResourceStorage.Instance != null)
-                ResourceStorage.Instance.OnResourcesChanged -= Refresh;
+        if (subscribedStorage != null)
+        {
+            subscribedStorage.OnResourcesChanged -= Refresh;
+            subscribedStorage = null;
         }
     }
 
@@ -78,14 +89,21 @@ public class HousePanel : MonoBehaviour
             return;
 
         if (limitText != null)
-            limitText.text = $"Нанято {currentHouse.CurrentWorkers} / {currentHouse.MaxWorkers}";
+            limitText.text = $"Рабочие: {currentHouse.CurrentWorkers} / {currentHouse.MaxWorkers}";
+
+        if (costText != null)
+        {
+            int currentWood = ResourceStorage.Instance != null ? ResourceStorage.Instance.Wood : 0;
+            int currentGold = ResourceStorage.Instance != null ? ResourceStorage.Instance.Gold : 0;
+
+            costText.text =
+                $"Стоимость найма\n" +
+                $"Дерево: {currentWood} / {currentHouse.CurrentWoodCost}\n" +
+                $"Золото: {currentGold} / {currentHouse.CurrentGoldCost}";
+        }
 
         if (hireButton != null)
             hireButton.interactable = currentHouse.CanHire();
-
-        if (costText != null)
-            costText.text =
-                $"Для найма - Дерево: {currentHouse.CurrentWoodCost} / Золото: {currentHouse.CurrentGoldCost}";
 
         if (workerList != null)
             workerList.Refresh();
@@ -97,5 +115,6 @@ public class HousePanel : MonoBehaviour
             return;
 
         currentHouse.HireWorker();
+        Refresh();
     }
 }

@@ -1,6 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class WorkerListPanel : MonoBehaviour
@@ -32,6 +30,12 @@ public class WorkerListPanel : MonoBehaviour
     private void OnDisable()
     {
         UnsubscribeFromHouse();
+    }
+
+    private void OnDestroy()
+    {
+        UnsubscribeFromHouse();
+        ClearAllItems();
     }
 
     public void Refresh()
@@ -104,9 +108,7 @@ public class WorkerListPanel : MonoBehaviour
         }
 
         foreach (Worker worker in toRemove)
-        {
             RemoveItem(worker);
-        }
     }
 
     private void AddMissingWorkers()
@@ -115,9 +117,7 @@ public class WorkerListPanel : MonoBehaviour
             return;
 
         foreach (Worker worker in currentHouse.Workers)
-        {
             AddWorkerItem(worker);
-        }
     }
 
     private void AddWorkerItem(Worker worker)
@@ -158,9 +158,7 @@ public class WorkerListPanel : MonoBehaviour
         }
 
         foreach (Worker worker in invalidWorkers)
-        {
             RemoveItem(worker);
-        }
     }
 
     private void ClearAllItems()

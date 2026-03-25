@@ -264,9 +264,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   workSlots:
   - {fileID: 5005038742377153201}
-  meatAmount: 2
-  workTime: 2
-  respawnTime: 60
+  config: {fileID: 11400000, guid: fcf2a7b93da70fe4aa95d276a7ac9941, type: 2}
   spriteRenderer: {fileID: 487309473237773883}
   col: {fileID: 25945001822367249}
 --- !u!195 &2947089080037236613
