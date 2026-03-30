@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Tree Resource Config
   m_EditorClassIdentifier: Assembly-CSharp::TreeResourceConfig
   priority: 1
-  respawnTime: 10
+  respawnTime: 60
   chopTime: 2
   rewardAmount: 3

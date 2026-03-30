@@ -10,6 +10,9 @@ public enum EquipmentType
     Gold,
     Meat
 }
+/// <summary>
+/// Отвечает за перевод состояния worker'а в параметры Animator
+/// </summary>
 public class WorkerAnimator : MonoBehaviour
 {
     [SerializeField] private Animator animator;
@@ -27,6 +30,9 @@ public class WorkerAnimator : MonoBehaviour
         ResolveReferences();
     }
 
+    /// <summary>
+    /// Пытается автоматически найти нужные ссылки на том же объекте
+    /// </summary>
     private void ResolveReferences()
     {
         if (animator == null)
@@ -45,6 +51,9 @@ public class WorkerAnimator : MonoBehaviour
         animator.SetBool("IsMoving", isMoving);
     }
 
+    /// <summary>
+    /// Включает или выключает рабочую анимацию
+    /// </summary>
     public void SetWorking(bool value)
     {
         if (animator == null)
@@ -59,7 +68,9 @@ public class WorkerAnimator : MonoBehaviour
         if (value)
             animator.SetBool("IsMoving", false);
     }
-
+    /// <summary>
+    /// Обновляет визуальный тип инструмента/груза в руках worker'а
+    /// </summary>
     public void SetEquipment(EquipmentType equipment)
     {
         if (animator == null)

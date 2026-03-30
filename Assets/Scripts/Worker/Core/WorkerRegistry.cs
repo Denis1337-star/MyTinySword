@@ -2,6 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Глобальный реестр всех worker'ов на сцене
+/// Хранит актуальный список рабочих, позволяет регистрировать и удалять их,
+/// а также уведомляет подписчиков об изменениях состава.
+/// </summary>
 public class WorkerRegistry : MonoBehaviour
 {
     public static WorkerRegistry Instance { get; private set; }
@@ -9,8 +14,8 @@ public class WorkerRegistry : MonoBehaviour
     public event Action<Worker> OnWorkerAdded;
     public event Action<Worker> OnWorkerRemoved;
 
-    private readonly List<Worker> workers = new();
-    private int workerCounter;
+    private readonly List<Worker> workers = new();   // Внутренний список всех зарегистрированных worker'ов
+    private int workerCounter;   // Счетчик для назначения читаемых имен новым worker'ам
 
     public IReadOnlyList<Worker> Workers => workers;
 
@@ -25,12 +30,15 @@ public class WorkerRegistry : MonoBehaviour
         Instance = this;
     }
 
+    /// <summary>
+    /// Регистрирует нового worker'а в глобальном реестре
+    /// </summary>
     public void Register(Worker worker)
     {
         if (worker == null)
             return;
 
-        if (workers.Contains(worker))
+        if (workers.Contains(worker))  // Не допускаем повторной регистрации одного и того же объекта
             return;
 
         workerCounter++;
@@ -40,17 +48,23 @@ public class WorkerRegistry : MonoBehaviour
         OnWorkerAdded?.Invoke(worker);
     }
 
+    /// <summary>
+    /// Удаляет worker'а из глобального реестра
+    /// </summary>
     public void Unregister(Worker worker)
     {
         if (worker == null)
             return;
 
-        if (!workers.Remove(worker))
+        if (!workers.Remove(worker))    // Если worker не был зарегистрирован, ничего не делает
             return;
 
         OnWorkerRemoved?.Invoke(worker);
     }
 
+    /// <summary>
+    /// Проверяет, содержится ли worker в реестре
+    /// </summary>
     public bool Contains(Worker worker)
     {
         return worker != null && workers.Contains(worker);

@@ -1,11 +1,18 @@
 using UnityEngine;
 
+/// <summary>
+/// —лушает изменение выбранного объекта и показывает подход€щую панель:
+/// дл€ worker'а Ч WorkerCommandPanel, дл€ дома Ч HousePanel.
+/// </summary>
 public class SelectionUiPresenter : MonoBehaviour
 {
     [SerializeField] private SelectionSystem selectionSystem;
     [SerializeField] private WorkerCommandPanel workerCommandPanel;
     [SerializeField] private HousePanel housePanel;
 
+    /// <summary>
+    /// ѕытаетс€ восстановить отсутствующие ссылки на selection system и UI-панели
+    /// </summary>
     private void OnValidate()
     {
         if (selectionSystem == null)
@@ -35,7 +42,9 @@ public class SelectionUiPresenter : MonoBehaviour
         selectionSystem.SelectionChanged -= OnSelectionChanged;
         selectionSystem.SelectionCleared -= OnSelectionCleared;
     }
-
+    /// <summary>
+    /// ѕытаетс€ восстановить отсутствующие ссылки на selection system и UI-панели
+    /// </summary>
     private void OnSelectionChanged(UnitSelectable selectable)
     {
         HideAll();

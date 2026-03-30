@@ -1,11 +1,15 @@
 using System;
 using UnityEngine;
 
+/// <summary>
+/// Базовый класс для всех ресурсов, с которыми могут работать worker'ы.
+/// Содержит общую логику слотов, доступности и регистрации в ResourceRegistry
+/// </summary>
 public abstract class ResourceNodeBase : ValidatedMonoBehaviour, IResourceNode
 {
     [SerializeField] protected WorkSlot[] workSlots;
 
-    protected bool available = true;
+    protected bool available = true;  // Доступен ли ресурс для работы в данный момент
 
     public bool IsAvailable => available;
 
@@ -17,6 +21,7 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour, IResourceNode
         base.Awake();
     }
 
+    // Регистрирует ресурс в общем реестре ресурсов сцены
     protected virtual void Start()
     {
         if (ResourceRegistry.Instance != null)
@@ -25,12 +30,14 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour, IResourceNode
             Debug.LogWarning($"{name}: ResourceRegistry not found", this);
     }
 
+    // Удаляет ресурс из реестра при уничтожении
     protected virtual void OnDestroy()
     {
         if (ResourceRegistry.Instance != null)
             ResourceRegistry.Instance.Unregister(this);
     }
 
+    // Удаляет ресурс из реестра при уничтожении
     protected override bool ValidateInternal()
     {
         bool valid = true;
@@ -52,6 +59,7 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour, IResourceNode
         return valid;
     }
 
+    // Есть ли у ресурса хотя бы один свободный слот
     public bool HasFreeSlot()
     {
         if (workSlots == null || workSlots.Length == 0)
@@ -66,6 +74,7 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour, IResourceNode
         return false;
     }
 
+    // Пытается зарезервировать слот для worker
     public virtual WorkSlot TryReserveSlot(Worker worker)
     {
         if (worker == null || workSlots == null)
@@ -83,6 +92,7 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour, IResourceNode
         return null;
     }
 
+    // Освобождает слот(ы), принадлежащие указанному worker
     public virtual void ReleaseSlot(Worker worker)
     {
         if (workSlots == null)
@@ -95,8 +105,13 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour, IResourceNode
         }
     }
 
+    /// <summary>
+    /// Запускает конкретную рабочую рутину ресурса.
+    /// Реализуется в наследниках.
+    /// </summary>
     protected abstract void StartWorkRoutine(Action<int> onFinished);
 
+    // Пытается начать работу на ресурсе
     public virtual bool TryStartWork(Worker worker, Action<int> onFinished)
     {
         if (!available)
@@ -116,6 +131,7 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour, IResourceNode
         return true;
     }
 
+    // Возвращает рабочую позицию для конкретного worker или fallback-позицию
     public virtual Vector2 GetWorkPosition(Worker worker)
     {
         if (worker != null &&
@@ -137,6 +153,10 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour, IResourceNode
         return transform.position;
     }
 
+    /// <summary>
+    /// Отменяет работу worker на ресурсе
+    /// По умолчанию просто освобождает слот
+    /// </summary>
     public virtual void CancelWork(Worker worker)
     {
         ReleaseSlot(worker);

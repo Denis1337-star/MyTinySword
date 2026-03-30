@@ -2,16 +2,15 @@ using System;
 using System.Collections;
 using UnityEngine;
 
+/// <summary>
+/// Конкретная реализация дерева как ресурса
+/// Поддерживает рубку, визуальное превращение в пень и респавн
+/// </summary>
 public class TreeResource : ResourceNodeBase
 {
     [Header("Config")]
     [SerializeField] private TreeResourceConfig config;
 
-    [Header("Visuals")]
-    [SerializeField] private Sprite treeSprite;
-    [SerializeField] private Sprite stumpSprite;
-
-    private SpriteRenderer sr;
     private Animator animator;
 
     public override Vector2 WorkPosition => GetWorkPosition(null);
@@ -21,7 +20,6 @@ public class TreeResource : ResourceNodeBase
     {
         base.Awake();
         animator = GetComponent<Animator>();
-        sr = GetComponent<SpriteRenderer>();
 
         if (config == null)
             Debug.LogError($"TreeResource {name}: TreeResourceConfig не назначен.", this);
@@ -29,11 +27,16 @@ public class TreeResource : ResourceNodeBase
         SetTreeVisual();
     }
 
+    // Запускает конкретную рабочую рутину дерева — рубку
     protected override void StartWorkRoutine(Action<int> onFinished)
     {
         StartCoroutine(ChopRoutine(onFinished));
     }
 
+    /// <summary>
+    /// Логика рубки дерева
+    /// ожидание, выдача награды, смена визуала, ожидание респавна
+    /// </summary>
     private IEnumerator ChopRoutine(Action<int> callback)
     {
         float chopTime = config != null ? config.chopTime : 2f;
@@ -50,26 +53,22 @@ public class TreeResource : ResourceNodeBase
         Respawn();
     }
 
+    // Возвращает дерево в доступное состояние после респавна
     private void Respawn()
     {
         available = true;
         SetTreeVisual();
     }
 
+    // Устанавливает визуал обычного дерева
     private void SetTreeVisual()
     {
-        if (sr != null)
-            sr.sprite = treeSprite;
-
         if (animator != null)
             animator.SetBool("Stump", false);
     }
-
+    // Устанавливает визуал пня после рубки
     private void SetStumpVisual()
     {
-        if (sr != null)
-            sr.sprite = stumpSprite;
-
         if (animator != null)
             animator.SetBool("Stump", true);
     }

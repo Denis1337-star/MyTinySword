@@ -1,10 +1,18 @@
 using UnityEngine;
 
+/// <summary>
+/// Слушает изменение выбранного объекта и,
+/// если выбран worker, передаёт команду системе камеры сфокусироваться на нём.
+/// </summary>
 public class SelectionFocusPresenter : MonoBehaviour
 {
     [SerializeField] private SelectionSystem selectionSystem;
     [SerializeField] private CameraFocusController focusController;
 
+    /// <summary>
+    /// Пытается восстановить отсутствующие ссылки через GameServices
+    /// или через поиск по сцене.
+    /// </summary>
     private void OnValidate()
     {
         if (selectionSystem == null)
@@ -41,7 +49,9 @@ public class SelectionFocusPresenter : MonoBehaviour
         selectionSystem.SelectionChanged -= OnSelectionChanged;
         selectionSystem.SelectionCleared -= OnSelectionCleared;
     }
-
+    /// <summary>
+    /// Если выбран worker, переводим фокус камеры на него
+    /// </summary>
     private void OnSelectionChanged(UnitSelectable selectable)
     {
         if (selectable == null || focusController == null)

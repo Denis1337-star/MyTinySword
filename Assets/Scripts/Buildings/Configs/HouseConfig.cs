@@ -1,5 +1,9 @@
 using UnityEngine;
 
+/// <summary>
+/// Хранит параметры стартового количества worker'ов
+/// максимального лимита и экономики найма
+/// </summary>
 [CreateAssetMenu(menuName = "MyTinySword/Configs/House Config")]
 public class HouseConfig : BaseConfig
 {
@@ -12,7 +16,9 @@ public class HouseConfig : BaseConfig
     [Min(0)] public int baseGoldCost = 10;
     [Min(0)] public int woodIncreasePerWorker = 2;
     [Min(0)] public int goldIncreasePerWorker = 2;
-
+    /// <summary>
+    /// Проверяет логическую корректность конфига.
+    /// </summary>
     public override bool IsValid()
     {
         return startWorkers >= 0 &&
@@ -23,7 +29,9 @@ public class HouseConfig : BaseConfig
                woodIncreasePerWorker >= 0 &&
                goldIncreasePerWorker >= 0;
     }
-
+    /// <summary>
+    /// Автоматически исправляет некорректные значения в инспекторе.
+    /// </summary>
     private void OnValidate()
     {
         startWorkers = Mathf.Max(0, startWorkers);

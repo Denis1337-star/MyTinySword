@@ -3,6 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem.EnhancedTouch;
 
+/// <summary>
+/// Система выбора объектов игроком.
+/// Отвечает за обработку тапа по миру, выбор selectable-объекта,
+/// снятие предыдущего выделения и уведомление подписчиков об изменениях selection.
+/// </summary>
 public class SelectionSystem : MonoBehaviour
 {
     public event Action<UnitSelectable> SelectionChanged;
@@ -36,7 +41,10 @@ public class SelectionSystem : MonoBehaviour
     {
         ResolveReferences();
     }
-
+    /// <summary>
+    /// Пытается восстановить ссылку на главную камеру
+    /// Сначала через GameServices, потом через Camera.main
+    /// </summary>
     private void ResolveReferences()
     {
         if (mainCamera == null)
@@ -52,25 +60,32 @@ public class SelectionSystem : MonoBehaviour
     {
         HandleTouch();
     }
-
+    /// <summary>
+    /// Обрабатывает пользовательский тап для выбора объекта.
+    /// </summary>
     private void HandleTouch()
     {
         if (!TouchUtility.TryGetEndedTouch(out var touch))
             return;
 
-        if (TouchUtility.IsPointerOverUI(touch))
+        if (TouchUtility.IsPointerOverUI(touch))   // Нажатия по UI не должны менять игровой selection
             return;
 
         ProcessTap(touch.screenPosition);
     }
-
+    /// <summary>
+    /// Выполняет raycast в точку тапа и решает,
+    /// нужно ли выбрать объект или очистить selection
+    /// </summary>
     private void ProcessTap(Vector2 screenPos)
     {
         if (mainCamera == null)
             return;
 
+        // Переводим координату тапа из экрана в игровой мир
         Vector2 worldPos = TouchUtility.ScreenToWorld(mainCamera, screenPos);
 
+        // Исключаем из raycast слои, которые не должны участвовать в выборе
         int mask = ~ignoreRaycastLayer.value;
         RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero, 100f, mask);
 
@@ -91,6 +106,10 @@ public class SelectionSystem : MonoBehaviour
         Select(selectable);
     }
 
+    /// <summary>
+    /// Выбирает worker'а по запросу из UI
+    /// Используется, например, при клике по элементу в списке worker'ов
+    /// </summary>
     public void SelectWorkerFromUI(Worker worker)
     {
         if (worker == null)
@@ -102,7 +121,9 @@ public class SelectionSystem : MonoBehaviour
 
         Select(selectable);
     }
-
+    /// <summary>
+    /// Делает указанный объект текущим выбранным
+    /// </summary>
     public void Select(UnitSelectable selectable)
     {
         if (selectable == null)

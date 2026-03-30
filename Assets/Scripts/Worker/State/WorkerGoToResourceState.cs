@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// —осто€ние движени€ рабочего к заранее назначенному ресурсу и зарезервированному рабочему слоту
+/// </summary>
 public class WorkerGoToResourceState : IWorkerState
 {
     private readonly Worker worker;
@@ -11,32 +14,31 @@ public class WorkerGoToResourceState : IWorkerState
         this.worker = worker;
     }
 
+    /// <summary>
+    /// ¬ызываетс€ при входе в состо€ние
+    /// ѕровер€ет актуальность назначени€ и запускает движение к рабочему слоту
+    /// </summary>
     public void Enter()
     {
         repathTimer = RepathInterval;
 
-        if (worker == null)
-            return;
-
         if (!worker.HasValidResourceAssignment())
         {
-            worker.ClearCurrentAssignment();
-            worker.StartFindingResource();
+            RestartResourceSearch();
             return;
         }
 
         worker.Movement.MoveTo(worker.TargetSlot.Position);
     }
 
+    /// <summary>
+    /// ¬ызываетс€ каждый кадр, пока рабочий находитс€ в состо€нии движени€ к ресурсу
+    /// </summary>
     public void Update()
     {
-        if (worker == null)
-            return;
-
         if (!worker.HasValidResourceAssignment())
         {
-            worker.ClearCurrentAssignment();
-            worker.StartFindingResource();
+            RestartResourceSearch();
             return;
         }
 
@@ -58,9 +60,13 @@ public class WorkerGoToResourceState : IWorkerState
 
         if (!worker.Movement.HasTarget)
         {
-            worker.ClearCurrentAssignment();
-            worker.StartFindingResource();
+            RestartResourceSearch();
         }
+    }
+    private void RestartResourceSearch()
+    {
+        worker.ClearCurrentAssignment();
+        worker.StartFindingResource();
     }
 
     public void Exit()

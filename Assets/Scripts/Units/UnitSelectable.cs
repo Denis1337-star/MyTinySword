@@ -7,7 +7,6 @@ using UnityEngine;
 public class UnitSelectable : MonoBehaviour
 {
     [SerializeField] private GameObject selectionVisual;
-
     public bool IsSelected { get; private set; }
 
     private void Awake()
@@ -15,6 +14,8 @@ public class UnitSelectable : MonoBehaviour
         ApplySelectionVisual(false);
     }
 
+    // Если ссылка не назначена вручную,
+    // пытаемся автоматически найти child-объект с именем "Selection"
     private void OnValidate()
     {
         if (selectionVisual == null)

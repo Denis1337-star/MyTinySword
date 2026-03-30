@@ -1,11 +1,19 @@
 using UnityEngine;
 
+/// <summary>
+/// Базовый конфиг для всех ресурсов
+/// Содержит общие параметры, которые есть у любого типа ресурса
+/// </summary>
 public abstract class ResourceConfig : BaseConfig
 {
     [Header("Common")]
     [Min(0f)] public float priority = 1f;
     [Min(0.1f)] public float respawnTime = 10f;
 
+    /// <summary>
+    /// Ограничивает общие значения ресурса в редакторе
+    /// Наследники могут расширять эту проверку, вызывая base.OnValidate()
+    /// </summary>
     protected virtual void OnValidate()
     {
         priority = Mathf.Max(0f, priority);
@@ -13,6 +21,10 @@ public abstract class ResourceConfig : BaseConfig
     }
 }
 
+/// <summary>
+/// Конфиг для дерева
+/// Определяет время рубки и награду
+/// </summary>
 [CreateAssetMenu(menuName = "MyTinySword/Configs/Resources/Tree Config")]
 public class TreeResourceConfig : ResourceConfig
 {
@@ -35,6 +47,11 @@ public class TreeResourceConfig : ResourceConfig
     }
 }
 
+
+/// <summary>
+/// Конфиг золотого ресурса
+/// Определяет время добычи и интервал роста размера ресурса
+/// </summary>
 [CreateAssetMenu(menuName = "MyTinySword/Configs/Resources/Gold Config")]
 public class GoldResourceConfig : ResourceConfig
 {
@@ -48,7 +65,6 @@ public class GoldResourceConfig : ResourceConfig
                mineTime >= 0.1f &&
                growInterval >= 0.1f;
     }
-
     protected override void OnValidate()
     {
         base.OnValidate();
@@ -57,6 +73,10 @@ public class GoldResourceConfig : ResourceConfig
     }
 }
 
+/// <summary>
+/// Конфиг овцы как ресурса
+/// Определяет время "добычи" и количество мяса
+/// </summary>
 [CreateAssetMenu(menuName = "MyTinySword/Configs/Resources/Sheep Config")]
 public class SheepResourceConfig : ResourceConfig
 {

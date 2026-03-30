@@ -1,6 +1,11 @@
 using UnityEngine;
 using UnityEngine.InputSystem.EnhancedTouch;
 
+/// <summary>
+/// Система пользовательских команд
+/// Отвечает за обработку тапа по миру и отдачу команды движения
+/// выбранным юнитам, которые поддерживают ручное перемещение
+/// </summary>
 public class CommandSystem : MonoBehaviour
 {
     [SerializeField] private SelectionSystem selectionSystem;
@@ -16,6 +21,10 @@ public class CommandSystem : MonoBehaviour
         ResolveReferences();
     }
 
+    /// <summary>
+    /// Пытается заполнить отсутствующие ссылки через GameServices
+    /// или через прямой поиск по сцене
+    /// </summary>
     private void ResolveReferences()
     {
         if (selectionSystem == null)
@@ -39,13 +48,15 @@ public class CommandSystem : MonoBehaviour
     {
         HandleMoveCommand();
     }
-
+    /// <summary>
+    /// Проверяет, была ли отдана команда движения через тап по миру
+    /// </summary>
     private void HandleMoveCommand()
     {
         if (!TouchUtility.TryGetEndedTouch(out var touch))
             return;
 
-        if (TouchUtility.IsPointerOverUI(touch))
+        if (TouchUtility.IsPointerOverUI(touch))  // Если тап был по UI — игровой мир не обрабатываем
             return;
 
         if (selectionSystem == null || mainCamera == null)
@@ -53,6 +64,8 @@ public class CommandSystem : MonoBehaviour
 
         Vector2 worldPos = TouchUtility.ScreenToWorld(mainCamera, touch.screenPosition);
 
+        // Если тап пришёлся по selectable-объекту,
+        // не считаем это командой движения — этот тап относится к выбору
         RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero);
         if (hit.collider != null)
         {
@@ -63,7 +76,10 @@ public class CommandSystem : MonoBehaviour
 
         IssueMoveCommand(worldPos);
     }
-
+    /// <summary>
+    /// Отдаёт команду движения всем выбранным объектам
+    /// которые поддерживают ручное перемещение
+    /// </summary>
     private void IssueMoveCommand(Vector2 targetPos)
     {
         var selectedUnits = selectionSystem.GetSelectedUnits();
@@ -75,6 +91,8 @@ public class CommandSystem : MonoBehaviour
             if (selectable == null)
                 continue;
 
+            // Worker'ов вручную не двигаем
+            // они управляются своей AI/state machine логикой
             if (selectable.TryGetComponent(out Worker worker))
                 continue;
 

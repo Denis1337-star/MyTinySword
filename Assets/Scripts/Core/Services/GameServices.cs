@@ -1,5 +1,10 @@
 using UnityEngine;
 
+/// <summary>
+/// √лобальный контейнер ссылок на основные сервисы сцены
+/// ѕозвол€ет централизованно получать доступ к выбору, ресурсам,
+/// реестрам, управлению камерой и главной камере
+/// </summary>
 public class GameServices : MonoBehaviour
 {
     public static GameServices Instance { get; private set; }
@@ -36,6 +41,10 @@ public class GameServices : MonoBehaviour
         ResolveMissingReferences();
     }
 
+    /// <summary>
+    /// Ќаходит и заполн€ет отсутствующие сценовые ссылки
+    /// ≈сли ссылка уже назначена вручную, повторно еЄ не трогаем
+    /// </summary>
     private void ResolveMissingReferences()
     {
         if (selection == null)

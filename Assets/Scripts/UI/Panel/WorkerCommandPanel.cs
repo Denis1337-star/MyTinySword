@@ -1,6 +1,11 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// UI-панель выбранного worker'а.
+/// Показывает имя, текущую работу, pending job и текущее состояние,
+/// а также позволяет назначать новую работу через кнопки.
+/// </summary>
 public class WorkerCommandPanel : MonoBehaviour
 {
     [Header("Buttons")]
@@ -20,10 +25,11 @@ public class WorkerCommandPanel : MonoBehaviour
     [Header("Behaviour")]
     [SerializeField] private bool closeAfterAssign = false;
 
-    private Worker currentWorker;
+    private Worker currentWorker;   // Worker, которого сейчас отображает панель
 
     private void Awake()
     {
+        //Подключаем обработчики кнопок
         if (chopWoodButton != null)
             chopWoodButton.onClick.AddListener(OnChopWoodClicked);
 
@@ -35,12 +41,16 @@ public class WorkerCommandPanel : MonoBehaviour
 
         gameObject.SetActive(false);
     }
-
+    /// <summary>
+    /// Показывает панель для указанного worker'а
+    /// </summary>
     public void ShowForWorker(Worker worker)
     {
         if (worker == null)
             return;
 
+        // Если панель уже открыта для этого worker'а —
+        // просто обновляем отображение
         if (currentWorker == worker && gameObject.activeSelf)
         {
             Refresh();
@@ -55,7 +65,9 @@ public class WorkerCommandPanel : MonoBehaviour
         gameObject.SetActive(true);
         Refresh();
     }
-
+    /// <summary>
+    /// Полностью скрывает панель и снимает подписки с текущего worker'а
+    /// </summary>
     public void Hide()
     {
         UnsubscribeFromWorker();
@@ -67,7 +79,10 @@ public class WorkerCommandPanel : MonoBehaviour
     {
         UnsubscribeFromWorker();
     }
-
+    /// <summary>
+    /// Подписывается на события worker'а,
+    /// чтобы UI автоматически обновлялся при изменениях
+    /// </summary>
     private void SubscribeToWorker()
     {
         if (currentWorker == null)
@@ -76,7 +91,9 @@ public class WorkerCommandPanel : MonoBehaviour
         currentWorker.OnJobChanged += Refresh;
         currentWorker.OnActivityChanged += Refresh;
     }
-
+    /// <summary>
+    /// Снимает подписки с текущего worker'а
+    /// </summary>
     private void UnsubscribeFromWorker()
     {
         if (currentWorker == null)
@@ -85,7 +102,9 @@ public class WorkerCommandPanel : MonoBehaviour
         currentWorker.OnJobChanged -= Refresh;
         currentWorker.OnActivityChanged -= Refresh;
     }
-
+    /// <summary>
+    /// Обновляет весь UI панели под текущее состояние worker'а
+    /// </summary>
     private void Refresh()
     {
         if (currentWorker == null)
@@ -111,7 +130,10 @@ public class WorkerCommandPanel : MonoBehaviour
 
         RefreshButtons();
     }
-
+    /// <summary>
+    /// Обновляет доступность кнопок профессий
+    /// Нельзя повторно назначить уже текущую или уже pending работу
+    /// </summary>
     private void RefreshButtons()
     {
         if (currentWorker == null)
@@ -166,7 +188,9 @@ public class WorkerCommandPanel : MonoBehaviour
     {
         AssignJob(WorkerJobType.HuntMeat);
     }
-
+    /// <summary>
+    /// Передаёт команду назначения новой работы выбранному worker'у
+    /// </summary>
     private void AssignJob(WorkerJobType job)
     {
         if (currentWorker == null || workerCommandService == null)

@@ -2,16 +2,17 @@ using System;
 using System.Collections;
 using UnityEngine;
 
-
+/// <summary>
+///  онкретна€ реализаци€ золотого ресурса
+/// «олото растЄт со временем, а размер вли€ет на награду
+/// </summary>
 public class GoldResource : ResourceNodeBase
 {
     [Header("Config")]
     [SerializeField] private GoldResourceConfig config;
 
-    [Header("Visuals")]
-    [SerializeField] private Animator animator;
-
-    private SpriteRenderer sr;
+    private Animator animator;
+    private SpriteRenderer sprite;
     private ResourceSize size = ResourceSize.Tiny;
     private Coroutine growRoutine;
 
@@ -21,7 +22,8 @@ public class GoldResource : ResourceNodeBase
     protected override void Awake()
     {
         base.Awake();
-        sr = GetComponent<SpriteRenderer>();
+        sprite = GetComponent<SpriteRenderer>();
+        animator = GetComponent<Animator>();
 
         if (config == null)
             Debug.LogError($"GoldResource {name}: GoldResourceConfig не назначен.", this);
@@ -35,6 +37,10 @@ public class GoldResource : ResourceNodeBase
         growRoutine = StartCoroutine(GrowRoutine());
     }
 
+    /// <summary>
+    /// «апускает рутину добычи золота
+    /// ѕеред началом добычи останавливает рост ресурса
+    /// </summary>
     protected override void StartWorkRoutine(Action<int> onFinished)
     {
         if (growRoutine != null)
@@ -43,6 +49,10 @@ public class GoldResource : ResourceNodeBase
         StartCoroutine(MineRoutine(onFinished));
     }
 
+    /// <summary>
+    /// «апускает рутину добычи золота
+    /// ѕеред началом добычи останавливает рост ресурса
+    /// </summary>
     private IEnumerator MineRoutine(Action<int> callback)
     {
         float mineTime = config != null ? config.mineTime : 3f;
@@ -52,8 +62,8 @@ public class GoldResource : ResourceNodeBase
 
         int amount = (int)size;
 
-        if (sr != null)
-            sr.enabled = false;
+        if (sprite != null)
+            sprite.enabled = false;
 
         callback?.Invoke(amount);
 
@@ -62,18 +72,18 @@ public class GoldResource : ResourceNodeBase
         Respawn();
     }
 
+    // ¬озвращает золото в исходное состо€ние и снова запускает рост
     private void Respawn()
     {
         available = true;
         size = ResourceSize.Tiny;
 
-        if (sr != null)
-            sr.enabled = true;
-
+        sprite.enabled = true;
         UpdateVisual();
         growRoutine = StartCoroutine(GrowRoutine());
     }
 
+    // ѕостепенно увеличивает размер золота, пока ресурс доступен
     private IEnumerator GrowRoutine()
     {
         float growInterval = config != null ? config.growInterval : 5f;
@@ -90,6 +100,7 @@ public class GoldResource : ResourceNodeBase
         }
     }
 
+    // ѕостепенно увеличивает размер золота, пока ресурс доступен
     private void UpdateVisual()
     {
         int index = Mathf.Max(0, (int)size - 1);

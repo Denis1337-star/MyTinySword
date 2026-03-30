@@ -2,6 +2,11 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+/// <summary>
+/// UI-элемент одного worker'а в списке дома
+/// Показывает имя, текущую работу, pending job и текущее состояние,
+/// а также позволяет выбрать worker'а по клику из UI
+/// </summary>
 public class WorkerListItem : MonoBehaviour, IPointerClickHandler
 {
     [SerializeField] private Text workerText;
@@ -9,6 +14,9 @@ public class WorkerListItem : MonoBehaviour, IPointerClickHandler
     private Worker worker;
     private SelectionSystem selectionSystem;
 
+    /// <summary>
+    /// Привязывает item к конкретному worker'у и selection system.
+    /// </summary>
     public void Bind(Worker worker, SelectionSystem selectionSystem)
     {
         Unsubscribe();
@@ -20,6 +28,20 @@ public class WorkerListItem : MonoBehaviour, IPointerClickHandler
         UpdateView();
     }
 
+    private void OnDisable()
+    {
+        Unsubscribe();
+    }
+
+    private void OnDestroy()
+    {
+        Unsubscribe();
+    }
+
+    /// <summary>
+    /// Подписывается на события worker'а,
+    /// чтобы строка автоматически обновлялась при изменениях.
+    /// </summary>
     private void Subscribe()
     {
         if (worker == null)
@@ -29,6 +51,9 @@ public class WorkerListItem : MonoBehaviour, IPointerClickHandler
         worker.OnActivityChanged += UpdateView;
     }
 
+    /// <summary>
+    /// Снимает подписки с текущего worker'а.
+    /// </summary>
     private void Unsubscribe()
     {
         if (worker == null)
@@ -38,6 +63,9 @@ public class WorkerListItem : MonoBehaviour, IPointerClickHandler
         worker.OnActivityChanged -= UpdateView;
     }
 
+    /// <summary>
+    /// Обновляет текст строки под текущее состояние worker'а.
+    /// </summary>
     private void UpdateView()
     {
         if (worker == null || workerText == null)
@@ -55,6 +83,9 @@ public class WorkerListItem : MonoBehaviour, IPointerClickHandler
             $"Состояние: {GetReadableState(worker.CurrentStateName)}\n";
     }
 
+    /// <summary>
+    /// Переводит внутреннее имя состояния worker'а в понятный текст для UI.
+    /// </summary>
     private string GetReadableState(string stateName)
     {
         return stateName switch
@@ -68,11 +99,9 @@ public class WorkerListItem : MonoBehaviour, IPointerClickHandler
         };
     }
 
-    private void OnDestroy()
-    {
-        Unsubscribe();
-    }
-
+    /// <summary>
+    /// По клику на строку выбираем соответствующего worker'а через общую selection-систему.
+    /// </summary>
     public void OnPointerClick(PointerEventData eventData)
     {
         if (worker == null || selectionSystem == null)

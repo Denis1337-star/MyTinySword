@@ -1,8 +1,12 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
+/// <summary>
+/// Простое AI-поведение овцы
+/// перемещение по случайным точкам внутри территории и паузы на месте
+/// Может быть временно заморожено ресурсной системой
+/// </summary>
 [RequireComponent(typeof(UnitMovement))]
 public class SheepAI : MonoBehaviour
 {
@@ -11,6 +15,7 @@ public class SheepAI : MonoBehaviour
 
     private UnitMovement movement;
     private Animator animator;
+    private NavMeshAgent agent;
 
     private float timer;
     private bool isEating;
@@ -21,14 +26,12 @@ public class SheepAI : MonoBehaviour
     {
         movement = GetComponent<UnitMovement>();
         animator = GetComponent<Animator>();
+        agent = GetComponent<NavMeshAgent>();
     }
 
     private IEnumerator Start()
     {
-        yield return new WaitUntil(() =>
-            GetComponent<NavMeshAgent>().isOnNavMesh
-        );
-
+        yield return new WaitUntil(() => agent != null && agent.isOnNavMesh);
         MoveToNewPoint();
     }
 
@@ -57,11 +60,16 @@ public class SheepAI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Проверяет, дошла ли овца до текущей цели
+    /// </summary>
     private bool IsAtTarget()
     {
         return Vector2.Distance(transform.position, targetPoint) < 0.2f;
     }
-
+    /// <summary>
+    /// Выбирает новую случайную точку внутри территории и отправляет овцу к ней
+    /// </summary>
     private void MoveToNewPoint()
     {
         if (territory == null)
@@ -82,6 +90,9 @@ public class SheepAI : MonoBehaviour
         Debug.LogWarning("Sheep: no valid NavMesh point in territory");
     }
 
+    /// <summary>
+    /// Замораживает или размораживает поведение овцы
+    /// </summary>
     public void SetFrozen(bool value)
     {
         frozen = value;

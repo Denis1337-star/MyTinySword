@@ -2,6 +2,12 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Дом — владелец группы worker'ов
+/// Отвечает за стартовый спавн, найм новых worker'ов
+/// хранение локального списка своих рабочих,
+/// выдачу idle-позиций и drop-позиций возле дома
+/// </summary>
 public class House : ValidatedMonoBehaviour
 {
     [Header("Config")]
@@ -19,9 +25,9 @@ public class House : ValidatedMonoBehaviour
 
     [SerializeField] private float dropRadius = 0.6f;
 
-    private readonly List<Transform> idlePoints = new();
-    private readonly Dictionary<Worker, Transform> occupiedIdlePoints = new();
-    private readonly List<Worker> workers = new();
+    private readonly List<Transform> idlePoints = new();  // Все доступные idle-точки, собранные из idlePointsRoot
+    private readonly Dictionary<Worker, Transform> occupiedIdlePoints = new();   // Какая idle-точка занята каким worker'ом
+    private readonly List<Worker> workers = new();  // Локальный список worker'ов, принадлежащих этому дому
 
     private bool isHiringInProgress;
 
@@ -52,7 +58,7 @@ public class House : ValidatedMonoBehaviour
     protected override bool ValidateInternal()
     {
         bool valid = true;
-
+        // Проверяем обязательные ссылки
         valid &= ValidationUtility.Required(this, config, nameof(config));
         valid &= ValidationUtility.Required(this, spawnPoint, nameof(spawnPoint));
         valid &= ValidationUtility.Required(this, workerPrefab, nameof(workerPrefab));
@@ -64,7 +70,6 @@ public class House : ValidatedMonoBehaviour
         }
 
         dropRadius = Mathf.Max(0f, dropRadius);
-
         return valid;
     }
 
@@ -80,6 +85,7 @@ public class House : ValidatedMonoBehaviour
 
         int startWorkers = config != null ? Mathf.Max(0, config.startWorkers) : 0;
 
+        // Спавним стартовых worker'ов, но не выходим за лимит
         for (int i = 0; i < startWorkers; i++)
         {
             if (CurrentWorkers >= MaxWorkers)
@@ -90,7 +96,9 @@ public class House : ValidatedMonoBehaviour
 
         OnWorkersChanged?.Invoke();
     }
-
+    /// <summary>
+    /// Кэширует все дочерние idle-точки из idlePointsRoot
+    /// </summary>
     private void CacheIdlePoints()
     {
         idlePoints.Clear();
@@ -104,7 +112,9 @@ public class House : ValidatedMonoBehaviour
                 idlePoints.Add(child);
         }
     }
-
+    /// Создаёт нового worker'а, привязывает его к дому
+    /// и добавляет в локальный список дома
+    /// </summary>
     private Worker SpawnWorker()
     {
         if (!enabled)
@@ -131,12 +141,17 @@ public class House : ValidatedMonoBehaviour
 
         return worker;
     }
-
+    /// <summary>
+    /// Можно ли сейчас нанять нового worker'а
+    /// </summary>
     public bool CanHire()
     {
         return string.IsNullOrEmpty(GetHireBlockReason());
     }
-
+    /// <summary>
+    /// Возвращает причину, по которой найм сейчас невозможен
+    /// Пустая строка означает, что найм разрешён
+    /// </summary>
     public string GetHireBlockReason()
     {
         if (!enabled)
@@ -168,7 +183,9 @@ public class House : ValidatedMonoBehaviour
 
         return string.Empty;
     }
-
+    /// <summary>
+    /// Нанимает нового worker'а, если это возможно
+    /// </summary>
     public void HireWorker()
     {
         if (isHiringInProgress)
@@ -199,7 +216,10 @@ public class House : ValidatedMonoBehaviour
             isHiringInProgress = false;
         }
     }
-
+    /// <summary>
+    /// Удаляет worker'а из локального списка дома
+    /// и освобождает его idle-позицию
+    /// </summary>
     public void RemoveWorker(Worker worker)
     {
         if (worker == null)
@@ -212,7 +232,11 @@ public class House : ValidatedMonoBehaviour
         OnWorkerRemoved?.Invoke(worker);
         OnWorkersChanged?.Invoke();
     }
-
+    /// <summary>
+    /// Возвращает idle-позицию для worker'а
+    /// Если worker уже имеет закреплённую точку — возвращает её
+    /// Иначе ищет первую свободную
+    /// </summary>
     public Vector2 GetIdlePosition(Worker worker)
     {
         if (worker == null)
@@ -235,7 +259,9 @@ public class House : ValidatedMonoBehaviour
 
         return spawnPoint != null ? (Vector2)spawnPoint.position : (Vector2)transform.position;
     }
-
+    /// <summary>
+    /// Освобождает закреплённую idle-точку worker'а
+    /// </summary>
     public void ReleaseIdlePosition(Worker worker)
     {
         if (worker == null)
@@ -243,7 +269,11 @@ public class House : ValidatedMonoBehaviour
 
         occupiedIdlePoints.Remove(worker);
     }
-
+    /// <summary>
+    /// Возвращает точку сдачи ресурсов для worker'а
+    /// Worker'ы разводятся по окружности вокруг dropPoint,
+    /// чтобы уменьшить скучивание возле дома.
+    /// </summary>
     public Vector2 GetDropPosition(Worker worker)
     {
         Vector2 center = DropPoint;

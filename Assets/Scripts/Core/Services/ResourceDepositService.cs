@@ -1,5 +1,10 @@
 using UnityEngine;
 
+/// <summary>
+/// —ервис сдачи ресурсов в общее хранилище
+/// ѕринимает тип ресурса и количество, после чего направл€ет
+/// данные в соответствующий метод ResourceStorage
+/// </summary>
 public class ResourceDepositService : MonoBehaviour
 {
     public static ResourceDepositService Instance { get; private set; }
@@ -15,6 +20,9 @@ public class ResourceDepositService : MonoBehaviour
         Instance = this;
     }
 
+    /// <summary>
+    /// —даЄт ресурс указанного типа в общее хранилище
+    /// </summary>
     public void Deposit(ResourceType resourceType, int amount)
     {
         if (amount <= 0)

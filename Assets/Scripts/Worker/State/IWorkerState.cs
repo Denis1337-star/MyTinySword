@@ -1,7 +1,11 @@
 
+/// <summary>
+/// Контракт состояния worker'а
+/// Каждое состояние должно поддерживать вход, обновление и выход
+/// </summary>
 public interface IWorkerState
 {
-    void Enter();
-    void Update();
-    void Exit();
+    void Enter();  //Вызывается один раз при входе в состояние
+    void Update();  //Каждый кадр пока состояние активно
+    void Exit(); //Один раз при выходу из состояние
 }

@@ -2,13 +2,17 @@ using System;
 using System.Collections;
 using UnityEngine;
 
+/// <summary>
+/// Овца как ресурс мяса
+/// Поддерживает временную заморозку AI, выдачу награды и респавн
+/// </summary>
 public class SheepResource : ResourceNodeBase
 {
     [Header("Config")]
     [SerializeField] private SheepResourceConfig config;
 
     [Header("Components")]
-    [SerializeField] private SpriteRenderer spriteRenderer;
+    [SerializeField] private SpriteRenderer sprite;
     [SerializeField] private Collider2D col;
 
     private SheepAI sheepAI;
@@ -23,16 +27,20 @@ public class SheepResource : ResourceNodeBase
 
         if (config == null)
             Debug.LogError($"SheepResource {name}: SheepResourceConfig не назначен.", this);
-
-        if (workSlots == null || workSlots.Length == 0)
-            Debug.LogError("SheepResource MUST have at least one WorkSlot", this);
     }
 
+    /// <summary>
+    /// Запускает рабочую рутину овцы как ресурса
+    /// </summary>
     protected override void StartWorkRoutine(Action<int> onFinished)
     {
         StartCoroutine(WorkRoutine(onFinished));
     }
 
+    /// <summary>
+    /// Логика добычи мяса
+    /// ожидание, выдача награды, скрытие объекта, ожидание респавна
+    /// </summary>
     private IEnumerator WorkRoutine(Action<int> callback)
     {
         float workTime = config != null ? config.workTime : 2f;
@@ -43,8 +51,8 @@ public class SheepResource : ResourceNodeBase
 
         callback?.Invoke(meatAmount);
 
-        if (spriteRenderer != null)
-            spriteRenderer.enabled = false;
+        if (sprite != null)
+            sprite.enabled = false;
 
         if (col != null)
             col.enabled = false;
@@ -54,19 +62,22 @@ public class SheepResource : ResourceNodeBase
         Respawn();
     }
 
+    /// <summary>
+    /// Возвращает овцу в доступное состояние после респавна
+    /// </summary>
     private void Respawn()
     {
         available = true;
 
-        if (spriteRenderer != null)
-            spriteRenderer.enabled = true;
-
-        if (col != null)
-            col.enabled = true;
+        sprite.enabled = true;
+        col.enabled = true;
 
         sheepAI?.SetFrozen(false);
     }
 
+    /// <summary>
+    /// Пытается зарезервировать слот и, если успешно, замораживает овцу
+    /// </summary>
     public override WorkSlot TryReserveSlot(Worker worker)
     {
         WorkSlot slot = base.TryReserveSlot(worker);
@@ -77,6 +88,9 @@ public class SheepResource : ResourceNodeBase
         return slot;
     }
 
+    /// <summary>
+    /// Пытается зарезервировать слот и, если успешно, замораживает овцу
+    /// </summary>
     public override void ReleaseSlot(Worker worker)
     {
         base.ReleaseSlot(worker);

@@ -1,17 +1,28 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// UI-панель списка worker'ов текущего дома.
+/// Следит за составом worker'ов в House и синхронизирует набор WorkerListItem на UI
+/// </summary>
 public class WorkerListPanel : MonoBehaviour
 {
     [SerializeField] private Transform contentRoot;
     [SerializeField] private WorkerListItem itemPrefab;
     [SerializeField] private SelectionSystem selectionSystem;
 
+    // Дом, список worker'ов которого сейчас отображается
     private House currentHouse;
+
+    // Связь между gameplay-worker'ом и его UI-элементом
     private readonly Dictionary<Worker, WorkerListItem> itemsByWorker = new();
 
+    /// <summary>
+    /// Привязывает панель к указанному дому.
+    /// </summary>
     public void Bind(House house)
     {
+        // Если дом тот же самый — просто обновляем содержимое
         if (currentHouse == house)
         {
             Refresh();
@@ -38,6 +49,9 @@ public class WorkerListPanel : MonoBehaviour
         ClearAllItems();
     }
 
+    /// <summary>
+    /// Полностью синхронизирует UI-список с текущим составом worker'ов дома.
+    /// </summary>
     public void Refresh()
     {
         if (contentRoot == null || itemPrefab == null)
@@ -54,6 +68,9 @@ public class WorkerListPanel : MonoBehaviour
         CleanupNullEntries();
     }
 
+    /// <summary>
+    /// Подписывается на события текущего дома.
+    /// </summary>
     private void SubscribeToHouse()
     {
         if (currentHouse == null)
@@ -64,6 +81,9 @@ public class WorkerListPanel : MonoBehaviour
         currentHouse.OnWorkersChanged += OnWorkersChanged;
     }
 
+    /// <summary>
+    /// Снимает подписки с текущего дома.
+    /// </summary>
     private void UnsubscribeFromHouse()
     {
         if (currentHouse == null)
@@ -95,6 +115,9 @@ public class WorkerListPanel : MonoBehaviour
         Refresh();
     }
 
+    /// <summary>
+    /// Удаляет UI-элементы для worker'ов, которые больше не принадлежат текущему дому.
+    /// </summary>
     private void RemoveMissingWorkers()
     {
         List<Worker> toRemove = new();
@@ -111,6 +134,9 @@ public class WorkerListPanel : MonoBehaviour
             RemoveItem(worker);
     }
 
+    /// <summary>
+    /// Добавляет недостающие UI-элементы для всех worker'ов текущего дома.
+    /// </summary>
     private void AddMissingWorkers()
     {
         if (currentHouse.Workers == null)
@@ -120,6 +146,9 @@ public class WorkerListPanel : MonoBehaviour
             AddWorkerItem(worker);
     }
 
+    /// <summary>
+    /// Создаёт UI-элемент для worker'а, если его ещё нет в списке.
+    /// </summary>
     private void AddWorkerItem(Worker worker)
     {
         if (worker == null || itemPrefab == null || contentRoot == null)
@@ -130,9 +159,13 @@ public class WorkerListPanel : MonoBehaviour
 
         WorkerListItem item = Instantiate(itemPrefab, contentRoot);
         item.Bind(worker, selectionSystem);
+
         itemsByWorker.Add(worker, item);
     }
 
+    /// <summary>
+    /// Удаляет UI-элемент указанного worker'а.
+    /// </summary>
     private void RemoveItem(Worker worker)
     {
         if (worker == null)
@@ -147,6 +180,9 @@ public class WorkerListPanel : MonoBehaviour
         itemsByWorker.Remove(worker);
     }
 
+    /// <summary>
+    /// Очищает битые записи, если worker или item уже были уничтожены.
+    /// </summary>
     private void CleanupNullEntries()
     {
         List<Worker> invalidWorkers = new();
@@ -161,6 +197,9 @@ public class WorkerListPanel : MonoBehaviour
             RemoveItem(worker);
     }
 
+    /// <summary>
+    /// Полностью удаляет все UI-элементы списка.
+    /// </summary>
     private void ClearAllItems()
     {
         foreach (var pair in itemsByWorker)
@@ -172,6 +211,9 @@ public class WorkerListPanel : MonoBehaviour
         itemsByWorker.Clear();
     }
 
+    /// <summary>
+    /// Проверяет, содержится ли worker в списке worker'ов дома.
+    /// </summary>
     private bool ContainsWorker(IReadOnlyList<Worker> workers, Worker target)
     {
         if (workers == null || target == null)

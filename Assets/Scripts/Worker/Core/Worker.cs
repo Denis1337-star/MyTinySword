@@ -1,14 +1,10 @@
 ﻿using System;
 using UnityEngine;
 
-public enum WorkerJobType
-{
-    None,
-    ChopWood,
-    MineGold,
-    HuntMeat
-}
-
+/// <summary>
+/// Центральная сущность worker'а
+/// Объединяет state machine, brain, inventory, movement и текущую job-логику
+/// </summary>
 [RequireComponent(typeof(UnitMovement))]
 [RequireComponent(typeof(WorkerInventory))]
 [RequireComponent(typeof(WorkerBrain))]
@@ -99,6 +95,9 @@ public class Worker : ValidatedMonoBehaviour
         WorkerRegistry.Instance?.Unregister(this);
     }
 
+    /// <summary>
+    /// Привязывает worker'а к дому и запускает его базовое idle-состояние
+    /// </summary>
     public void SetHome(House house)
     {
         Home = house;
@@ -106,6 +105,9 @@ public class Worker : ValidatedMonoBehaviour
         EnterIdleState();
     }
 
+    /// <summary>
+    /// Публичный вход для назначения новой профессии worker'у
+    /// </summary>
     public void AssignJob(WorkerJobType job)
     {
         Brain.AssignJob(job);
@@ -130,6 +132,9 @@ public class Worker : ValidatedMonoBehaviour
         OnJobChanged?.Invoke();
     }
 
+    /// <summary>
+    /// Переключает worker'а в новое состояние и уведомляет подписчиков об изменении активности
+    /// </summary>
     public void ChangeState(IWorkerState state)
     {
         StateMachine.ChangeState(state);
@@ -161,6 +166,9 @@ public class Worker : ValidatedMonoBehaviour
         ChangeState(carryState);
     }
 
+    /// <summary>
+    /// Проверяет, можно ли безопасно сразу сменить профессию
+    /// </summary>
     public bool CanSwitchJobImmediately()
     {
         return TargetResource == null &&
@@ -168,6 +176,10 @@ public class Worker : ValidatedMonoBehaviour
                !Inventory.HasCargo &&
                !Movement.HasTarget;
     }
+
+    /// <summary>
+    /// Сбрасывает текущую привязку к ресурсу и освобождает рабочий слот
+    /// </summary>
 
     public void ClearCurrentAssignment()
     {
@@ -180,6 +192,9 @@ public class Worker : ValidatedMonoBehaviour
         TargetSlot = null;
     }
 
+    /// <summary>
+    /// Полностью сбрасывает текущий task-state worker'а
+    /// </summary>
     public void ResetTaskState()
     {
         ClearCurrentAssignment();
@@ -188,6 +203,9 @@ public class Worker : ValidatedMonoBehaviour
         OnActivityChanged?.Invoke();
     }
 
+    /// <summary>
+    /// Сдаёт переносимый ресурс в общую систему хранения
+    /// </summary>
     public void DeliverCargo()
     {
         if (CurrentJobLogic == null || !Inventory.HasCargo || ResourceDepositService.Instance == null)
@@ -197,11 +215,17 @@ public class Worker : ValidatedMonoBehaviour
         ResourceDepositService.Instance.Deposit(CurrentJobLogic.RewardType, amount);
     }
 
+    /// <summary>
+    /// Переводит worker'а в состояние поиска нового ресурса
+    /// </summary>
     public void StartFindingResource()
     {
         EnterFindResourceState();
     }
 
+    /// <summary>
+    /// Переводит worker'а в idle-состояние
+    /// </summary>
     public void GoIdle()
     {
         EnterIdleState();

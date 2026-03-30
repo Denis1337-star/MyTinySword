@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// Компонент, который принимает решения о назначении и переключении работы worker'а
+/// </summary>
 public class WorkerBrain : MonoBehaviour
 {
     private Worker worker;
@@ -15,6 +18,11 @@ public class WorkerBrain : MonoBehaviour
             worker = GetComponent<Worker>();
     }
 
+    /// <summary>
+    /// Назначает worker'у новую работу
+    /// Если переключение сейчас безопасно — применяет сразу
+    /// Иначе сохраняет как pending job
+    /// </summary>
     public void AssignJob(WorkerJobType job)
     {
         if (worker == null || worker.Home == null)
@@ -31,6 +39,9 @@ public class WorkerBrain : MonoBehaviour
         worker.SetPendingJob(job);
     }
 
+    /// <summary>
+    /// Применяет отложенную работу, если она есть
+    /// </summary>
     public void ApplyPendingJobIfAny()
     {
         if (worker == null)
@@ -44,6 +55,9 @@ public class WorkerBrain : MonoBehaviour
         ApplyJobImmediately(nextJob);
     }
 
+    /// <summary>
+    /// Немедленно применяет новую работу и запускает новый цикл поиска ресурса
+    /// </summary>
     public void ApplyJobImmediately(WorkerJobType job)
     {
         if (worker == null)

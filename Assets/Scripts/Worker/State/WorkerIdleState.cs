@@ -1,5 +1,9 @@
 using UnityEngine;
 
+/// <summary>
+/// Состояние ожидания worker'а
+/// Worker идёт на idle-позицию у дома и периодически пытается продолжить работу
+/// </summary>
 public class WorkerIdleState : IWorkerState
 {
     private readonly Worker worker;
@@ -24,10 +28,7 @@ public class WorkerIdleState : IWorkerState
 
     public void Update()
     {
-        if (worker == null || worker.Home == null)
-            return;
-
-        if (worker.Movement.HasTarget)
+        if (worker.Movement.HasTarget)   // Пока worker идёт к своей idle-позиции, не запускаем следующую логику
             return;
 
         retryTimer -= Time.deltaTime;
@@ -36,13 +37,13 @@ public class WorkerIdleState : IWorkerState
 
         retryTimer = RetryInterval;
 
-        if (worker.PendingJob != WorkerJobType.None)
+        if (worker.PendingJob != WorkerJobType.None)   // Если есть отложенная работа — пробуем применить её
         {
             worker.Brain.ApplyPendingJobIfAny();
             return;
         }
 
-        if (worker.CurrentJob != WorkerJobType.None)
+        if (worker.CurrentJob != WorkerJobType.None) // Если текущая работа уже назначена — пробуем снова искать ресурс
             worker.EnterFindResourceState();
     }
 

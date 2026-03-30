@@ -1,16 +1,23 @@
 using System;
 using UnityEngine;
 
+/// <summary>
+/// √лобальное хранилище ресурсов игрока
+/// ’ранит текущее количество дерева, золота и м€са
+/// а также уведомл€ет подписчиков при изменении значений
+/// </summary>
 public class ResourceStorage : MonoBehaviour
 {
-    public static ResourceStorage Instance { get; private set; }
+    public static ResourceStorage Instance { get; private set; }   // √лобальна€ точка доступа к общему хранилищу ресурсов
 
-    public event Action OnResourcesChanged;
+    public event Action OnResourcesChanged;   // —обытие вызываетс€ каждый раз, когда количество ресурсов изменилось
 
+    [Header("Current Resources")]
     [SerializeField] private int wood;
     [SerializeField] private int gold;
     [SerializeField] private int meat;
 
+    // ѕубличный доступ только на чтение
     public int Wood => wood;
     public int Gold => gold;
     public int Meat => meat;
@@ -62,6 +69,9 @@ public class ResourceStorage : MonoBehaviour
         OnResourcesChanged?.Invoke();
     }
 
+    /// <summary>
+    /// ѕровер€ет, хватает ли дерева и золота на действие
+    /// </summary>
     public bool HasResources(int requiredWood, int requiredGold)
     {
         requiredWood = Mathf.Max(0, requiredWood);
@@ -70,6 +80,9 @@ public class ResourceStorage : MonoBehaviour
         return wood >= requiredWood && gold >= requiredGold;
     }
 
+    /// <summary>
+    /// ѕытаетс€ списать дерево и золото
+    /// </summary>
     public bool TrySpendResources(int spendWood, int spendGold)
     {
         spendWood = Mathf.Max(0, spendWood);
@@ -84,6 +97,10 @@ public class ResourceStorage : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// ѕолностью устанавливает новые значени€ ресурсов
+    /// ѕолезно дл€ отладки, тестов или загрузки сохранений
+    /// </summary>
     public void SetResources(int newWood, int newGold, int newMeat)
     {
         wood = Mathf.Max(0, newWood);

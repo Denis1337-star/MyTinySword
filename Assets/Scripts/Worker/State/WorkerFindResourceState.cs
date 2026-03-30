@@ -1,5 +1,9 @@
 using UnityEngine;
 
+/// <summary>
+/// —осто€ние поиска подход€щего ресурса дл€ текущей работы worker'а
+/// ѕри успешном поиске подготавливает движение к ресурсу
+/// </summary>
 public class WorkerFindResourceState : IWorkerState
 {
     private readonly Worker worker;
@@ -11,10 +15,7 @@ public class WorkerFindResourceState : IWorkerState
 
     public void Enter()
     {
-        if (worker == null)
-            return;
-
-        if (worker.CurrentJobLogic == null)
+        if (worker.CurrentJobLogic == null) // Ѕез job-логики worker не может пон€ть, какой ресурс искать
         {
             worker.GoIdle();
             return;
@@ -24,7 +25,7 @@ public class WorkerFindResourceState : IWorkerState
         worker.Animator.SetEquipment(GetTool());
 
         bool assigned = WorkerResourceSelector.TryAssignResourceAndSlot(worker);
-        if (!assigned)
+        if (!assigned) // ≈сли ресурс или слот не найдены Ч уходим в безопасное idle-состо€ние
         {
             worker.GoIdle();
             return;
@@ -45,6 +46,10 @@ public class WorkerFindResourceState : IWorkerState
 
     public void Exit() { }
 
+    /// <summary>
+    /// ¬озвращает инструмент, который должен отображатьс€ у worker'а
+    /// при движении к ресурсу текущей профессии.
+    /// </summary>
     private EquipmentType GetTool()
     {
         return worker.CurrentJob switch
