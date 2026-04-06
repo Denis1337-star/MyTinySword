@@ -15,4 +15,4 @@ MonoBehaviour:
   priority: 1
   respawnTime: 60
   mineTime: 3
-  growInterval: 5
+  growInterval: 30
