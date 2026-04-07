@@ -36,7 +36,7 @@ https://github.com/user-attachments/assets/5bcb050b-01f7-4155-8b7e-e9263924de65
 
 Ниже представлена архитектурная схема, отражающая основные системы и их взаимодействие:
 
-![Architecture](./Docs/arhitectury.png)
+![Architecture](./Docs/arhitectury.jpg)
 
 Проект построен на принципах:
 
