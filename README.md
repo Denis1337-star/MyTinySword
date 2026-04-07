@@ -36,7 +36,7 @@ https://github.com/user-attachments/assets/5bcb050b-01f7-4155-8b7e-e9263924de65
 
 Ниже представлена архитектурная схема, отражающая основные системы и их взаимодействие:
 
-https://github.com/Denis1337-star/MyTinySword/blob/main/Docs/arhitectury.png
+![Architecture](./Docs/arhitectury.png)
 
 Проект построен на принципах:
 
