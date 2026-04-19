@@ -2,16 +2,19 @@ using UnityEngine;
 
 /// <summary>
 /// —лушает изменение выбранного объекта и показывает подход€щую панель:
-/// дл€ worker'а Ч WorkerCommandPanel, дл€ дома Ч HousePanel.
+/// дл€ worker'а Ч WorkerCommandPanel,
+/// дл€ дома Ч HousePanel,
+/// дл€ производственного здани€ Ч ProductionBuildingPanel.
 /// </summary>
 public class SelectionUiPresenter : MonoBehaviour
 {
     [SerializeField] private SelectionSystem selectionSystem;
     [SerializeField] private WorkerCommandPanel workerCommandPanel;
     [SerializeField] private HousePanel housePanel;
+    [SerializeField] private ProductionBuildingPanel productionBuildingPanel;
 
     /// <summary>
-    /// ѕытаетс€ восстановить отсутствующие ссылки на selection system и UI-панели
+    /// ѕытаетс€ восстановить отсутствующие ссылки на selection system и UI-панели.
     /// </summary>
     private void OnValidate()
     {
@@ -23,6 +26,9 @@ public class SelectionUiPresenter : MonoBehaviour
 
         if (housePanel == null)
             housePanel = FindObjectOfType<HousePanel>(true);
+
+        if (productionBuildingPanel == null)
+            productionBuildingPanel = FindObjectOfType<ProductionBuildingPanel>(true);
     }
 
     private void OnEnable()
@@ -42,8 +48,9 @@ public class SelectionUiPresenter : MonoBehaviour
         selectionSystem.SelectionChanged -= OnSelectionChanged;
         selectionSystem.SelectionCleared -= OnSelectionCleared;
     }
+
     /// <summary>
-    /// ѕытаетс€ восстановить отсутствующие ссылки на selection system и UI-панели
+    /// ѕоказывает нужную панель в зависимости от выбранного объекта.
     /// </summary>
     private void OnSelectionChanged(UnitSelectable selectable)
     {
@@ -68,8 +75,25 @@ public class SelectionUiPresenter : MonoBehaviour
         if (house == null)
             house = selectable.GetComponentInParent<House>();
 
-        if (house != null && housePanel != null)
-            housePanel.Show(house);
+        if (house != null)
+        {
+            if (housePanel != null)
+                housePanel.Show(house);
+
+            return;
+        }
+
+        ProductionBuildingBase productionBuilding = selectable.GetComponent<ProductionBuildingBase>();
+        if (productionBuilding == null)
+            productionBuilding = selectable.GetComponentInParent<ProductionBuildingBase>();
+
+        if (productionBuilding != null)
+        {
+            if (productionBuildingPanel != null)
+                productionBuildingPanel.Show(productionBuilding);
+
+            return;
+        }
     }
 
     private void OnSelectionCleared()
@@ -84,5 +108,8 @@ public class SelectionUiPresenter : MonoBehaviour
 
         if (housePanel != null)
             housePanel.Hide();
+
+        if (productionBuildingPanel != null)
+            productionBuildingPanel.Hide();
     }
 }

@@ -13,6 +13,9 @@ GameObject:
   - component: {fileID: 556678324995674887}
   - component: {fileID: 7192985443726976149}
   - component: {fileID: 1447330727061334939}
+  - component: {fileID: 1435012739113869488}
+  - component: {fileID: 7606855515729946697}
+  - component: {fileID: 6593675445464263889}
   m_Layer: 0
   m_Name: House
   m_TagString: Untagged
@@ -167,6 +170,48 @@ MonoBehaviour:
   idlePointsRoot: {fileID: 9043028756338710659}
   workerPrefab: {fileID: 4596641850069108570, guid: f508677d4c21cf44da86baaf33f36fb8, type: 3}
   dropRadius: 0.6
+--- !u!114 &1435012739113869488
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 148874888745276253}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e6e36768f4c8924fb79ff53c7743dee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  faction: 1
+--- !u!114 &7606855515729946697
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 148874888745276253}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d863b4175fec7474fbe95caa77d2c1ae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100
+--- !u!114 &6593675445464263889
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 148874888745276253}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 407e838d1ae05e94b92c10b2cbd5c447, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  config: {fileID: 11400000, guid: b08c2fb403701434e89a6f5966fc098f, type: 2}
+  factionMember: {fileID: 1435012739113869488}
+  health: {fileID: 7606855515729946697}
+  selectable: {fileID: 7192985443726976149}
 --- !u!1 &2306703238688880557
 GameObject:
   m_ObjectHideFlags: 0
