@@ -5,8 +5,9 @@ using UnityEngine.InputSystem.EnhancedTouch;
 
 /// <summary>
 /// Система выбора объектов игроком.
-/// Отвечает за обработку тапа по миру, выбор selectable-объекта,
-/// снятие предыдущего выделения и уведомление подписчиков об изменениях selection.
+/// Поддерживает:
+/// - выбор одного worker или здания
+/// - добавление нескольких союзных боевых юнитов в общую группу
 /// </summary>
 public class SelectionSystem : MonoBehaviour
 {
@@ -41,9 +42,9 @@ public class SelectionSystem : MonoBehaviour
     {
         ResolveReferences();
     }
+
     /// <summary>
-    /// Пытается восстановить ссылку на главную камеру
-    /// Сначала через GameServices, потом через Camera.main
+    /// Пытается восстановить ссылку на главную камеру.
     /// </summary>
     private void ResolveReferences()
     {
@@ -60,6 +61,7 @@ public class SelectionSystem : MonoBehaviour
     {
         HandleTouch();
     }
+
     /// <summary>
     /// Обрабатывает пользовательский тап для выбора объекта.
     /// </summary>
@@ -68,24 +70,22 @@ public class SelectionSystem : MonoBehaviour
         if (!TouchUtility.TryGetEndedTouch(out var touch))
             return;
 
-        if (TouchUtility.IsPointerOverUI(touch))   // Нажатия по UI не должны менять игровой selection
+        if (TouchUtility.IsPointerOverUI(touch))
             return;
 
         ProcessTap(touch.screenPosition);
     }
+
     /// <summary>
-    /// Выполняет raycast в точку тапа и решает,
-    /// нужно ли выбрать объект или очистить selection
+    /// Выполняет raycast по месту тапа и решает, что выбрать.
     /// </summary>
     private void ProcessTap(Vector2 screenPos)
     {
         if (mainCamera == null)
             return;
 
-        // Переводим координату тапа из экрана в игровой мир
         Vector2 worldPos = TouchUtility.ScreenToWorld(mainCamera, screenPos);
 
-        // Исключаем из raycast слои, которые не должны участвовать в выборе
         int mask = ~ignoreRaycastLayer.value;
         RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero, 100f, mask);
 
@@ -96,7 +96,6 @@ public class SelectionSystem : MonoBehaviour
         }
 
         UnitSelectable selectable = hit.collider.GetComponentInParent<UnitSelectable>();
-
         if (selectable == null)
         {
             ClearSelection();
@@ -107,8 +106,8 @@ public class SelectionSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// Выбирает worker'а по запросу из UI
-    /// Используется, например, при клике по элементу в списке worker'ов
+    /// Выбор worker'а из UI.
+    /// Для worker всегда сбрасываем текущее выделение и выбираем только его.
     /// </summary>
     public void SelectWorkerFromUI(Worker worker)
     {
@@ -119,29 +118,97 @@ public class SelectionSystem : MonoBehaviour
         if (selectable == null)
             return;
 
-        Select(selectable);
+        ClearSelectionInternal(notify: false);
+        AddSingleSelection(selectable);
+        SelectionChanged?.Invoke(currentSelection);
     }
+
     /// <summary>
-    /// Делает указанный объект текущим выбранным
+    /// Основная логика выбора объекта.
     /// </summary>
     public void Select(UnitSelectable selectable)
     {
         if (selectable == null)
             return;
 
-        if (currentSelection == selectable)
+        bool isArmyUnit = IsPlayerArmyUnit(selectable);
+
+        if (isArmyUnit)
         {
+            AddArmySelection(selectable);
             SelectionChanged?.Invoke(currentSelection);
             return;
         }
 
+        // Worker / здание / другой не-боевой объект:
+        // очищаем старое и выбираем только его.
         ClearSelectionInternal(notify: false);
+        AddSingleSelection(selectable);
+        SelectionChanged?.Invoke(currentSelection);
+    }
 
-        currentSelection = selectable;
+    /// <summary>
+    /// Добавляет боевого юнита игрока в текущее выделение.
+    /// Уже выбранный юнит повторно не добавляется.
+    /// </summary>
+    private void AddArmySelection(UnitSelectable selectable)
+    {
+        if (selectedUnits.Contains(selectable))
+        {
+            currentSelection = selectable;
+            return;
+        }
+
+        // Если в выделении сейчас есть не-боевые объекты,
+        // сначала очищаем группу.
+        if (ContainsNonArmySelection())
+            ClearSelectionInternal(notify: false);
+
         selectedUnits.Add(selectable);
         selectable.Select();
+        currentSelection = selectable;
+    }
 
-        SelectionChanged?.Invoke(currentSelection);
+    /// <summary>
+    /// Выбирает один объект, полностью заменяя текущее выделение.
+    /// </summary>
+    private void AddSingleSelection(UnitSelectable selectable)
+    {
+        selectedUnits.Add(selectable);
+        selectable.Select();
+        currentSelection = selectable;
+    }
+
+    /// <summary>
+    /// Проверяет, есть ли в текущем выделении объекты, которые не являются боевыми юнитами игрока.
+    /// </summary>
+    private bool ContainsNonArmySelection()
+    {
+        foreach (UnitSelectable unit in selectedUnits)
+        {
+            if (unit == null)
+                continue;
+
+            if (!IsPlayerArmyUnit(unit))
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Проверяет, является ли selectable боевым юнитом игрока.
+    /// </summary>
+    private bool IsPlayerArmyUnit(UnitSelectable selectable)
+    {
+        if (selectable == null)
+            return false;
+
+        ArmyUnit armyUnit = selectable.GetComponent<ArmyUnit>();
+        if (armyUnit == null)
+            armyUnit = selectable.GetComponentInParent<ArmyUnit>();
+
+        return armyUnit != null && armyUnit.IsPlayerUnit();
     }
 
     public void ClearSelection()
@@ -154,7 +221,7 @@ public class SelectionSystem : MonoBehaviour
 
     private void ClearSelectionInternal(bool notify)
     {
-        foreach (var unit in selectedUnits)
+        foreach (UnitSelectable unit in selectedUnits)
         {
             if (unit != null)
                 unit.Deselect();
@@ -175,5 +242,44 @@ public class SelectionSystem : MonoBehaviour
     public UnitSelectable GetCurrentSelection()
     {
         return currentSelection;
+    }
+    /// <summary>
+    /// Полностью заменяет текущее выделение на указанный список боевых юнитов.
+    /// Используется, например, кнопкой "Выбрать всех".
+    /// </summary>
+    public void SelectArmyUnits(IReadOnlyList<ArmyUnit> armyUnits)
+    {
+        ClearSelectionInternal(notify: false);
+
+        if (armyUnits == null)
+        {
+            SelectionCleared?.Invoke();
+            return;
+        }
+
+        foreach (ArmyUnit armyUnit in armyUnits)
+        {
+            if (armyUnit == null || !armyUnit.IsPlayerUnit())
+                continue;
+
+            UnitSelectable selectable = armyUnit.GetComponent<UnitSelectable>();
+            if (selectable == null)
+                selectable = armyUnit.GetComponentInParent<UnitSelectable>();
+
+            if (selectable == null)
+                continue;
+
+            if (selectedUnits.Contains(selectable))
+                continue;
+
+            selectedUnits.Add(selectable);
+            selectable.Select();
+            currentSelection = selectable;
+        }
+
+        if (selectedUnits.Count == 0)
+            SelectionCleared?.Invoke();
+        else
+            SelectionChanged?.Invoke(currentSelection);
     }
 }

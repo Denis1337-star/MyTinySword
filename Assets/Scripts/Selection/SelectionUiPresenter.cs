@@ -1,10 +1,12 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
 /// —лушает изменение выбранного объекта и показывает подход€щую панель:
 /// дл€ worker'а Ч WorkerCommandPanel,
 /// дл€ дома Ч HousePanel,
-/// дл€ производственного здани€ Ч ProductionBuildingPanel.
+/// дл€ производственного здани€ Ч ProductionBuildingPanel,
+/// дл€ группы боевых юнитов Ч ArmySelectionPanel.
 /// </summary>
 public class SelectionUiPresenter : MonoBehaviour
 {
@@ -12,10 +14,8 @@ public class SelectionUiPresenter : MonoBehaviour
     [SerializeField] private WorkerCommandPanel workerCommandPanel;
     [SerializeField] private HousePanel housePanel;
     [SerializeField] private ProductionBuildingPanel productionBuildingPanel;
+    [SerializeField] private ArmySelectionPanel armySelectionPanel;
 
-    /// <summary>
-    /// ѕытаетс€ восстановить отсутствующие ссылки на selection system и UI-панели.
-    /// </summary>
     private void OnValidate()
     {
         if (selectionSystem == null)
@@ -29,6 +29,9 @@ public class SelectionUiPresenter : MonoBehaviour
 
         if (productionBuildingPanel == null)
             productionBuildingPanel = FindObjectOfType<ProductionBuildingPanel>(true);
+
+        if (armySelectionPanel == null)
+            armySelectionPanel = FindObjectOfType<ArmySelectionPanel>(true);
     }
 
     private void OnEnable()
@@ -49,12 +52,22 @@ public class SelectionUiPresenter : MonoBehaviour
         selectionSystem.SelectionCleared -= OnSelectionCleared;
     }
 
-    /// <summary>
-    /// ѕоказывает нужную панель в зависимости от выбранного объекта.
-    /// </summary>
     private void OnSelectionChanged(UnitSelectable selectable)
     {
         HideAll();
+
+        if (selectionSystem == null)
+            return;
+
+        IReadOnlyList<UnitSelectable> selectedUnits = selectionSystem.GetSelectedUnits();
+
+        if (ContainsPlayerArmyUnits(selectedUnits))
+        {
+            if (armySelectionPanel != null)
+                armySelectionPanel.Show(selectedUnits);
+
+            return;
+        }
 
         if (selectable == null)
             return;
@@ -111,5 +124,29 @@ public class SelectionUiPresenter : MonoBehaviour
 
         if (productionBuildingPanel != null)
             productionBuildingPanel.Hide();
+
+        if (armySelectionPanel != null)
+            armySelectionPanel.Hide();
+    }
+
+    private bool ContainsPlayerArmyUnits(IReadOnlyList<UnitSelectable> selectedUnits)
+    {
+        if (selectedUnits == null)
+            return false;
+
+        foreach (UnitSelectable selectable in selectedUnits)
+        {
+            if (selectable == null)
+                continue;
+
+            ArmyUnit armyUnit = selectable.GetComponent<ArmyUnit>();
+            if (armyUnit == null)
+                armyUnit = selectable.GetComponentInParent<ArmyUnit>();
+
+            if (armyUnit != null && armyUnit.IsPlayerUnit())
+                return true;
+        }
+
+        return false;
     }
 }

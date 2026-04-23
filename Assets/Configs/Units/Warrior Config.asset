@@ -18,7 +18,8 @@ MonoBehaviour:
     \u0431\u043E\u044F \u0441 \u0431\u043E\u043B\u044C\u0448\u0438\u043C \u0437\u0430\u043F\u0430\u0441\u043E\u043C
     \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F, \u043D\u043E \u043D\u0438\u0437\u043A\u0438\u043C
     \u0443\u0440\u043E\u043D\u043E\u043C"
-  icon: {fileID: 5558041129755138300, guid: 728135fe2ac4b434ab56e445d647d2a0, type: 3}
+  icon: {fileID: 21300000, guid: edde319c37ce048b6bf0462d4f8bd56d, type: 3}
+  unitType: 0
   prefab: {fileID: 3884826190589095570, guid: 7094ca977003a1d47a7950e31869d5b6, type: 3}
   woodCost: 5
   goldCost: 5

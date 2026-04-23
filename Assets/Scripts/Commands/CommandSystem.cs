@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem.EnhancedTouch;
 
@@ -46,59 +47,117 @@ public class CommandSystem : MonoBehaviour
 
     private void Update()
     {
-        HandleMoveCommand();
+        HandleInput();
     }
-    /// <summary>
-    /// Проверяет, была ли отдана команда движения через тап по миру
-    /// </summary>
-    private void HandleMoveCommand()
+
+    private void HandleInput()
     {
         if (!TouchUtility.TryGetEndedTouch(out var touch))
             return;
 
-        if (TouchUtility.IsPointerOverUI(touch))  // Если тап был по UI — игровой мир не обрабатываем
+        if (TouchUtility.IsPointerOverUI(touch))
             return;
 
         if (selectionSystem == null || mainCamera == null)
             return;
 
-        Vector2 worldPos = TouchUtility.ScreenToWorld(mainCamera, touch.screenPosition);
-
-        // Если тап пришёлся по selectable-объекту,
-        // не считаем это командой движения — этот тап относится к выбору
-        RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero);
-        if (hit.collider != null)
-        {
-            UnitSelectable selectable = hit.collider.GetComponentInParent<UnitSelectable>();
-            if (selectable != null)
-                return;
-        }
-
-        IssueMoveCommand(worldPos);
-    }
-    /// <summary>
-    /// Отдаёт команду движения всем выбранным объектам
-    /// которые поддерживают ручное перемещение
-    /// </summary>
-    private void IssueMoveCommand(Vector2 targetPos)
-    {
-        var selectedUnits = selectionSystem.GetSelectedUnits();
-        if (selectedUnits.Count == 0)
+        IReadOnlyList<UnitSelectable> selected = selectionSystem.GetSelectedUnits();
+        if (selected == null || selected.Count == 0)
             return;
 
-        foreach (var selectable in selectedUnits)
+        Vector3 worldPos = TouchUtility.ScreenToWorld(mainCamera, touch.screenPosition);
+
+        // Работать должны только боевые юниты игрока.
+        if (!ContainsPlayerArmyUnits(selected))
+            return;
+
+        IDamageable target = FindEnemyDamageableAt(worldPos, selected);
+
+        foreach (UnitSelectable selectable in selected)
         {
             if (selectable == null)
                 continue;
 
-            // Worker'ов вручную не двигаем
-            // они управляются своей AI/state machine логикой
-            if (selectable.TryGetComponent(out Worker worker))
+            ArmyUnitBrain brain = selectable.GetComponent<ArmyUnitBrain>();
+            if (brain == null)
+                brain = selectable.GetComponentInParent<ArmyUnitBrain>();
+
+            if (brain == null)
                 continue;
 
-            UnitMovement movement = selectable.GetComponent<UnitMovement>();
-            if (movement != null)
-                movement.MoveTo(targetPos);
+            if (target != null)
+                brain.Attack(target);
+            else
+                brain.MoveTo(worldPos);
         }
+    }
+
+    private bool ContainsPlayerArmyUnits(IReadOnlyList<UnitSelectable> selected)
+    {
+        foreach (UnitSelectable selectable in selected)
+        {
+            if (selectable == null)
+                continue;
+
+            ArmyUnit armyUnit = selectable.GetComponent<ArmyUnit>();
+            if (armyUnit == null)
+                armyUnit = selectable.GetComponentInParent<ArmyUnit>();
+
+            if (armyUnit != null && armyUnit.IsPlayerUnit())
+                return true;
+        }
+
+        return false;
+    }
+
+    private IDamageable FindEnemyDamageableAt(Vector3 worldPos, IReadOnlyList<UnitSelectable> selected)
+    {
+        Collider2D hit = Physics2D.OverlapPoint(worldPos);
+        if (hit == null)
+            return null;
+
+        IDamageable damageable = hit.GetComponent<IDamageable>();
+        if (damageable == null)
+            damageable = hit.GetComponentInParent<IDamageable>();
+
+        if (damageable == null || damageable.IsDead)
+            return null;
+
+        MonoBehaviour targetBehaviour = damageable as MonoBehaviour;
+        if (targetBehaviour == null)
+            return null;
+
+        FactionMember targetFaction = targetBehaviour.GetComponent<FactionMember>();
+        if (targetFaction == null)
+            targetFaction = targetBehaviour.GetComponentInParent<FactionMember>();
+
+        if (targetFaction == null)
+            return null;
+
+        // Достаточно, чтобы первый выбранный боевой юнит подтвердил,
+        // что цель действительно вражеская.
+        foreach (UnitSelectable selectable in selected)
+        {
+            if (selectable == null)
+                continue;
+
+            ArmyUnit armyUnit = selectable.GetComponent<ArmyUnit>();
+            if (armyUnit == null)
+                armyUnit = selectable.GetComponentInParent<ArmyUnit>();
+
+            if (armyUnit == null || !armyUnit.IsPlayerUnit())
+                continue;
+
+            FactionMember unitFaction = armyUnit.FactionMember;
+            if (unitFaction == null)
+                continue;
+
+            if (unitFaction.IsEnemy(targetFaction))
+                return damageable;
+
+            return null;
+        }
+
+        return null;
     }
 }

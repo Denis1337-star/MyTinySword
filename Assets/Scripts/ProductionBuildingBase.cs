@@ -50,7 +50,16 @@ public class ProductionBuildingBase : BuildingBase
         if (ResourceStorage.Instance == null)
             return false;
 
-        return ResourceStorage.Instance.HasResources(config.woodCost, config.goldCost);
+        if (!ResourceStorage.Instance.HasResources(config.woodCost, config.goldCost))
+            return false;
+
+        if (ArmyUnitRegistry.Instance == null)
+            return false;
+
+        if (!ArmyUnitRegistry.Instance.HasFreePlayerSlot())
+            return false;
+
+        return true;
     }
 
     /// <summary>

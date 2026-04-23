@@ -17,11 +17,20 @@ MonoBehaviour:
   description: "\u0412\u043E\u0438\u043D \u0434\u0430\u043B\u044C\u043D\u0435\u0433\u043E
     \u0431\u043E\u044F \u0441 \u0431\u043E\u043B\u044C\u0448\u0438\u043C \u0443\u0440\u043E\u043D\u043E\u043C,
     \u043D\u043E \u043D\u0438\u0437\u043A\u0438\u043C \u0425\u041F"
-  icon: {fileID: 7257567913506708742, guid: 2a0fcb2f11a4d496d9d10417bc8e1ab1, type: 3}
+  icon: {fileID: 21300000, guid: a7ddf97c30db44d2581c9d2b9ec8d39d, type: 3}
+  unitType: 1
   prefab: {fileID: 468695769466756769, guid: d6a83031fb5240044a0ffb7f2c8a2a67, type: 3}
   woodCost: 7
   goldCost: 4
   maxHealth: 50
   damage: 50
   moveSpeed: 3
+  attackRange: 1.5
+  attackCooldown: 1
+  visionRange: 4
+  healAmount: 0
+  healRange: 3
+  healCooldown: 1.2
+  arrowPrefab: {fileID: 6472706310641818473, guid: 320f7acb16abced41bc445b4db6a34de, type: 3}
+  arrowSpeed: 8
   buildTime: 3
