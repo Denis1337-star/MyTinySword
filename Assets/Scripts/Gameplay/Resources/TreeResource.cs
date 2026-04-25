@@ -3,70 +3,76 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// Конкретная реализация дерева как ресурса
-/// Поддерживает рубку, визуальное превращение в пень и респавн
+///  реализация дерева 
 /// </summary>
 public class TreeResource : ResourceNodeBase
 {
-    [Header("Config")]
     [SerializeField] private TreeResourceConfig config;
 
     private Animator animator;
-
-    public override Vector2 WorkPosition => GetWorkPosition(null);
+    private Coroutine workRoutine;
     public override float Priority => config != null ? config.Priority : 10f;
 
     protected override void Awake()
     {
-        base.Awake();
         animator = GetComponent<Animator>();
 
-        if (config == null)
-            Debug.LogError($"TreeResource {name}: TreeResourceConfig не назначен.", this);
+        base.Awake();
+
+        if (!enabled)
+            return;
 
         SetTreeVisual();
     }
 
-    // Запускает конкретную рабочую рутину дерева — рубку
-    protected override void StartWorkRoutine(Action<int> onFinished)
+    protected override bool ValidateInternal()
     {
-        StartCoroutine(ChopRoutine(onFinished));
+        bool valid = base.ValidateInternal();
+
+        valid &= ValidationUtility.NotEmptyCollection(this, config, nameof(config));
+
+        if (config != null && !config.IsValid())
+        {
+            Debug.LogError($"{name}: TreeResourceConfig is invalid.", this);
+            valid = false;
+        }
+
+        return valid;
     }
 
-    /// <summary>
-    /// Логика рубки дерева
-    /// ожидание, выдача награды, смена визуала, ожидание респавна
-    /// </summary>
+    protected override void StartWorkRoutine(Action<int> onFinished)
+    {
+        if (workRoutine != null)
+            StopCoroutine(workRoutine);
+
+        workRoutine = StartCoroutine(ChopRoutine(onFinished));
+    }
+
     private IEnumerator ChopRoutine(Action<int> callback)
     {
-        float chopTime = config != null ? config.ChopTime : 2f;
-        int rewardAmount = config != null ? config.RewardAmount : 3;
-        float respawnTime = config != null ? config.RespawnTime : 10f;
+        yield return new WaitForSeconds(config.WorkTime);
 
-        yield return new WaitForSeconds(chopTime);
-
-        callback?.Invoke(rewardAmount);
+        callback?.Invoke(config.RewardAmount);
         SetStumpVisual();
 
-        yield return new WaitForSeconds(respawnTime);
+        yield return new WaitForSeconds(config.RespawnTime);
 
         Respawn();
     }
 
-    // Возвращает дерево в доступное состояние после респавна
     private void Respawn()
     {
         available = true;
         SetTreeVisual();
+        workRoutine = null;
     }
 
-    // Устанавливает визуал обычного дерева
     private void SetTreeVisual()
     {
         if (animator != null)
             animator.SetBool("Stump", false);
     }
-    // Устанавливает визуал пня после рубки
+
     private void SetStumpVisual()
     {
         if (animator != null)

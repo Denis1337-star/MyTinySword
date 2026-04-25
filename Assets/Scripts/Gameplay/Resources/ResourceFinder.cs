@@ -1,17 +1,12 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// Отвечает за поиск лучшего ресурса для worker на основе приоритета и расстояния
+/// Отвечает за поиск лучшего ресурса для worker
 /// </summary>
 public static class ResourceFinder
 {
-    /// <summary>
-    /// Вес приоритета в общей формуле оценки ресурса
-    /// Чем выше значение, тем сильнее priority влияет на выбор
-    /// </summary>
     private const float PriorityWeight = 100f;
 
-    // Находит лучший доступный ресурс указанного типа
     public static T FindBest<T>(Vector2 from) where T : ResourceNodeBase
     {
         if (ResourceRegistry.Instance == null)
@@ -20,25 +15,25 @@ public static class ResourceFinder
         T best = null;
         float bestScore = float.MinValue;
 
-        foreach (var node in ResourceRegistry.Instance.Nodes)
+        foreach (IResourceNode node in ResourceRegistry.Instance.Nodes)
         {
-            if (node is not T typed)    // Оставляем только ресурсы нужного типа
-                continue;
-             
-            if (!typed.IsAvailable)        // Ресурс должен быть доступен для работы
+            if (node is not T typed)
                 continue;
 
-            if (!typed.HasFreeSlot())         // У ресурса должен быть хотя бы один свободный слот
+            if (!typed.IsAvailable)
                 continue;
 
-            float dist = Vector2.Distance(from, typed.WorkPosition);
-            float score = typed.Priority * PriorityWeight - dist;
+            if (!typed.HasFreeSlot())
+                continue;
 
-            if (score > bestScore)
-            {
-                bestScore = score;
-                best = typed;
-            }
+            float sqrDistance = (typed.GetWorkPosition(null) - from).sqrMagnitude;
+            float score = typed.Priority * PriorityWeight - sqrDistance;
+
+            if (score <= bestScore)
+                continue;
+
+            bestScore = score;
+            best = typed;
         }
 
         return best;

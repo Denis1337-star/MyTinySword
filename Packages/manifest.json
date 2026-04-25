@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "com.h8man.2d.navmeshplus": "https://github.com/h8man/NavMeshPlus.git",
+    "com.svermeulen.extenject": "https://github.com/modesttree/Zenject.git?path=UnityProject/Assets/Plugins/Zenject",
     "com.unity.ai.navigation": "1.1.7",
     "com.unity.cinemachine": "2.10.6",
     "com.unity.collab-proxy": "2.11.3",

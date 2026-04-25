@@ -2,13 +2,12 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// Интерфейс ресурса, с которым может взаимодействовать рабочий
+/// Интерфейс ресурса
 /// </summary>
 public interface IResourceNode
 {
     bool IsAvailable { get; }                                  //Доступен ли ресурс для работы
-    Vector2 WorkPosition { get; }                              //Базовая позиция для работы
-    float Priority { get; }                                    //Приоритет ресурса (для выбора лучшего)
+    float Priority { get; }                                    //Приоритет ресурса 
     bool HasFreeSlot();                                        //Есть ли свободные слоты для работы
 
     bool TryStartWork(Worker worker, Action<int> onFinished);  //Попытка начать работу

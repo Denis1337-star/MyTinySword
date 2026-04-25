@@ -17,16 +17,16 @@ public class SelectionFocusPresenter : MonoBehaviour
     {
         if (selectionSystem == null)
         {
-            if (GameServices.Instance != null && GameServices.Instance.Selection != null)
-                selectionSystem = GameServices.Instance.Selection;
+            if (GameServices.Instance != null && GameServices.Instance.SelectionSystem != null)
+                selectionSystem = GameServices.Instance.SelectionSystem;
             else
                 selectionSystem = FindObjectOfType<SelectionSystem>(true);
         }
 
         if (focusController == null)
         {
-            if (GameServices.Instance != null && GameServices.Instance.CameraFocus != null)
-                focusController = GameServices.Instance.CameraFocus;
+            if (GameServices.Instance != null && GameServices.Instance.CameraFocusController != null)
+                focusController = GameServices.Instance.CameraFocusController;
             else
                 focusController = FindObjectOfType<CameraFocusController>(true);
         }

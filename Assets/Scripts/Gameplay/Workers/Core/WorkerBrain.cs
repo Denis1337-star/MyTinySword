@@ -1,8 +1,9 @@
 using UnityEngine;
 
 /// <summary>
-/// Компонент, который принимает решения о назначении и переключении работы worker'а
+/// принимает решения о назначении и переключении работы worker
 /// </summary>
+ [RequireComponent(typeof(Worker))]
 public class WorkerBrain : MonoBehaviour
 {
     private Worker worker;
@@ -12,25 +13,23 @@ public class WorkerBrain : MonoBehaviour
         worker = GetComponent<Worker>();
     }
 
-    private void OnValidate()
-    {
-        if (worker == null)
-            worker = GetComponent<Worker>();
-    }
-
     /// <summary>
-    /// Назначает worker'у новую работу
-    /// Если переключение сейчас безопасно — применяет сразу
-    /// Иначе сохраняет как pending job
+    /// Назначает worker новую работу
     /// </summary>
     public void AssignJob(WorkerJobType job)
     {
         if (worker == null || worker.Home == null)
             return;
 
+        if (worker.CurrentJob == job && worker.PendingJob == WorkerJobType.None)
+            return;
+
+        if (worker.PendingJob == job)
+            return;
+
         bool canSwitchNow = worker.CanSwitchJobImmediately();
 
-        if (canSwitchNow || worker.CurrentJob == WorkerJobType.None)
+        if (canSwitchNow || worker.CurrentJob == WorkerJobType.None || job == WorkerJobType.None)
         {
             ApplyJobImmediately(job);
             return;
@@ -40,7 +39,7 @@ public class WorkerBrain : MonoBehaviour
     }
 
     /// <summary>
-    /// Применяет отложенную работу, если она есть
+    /// Применяет отложенную работу
     /// </summary>
     public void ApplyPendingJobIfAny()
     {
@@ -56,7 +55,7 @@ public class WorkerBrain : MonoBehaviour
     }
 
     /// <summary>
-    /// Немедленно применяет новую работу и запускает новый цикл поиска ресурса
+    /// Немедленно применяет новую работу 
     /// </summary>
     public void ApplyJobImmediately(WorkerJobType job)
     {

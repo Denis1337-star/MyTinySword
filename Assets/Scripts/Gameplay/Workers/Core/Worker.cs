@@ -20,6 +20,7 @@ public class Worker : ValidatedMonoBehaviour
     public WorkerBrain Brain { get; private set; }
 
     public House Home { get; private set; }
+
     public IWorkerJob CurrentJobLogic { get; private set; }
     public WorkerJobType CurrentJob { get; private set; }
     public WorkerJobType PendingJob { get; private set; } = WorkerJobType.None;
@@ -32,7 +33,7 @@ public class Worker : ValidatedMonoBehaviour
     public event Action OnJobChanged;
     public event Action OnActivityChanged;
 
-    public string CurrentStateName => StateMachine.CurrentStateName;
+    public string CurrentStateName => StateMachine != null ? StateMachine.CurrentStateName : "None";
     public bool HasCargo => Inventory != null && Inventory.HasCargo;
     public bool HasPendingJob => PendingJob != WorkerJobType.None;
 
@@ -66,13 +67,10 @@ public class Worker : ValidatedMonoBehaviour
         bool valid = true;
 
         valid &= ValidationUtility.NotEmptyCollection(this, config, nameof(config));
-        valid &= ValidationUtility.NotEmptyCollection(this, Movement, nameof(Movement));
-        valid &= ValidationUtility.NotEmptyCollection(this, Inventory, nameof(Inventory));
-        valid &= ValidationUtility.NotEmptyCollection(this, Brain, nameof(Brain));
 
         if (config != null && !config.IsValid())
         {
-            Debug.LogError($"{name}: WorkerConfig is invalid", this);
+            Debug.LogError($"{name}: WorkerConfig is invalid.", this);
             valid = false;
         }
 
@@ -81,7 +79,7 @@ public class Worker : ValidatedMonoBehaviour
 
     private void Update()
     {
-        if (!enabled)
+        if (!enabled || StateMachine == null)
             return;
 
         StateMachine.Update();
@@ -95,9 +93,6 @@ public class Worker : ValidatedMonoBehaviour
         WorkerRegistry.Instance?.Unregister(this);
     }
 
-    /// <summary>
-    /// Привязывает worker'а к дому и запускает его базовое idle-состояние
-    /// </summary>
     public void SetHome(House house)
     {
         Home = house;
@@ -105,11 +100,11 @@ public class Worker : ValidatedMonoBehaviour
         EnterIdleState();
     }
 
-    /// <summary>
-    /// Публичный вход для назначения новой профессии worker'у
-    /// </summary>
     public void AssignJob(WorkerJobType job)
     {
+        if (Brain == null)
+            return;
+
         Brain.AssignJob(job);
     }
 
@@ -132,13 +127,14 @@ public class Worker : ValidatedMonoBehaviour
         OnJobChanged?.Invoke();
     }
 
-    /// <summary>
-    /// Переключает worker'а в новое состояние и уведомляет подписчиков об изменении активности
-    /// </summary>
     public void ChangeState(IWorkerState state)
     {
-        StateMachine.ChangeState(state);
-        OnActivityChanged?.Invoke();
+        if (StateMachine == null)
+            return;
+
+        bool changed = StateMachine.ChangeState(state);
+        if (changed)
+            OnActivityChanged?.Invoke();
     }
 
     public void EnterIdleState()
@@ -166,74 +162,63 @@ public class Worker : ValidatedMonoBehaviour
         ChangeState(carryState);
     }
 
-    /// <summary>
-    /// Проверяет, можно ли безопасно сразу сменить профессию
-    /// </summary>
     public bool CanSwitchJobImmediately()
     {
         return TargetResource == null &&
                TargetSlot == null &&
+               Inventory != null &&
                !Inventory.HasCargo &&
+               Movement != null &&
                !Movement.HasTarget;
     }
-
-    /// <summary>
-    /// Сбрасывает текущую привязку к ресурсу и освобождает рабочий слот
-    /// </summary>
 
     public void ClearCurrentAssignment()
     {
         if (TargetResource != null)
-        {
             TargetResource.CancelWork(this);
-        }
 
         TargetResource = null;
         TargetSlot = null;
     }
 
-    /// <summary>
-    /// Полностью сбрасывает текущий task-state worker'а
-    /// </summary>
     public void ResetTaskState()
     {
         ClearCurrentAssignment();
-        Inventory.Clear();
+        Inventory?.Clear();
         Animator?.SetWorking(false);
         OnActivityChanged?.Invoke();
     }
 
-    /// <summary>
-    /// Сдаёт переносимый ресурс в общую систему хранения
-    /// </summary>
     public void DeliverCargo()
     {
-        if (CurrentJobLogic == null || !Inventory.HasCargo || ResourceDepositService.Instance == null)
+        if (Inventory == null || !Inventory.HasCargo)
             return;
 
-        int amount = Inventory.TakeCargo();
-        ResourceDepositService.Instance.Deposit(CurrentJobLogic.RewardType, amount);
+        if (ResourceDepositService.Instance == null)
+            return;
+
+        int amount = Inventory.TakeCargo(out ResourceType resourceType);
+        ResourceDepositService.Instance.Deposit(resourceType, amount);
     }
 
-    /// <summary>
-    /// Переводит worker'а в состояние поиска нового ресурса
-    /// </summary>
     public void StartFindingResource()
     {
         EnterFindResourceState();
     }
 
-    /// <summary>
-    /// Переводит worker'а в idle-состояние
-    /// </summary>
     public void GoIdle()
     {
         EnterIdleState();
     }
 
-    public bool HasValidResourceAssignment()
+    public bool HasValidResourceAssignmentForMove()
     {
-        return WorkerResourceSelector.HasValidAssignment(this);
+        return WorkerResourceSelector.HasValidAssignmentForMove(this);
+    }
+
+    public bool HasValidResourceAssignmentForWork()
+    {
+        return WorkerResourceSelector.HasValidAssignmentForWork(this);
     }
 
     public float GetReachResourceDistance()

@@ -1,34 +1,34 @@
-using UnityEngine;
 
 /// <summary>
-/// Простая конечная машина состояний worker'а
-/// Хранит текущее состояние и управляет переходами между состояниями
+///машина состояний worker
 /// </summary>
 public class WorkerStateMachine 
 {
     private IWorkerState currentState;
 
-    public IWorkerState CurrentState => currentState;  //Текущее активное состояние
-    public string CurrentStateName => currentState?.GetType().Name ?? "None";  //Имя текущего состояние
+    public IWorkerState CurrentState => currentState;
+    public string CurrentStateName => currentState?.GetType().Name ?? "None";
 
     /// <summary>
-    /// Переключает машину в новое состояние
-    /// Сначала вызывает Exit у старого состояния, затем Enter у нового
+    /// Переключает в новое состояние
     /// </summary>
-    public void ChangeState(IWorkerState newState)
+    public bool ChangeState(IWorkerState newState)
     {
         if (newState == null)
-            return;
+            return false;
 
         if (currentState == newState)
-            return;
+            return false;
 
         currentState?.Exit();
         currentState = newState;
         currentState.Enter();
+
+        return true;
     }
+
     /// <summary>
-    /// Обновляет текущее состояние
+    /// Обновляет текущее активное состояние
     /// </summary>
     public void Update()
     {

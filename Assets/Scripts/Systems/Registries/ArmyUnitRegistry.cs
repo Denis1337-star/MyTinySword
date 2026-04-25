@@ -1,12 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Глобальный реестр всех боевых юнитов на сцене.
-/// Нужен для контроля общего лимита армии,
-/// выбора всех союзных юнитов и будущей боевой логики.
+/// Глобальный реестр всех боевых юнитов на сцене
+/// Контроль общего лимита армии
+/// выбор всех союзных юнитов 
 /// </summary>
 public class ArmyUnitRegistry : MonoBehaviour
 {
@@ -35,14 +34,17 @@ public class ArmyUnitRegistry : MonoBehaviour
         maxPlayerArmyUnits = Mathf.Max(1, maxPlayerArmyUnits);
     }
 
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
+    }
+
     private void OnValidate()
     {
         maxPlayerArmyUnits = Mathf.Max(1, maxPlayerArmyUnits);
     }
 
-    /// <summary>
-    /// Регистрирует боевого юнита.
-    /// </summary>
     public void Register(ArmyUnit unit)
     {
         if (unit == null)
@@ -55,9 +57,6 @@ public class ArmyUnitRegistry : MonoBehaviour
         OnArmyChanged?.Invoke();
     }
 
-    /// <summary>
-    /// Удаляет боевого юнита из реестра.
-    /// </summary>
     public void Unregister(ArmyUnit unit)
     {
         if (unit == null)
@@ -69,17 +68,11 @@ public class ArmyUnitRegistry : MonoBehaviour
         OnArmyChanged?.Invoke();
     }
 
-    /// <summary>
-    /// Проверяет, есть ли свободное место в армии игрока.
-    /// </summary>
     public bool HasFreePlayerSlot()
     {
         return CurrentPlayerArmyUnits < maxPlayerArmyUnits;
     }
 
-    /// <summary>
-    /// Возвращает всех живых союзных боевых юнитов игрока.
-    /// </summary>
     public List<ArmyUnit> GetAllPlayerUnits()
     {
         List<ArmyUnit> result = new();

@@ -1,5 +1,7 @@
-using UnityEngine;
 
+/// <summary>
+/// ќтвечает за выбор ресурса дл€ worker
+/// </summary>
 public static class WorkerResourceSelector
 {
     public static ResourceNodeBase FindBestResource(Worker worker)
@@ -10,7 +12,7 @@ public static class WorkerResourceSelector
         return worker.CurrentJobLogic.FindResource(worker.transform.position);
     }
 
-    public static WorkSlot ReserveBestSlot(Worker worker, ResourceNodeBase resource)
+    public static WorkSlot TryReserveSlot(Worker worker, ResourceNodeBase resource)
     {
         if (worker == null || resource == null)
             return null;
@@ -35,7 +37,7 @@ public static class WorkerResourceSelector
         if (resource == null)
             return false;
 
-        WorkSlot slot = ReserveBestSlot(worker, resource);
+        WorkSlot slot = TryReserveSlot(worker, resource);
         if (slot == null)
             return false;
 
@@ -44,7 +46,26 @@ public static class WorkerResourceSelector
         return true;
     }
 
-    public static bool HasValidAssignment(Worker worker)
+    /// <summary>
+    /// ѕровер€ет назначение worker на этапе движени€ к ресурс
+    /// </summary>
+    public static bool HasValidAssignmentForMove(Worker worker)
+    {
+        if (!HasReservedSlot(worker))
+            return false;
+
+        return worker.TargetResource.IsAvailable;
+    }
+
+    /// <summary>
+    /// ѕровер€ет назначение worker во врем€ работы
+    /// </summary>
+    public static bool HasValidAssignmentForWork(Worker worker)
+    {
+        return HasReservedSlot(worker);
+    }
+
+    private static bool HasReservedSlot(Worker worker)
     {
         if (worker == null)
             return false;
@@ -52,12 +73,6 @@ public static class WorkerResourceSelector
         if (worker.TargetResource == null || worker.TargetSlot == null)
             return false;
 
-        if (!worker.TargetResource.IsAvailable)
-            return false;
-
-        if (!worker.TargetSlot.IsReservedBy(worker))
-            return false;
-
-        return true;
+        return worker.TargetSlot.IsReservedBy(worker);
     }
 }

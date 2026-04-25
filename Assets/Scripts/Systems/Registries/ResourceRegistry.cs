@@ -3,14 +3,15 @@ using UnityEngine;
 
 /// <summary>
 /// ќбщий реестр всех ресурсов на сцене
-/// ѕозвол€ет worker-системе находить доступные ресурсы через единый список
+/// ѕозвол€ет worker находить доступные ресурсы через единый список
 /// </summary>
 public class ResourceRegistry : MonoBehaviour
 {
     public static ResourceRegistry Instance { get; private set; }
 
-    private readonly List<IResourceNode> nodes = new();  // ¬нутренний список зарегистрированных ресурсов
-    public IReadOnlyList<IResourceNode> Nodes => nodes;  // ѕубличный доступ к списку ресурсов только дл€ чтени€
+    private readonly List<IResourceNode> nodes = new();
+
+    public IReadOnlyList<IResourceNode> Nodes => nodes;
 
     private void Awake()
     {
@@ -23,17 +24,23 @@ public class ResourceRegistry : MonoBehaviour
         Instance = this;
     }
 
-    // –егистрирует ресурс в общем списке
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
+    }
+
     public void Register(IResourceNode node)
     {
         if (node == null)
             return;
 
-        if (!nodes.Contains(node))
-            nodes.Add(node);
+        if (nodes.Contains(node))
+            return;
+
+        nodes.Add(node);
     }
 
-    // –егистрирует ресурс в общем списке
     public void Unregister(IResourceNode node)
     {
         if (node == null)

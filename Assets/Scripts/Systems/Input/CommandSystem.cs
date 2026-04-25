@@ -30,8 +30,8 @@ public class CommandSystem : MonoBehaviour
     {
         if (selectionSystem == null)
         {
-            if (GameServices.Instance != null && GameServices.Instance.Selection != null)
-                selectionSystem = GameServices.Instance.Selection;
+            if (GameServices.Instance != null && GameServices.Instance.SelectionSystem != null)
+                selectionSystem = GameServices.Instance.SelectionSystem;
             else
                 selectionSystem = FindObjectOfType<SelectionSystem>(true);
         }

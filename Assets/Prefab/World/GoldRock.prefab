@@ -1,37 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &1682959804071422391
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 5715615458045530650}
-  m_Layer: 0
-  m_Name: WorkPoint
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &5715615458045530650
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1682959804071422391}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 5366408372180029333}
-  m_Father: {fileID: 1637480760895373404}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5215887399480001551
 GameObject:
   m_ObjectHideFlags: 0
@@ -57,12 +25,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5215887399480001551}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 5715615458045530650}
+  m_Father: {fileID: 1637480760895373404}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4298725028402502053
 MonoBehaviour:
@@ -106,11 +74,11 @@ Transform:
   m_GameObject: {fileID: 6329343067960642189}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -35.63168, y: 0.95, z: -0.124725945}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 2, y: 2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 5715615458045530650}
+  - {fileID: 5366408372180029333}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &7077493542845092937
@@ -243,17 +211,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d2ecd26fc1500c4ab524e272c97190d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  workSlots:
-  - {fileID: 4298725028402502053}
+  workSlot: {fileID: 4298725028402502053}
   config: {fileID: 11400000, guid: 42058c89ed5b6fb41ad39d8bdbbafc92, type: 2}
-  sizeSprites:
-  - {fileID: 21300000, guid: 67d30015e15234b60a2097cd3001c423, type: 3}
-  - {fileID: 21300000, guid: 79eb76530889a4283aab87921fff68cf, type: 3}
-  - {fileID: 21300000, guid: 08b428e680bf14435ad32f565d39377a, type: 3}
-  - {fileID: 21300000, guid: 9f6c33a01ddca41df86e012fd10f4d76, type: 3}
-  - {fileID: 21300000, guid: 099a3e9fd39fd40efa61fb2fa8acf5f6, type: 3}
-  - {fileID: 21300000, guid: 5a4aa1c2f2ac84011bdacd0445d7cf5b, type: 3}
-  animator: {fileID: 1966730817650815987}
 --- !u!208 &4721321524432157419
 NavMeshObstacle:
   m_ObjectHideFlags: 0

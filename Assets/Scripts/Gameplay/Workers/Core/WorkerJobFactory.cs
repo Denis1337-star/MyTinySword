@@ -1,20 +1,19 @@
-using UnityEngine;
-
 /// <summary>
-/// Простая фабрика, создающая объект логики работы worker'а по enum-типу профессии
+///  фабрика  логики работы worker по enum профессии
 /// </summary>
 public static class WorkerJobFactory
 {
-    /// <summary>
-    /// Создаёт стратегию работы для указанного типа профессии
-    /// </summary>
+    private static readonly IWorkerJob ChopWood = new ChopWoodJob();
+    private static readonly IWorkerJob MineGold = new MineGoldJob();
+    private static readonly IWorkerJob HuntMeat = new HuntMeatJob();
+
     public static IWorkerJob Create(WorkerJobType type)
     {
         return type switch
         {
-            WorkerJobType.ChopWood => new ChopWoodJob(),
-            WorkerJobType.MineGold => new MineGoldJob(),
-            WorkerJobType.HuntMeat => new HuntMeatJob(),
+            WorkerJobType.ChopWood => ChopWood,
+            WorkerJobType.MineGold => MineGold,
+            WorkerJobType.HuntMeat => HuntMeat,
             _ => null
         };
     }

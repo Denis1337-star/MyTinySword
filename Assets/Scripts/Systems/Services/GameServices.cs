@@ -1,27 +1,25 @@
 using UnityEngine;
 
 /// <summary>
-/// √лобальный контейнер ссылок на основные сервисы сцены
-/// ѕозвол€ет централизованно получать доступ к выбору, ресурсам,
-/// реестрам, управлению камерой и главной камере
+/// √лобальный контейнер ссылок на основные системы сцены
 /// </summary>
 public class GameServices : MonoBehaviour
 {
     public static GameServices Instance { get; private set; }
 
     [Header("Scene References")]
-    [SerializeField] private SelectionSystem selection;
-    [SerializeField] private ResourceStorage resources;
-    [SerializeField] private WorkerRegistry workers;
-    [SerializeField] private ResourceRegistry resourceNodes;
-    [SerializeField] private CameraFocusController cameraFocus;
+    [SerializeField] private SelectionSystem selectionSystem;
+    [SerializeField] private ResourceStorage resourcesStorage;
+    [SerializeField] private WorkerRegistry workerRegistry;
+    [SerializeField] private ResourceRegistry resourceRegistry;
+    [SerializeField] private CameraFocusController cameraFocusController;
     [SerializeField] private Camera mainCamera;
 
-    public SelectionSystem Selection => selection;
-    public ResourceStorage Resources => resources;
-    public WorkerRegistry Workers => workers;
-    public ResourceRegistry ResourceNodes => resourceNodes;
-    public CameraFocusController CameraFocus => cameraFocus;
+    public SelectionSystem SelectionSystem => selectionSystem;
+    public ResourceStorage ResourcesStorage => resourcesStorage;
+    public WorkerRegistry WorkerRegistry => workerRegistry;
+    public ResourceRegistry ResourceRegistry => resourceRegistry;
+    public CameraFocusController CameraFocusController => cameraFocusController;
     public Camera MainCamera => mainCamera;
 
     private void Awake()
@@ -43,24 +41,23 @@ public class GameServices : MonoBehaviour
 
     /// <summary>
     /// Ќаходит и заполн€ет отсутствующие сценовые ссылки
-    /// ≈сли ссылка уже назначена вручную, повторно еЄ не трогаем
     /// </summary>
     private void ResolveMissingReferences()
     {
-        if (selection == null)
-            selection = FindObjectOfType<SelectionSystem>(true);
+        if (selectionSystem == null)
+            selectionSystem = FindObjectOfType<SelectionSystem>(true);
 
-        if (resources == null)
-            resources = FindObjectOfType<ResourceStorage>(true);
+        if (resourcesStorage == null)
+            resourcesStorage = FindObjectOfType<ResourceStorage>(true);
 
-        if (workers == null)
-            workers = FindObjectOfType<WorkerRegistry>(true);
+        if (workerRegistry == null)
+            workerRegistry = FindObjectOfType<WorkerRegistry>(true);
 
-        if (resourceNodes == null)
-            resourceNodes = FindObjectOfType<ResourceRegistry>(true);
+        if (resourceRegistry == null)
+            resourceRegistry = FindObjectOfType<ResourceRegistry>(true);
 
-        if (cameraFocus == null)
-            cameraFocus = FindObjectOfType<CameraFocusController>(true);
+        if (cameraFocusController == null)
+            cameraFocusController = FindObjectOfType<CameraFocusController>(true);
 
         if (mainCamera == null)
             mainCamera = Camera.main;

@@ -2,24 +2,23 @@ using UnityEngine;
 
 /// <summary>
 /// Рабочий слот у ресурса
-/// Позволяет одному worker зарезервировать точку для подхода и работы
 /// </summary>
 public class WorkSlot : MonoBehaviour
 {
-    private Worker reservedBy;  // Worker, который сейчас владеет этим слотом
+    private Worker reservedBy;
 
-    public bool IsFree   // Свободен ли слот
-    {
-        get { return reservedBy == null; }
-    }
-    public Vector2 Position => transform.position;  // Свободен ли слот.
+    public bool IsFree => reservedBy == null;
+
+    public Vector2 Position => transform.position;
 
     /// <summary>
     /// Пытается зарезервировать слот за worker
-    /// Возвращает true, если слот свободен или уже принадлежит этому worker
     /// </summary>
     public bool TryReserve(Worker worker)
     {
+        if (worker == null)
+            return false;
+
         if (reservedBy == null)
         {
             reservedBy = worker;
@@ -29,15 +28,22 @@ public class WorkSlot : MonoBehaviour
         return reservedBy == worker;
     }
 
-    // Проверяет, принадлежит ли слот конкретному worker
+    /// <summary>
+    /// Проверяет, принадлежит ли слот конкретному worker
+    /// </summary>
     public bool IsReservedBy(Worker worker)
     {
-        return reservedBy == worker;
+        return worker != null && reservedBy == worker;
     }
 
-    // Освобождает слот, если его вызывает текущий владелец
+    /// <summary>
+    /// Освобождает слот
+    /// </summary>
     public void Release(Worker worker)
     {
+        if (worker == null)
+            return;
+
         if (reservedBy == worker)
             reservedBy = null;
     }

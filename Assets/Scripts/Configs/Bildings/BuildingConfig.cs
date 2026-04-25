@@ -1,7 +1,6 @@
 using UnityEngine;
 
 /// <summary>
-/// Базовый конфиг для любого здания
 /// Хранит общие параметры стоимости, здоровья, времени постройки и UI-данные
 /// </summary>
 [CreateAssetMenu(menuName = "MyTinySword/Configs/Building Config")]

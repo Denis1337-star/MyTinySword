@@ -3,21 +3,19 @@ using UnityEngine;
 
 /// <summary>
 /// √лобальное хранилище ресурсов игрока
-/// ’ранит текущее количество дерева, золота и м€са
-/// а также уведомл€ет подписчиков при изменении значений
+/// уведомл€ет подписчиков при изменении значений
 /// </summary>
 public class ResourceStorage : MonoBehaviour
 {
-    public static ResourceStorage Instance { get; private set; }   // √лобальна€ точка доступа к общему хранилищу ресурсов
+    public static ResourceStorage Instance { get; private set; }
 
-    public event Action OnResourcesChanged;   // —обытие вызываетс€ каждый раз, когда количество ресурсов изменилось
+    public event Action OnResourcesChanged;
 
     [Header("Current Resources")]
     [SerializeField] private int wood;
     [SerializeField] private int gold;
     [SerializeField] private int meat;
 
-    // ѕубличный доступ только на чтение
     public int Wood => wood;
     public int Gold => gold;
     public int Meat => meat;
@@ -44,34 +42,62 @@ public class ResourceStorage : MonoBehaviour
 
     public void AddWood(int amount)
     {
-        if (amount <= 0)
-            return;
-
-        wood += amount;
-        OnResourcesChanged?.Invoke();
+        AddResource(ResourceType.Wood, amount);
     }
 
     public void AddGold(int amount)
     {
-        if (amount <= 0)
-            return;
-
-        gold += amount;
-        OnResourcesChanged?.Invoke();
+        AddResource(ResourceType.Gold, amount);
     }
 
     public void AddMeat(int amount)
     {
+        AddResource(ResourceType.Meat, amount);
+    }
+
+    /// <summary>
+    /// ”ниверсальное добавление ресурса по его типу
+    /// </summary>
+    public void AddResource(ResourceType type, int amount)
+    {
         if (amount <= 0)
             return;
 
-        meat += amount;
+        switch (type)
+        {
+            case ResourceType.Wood:
+                wood += amount;
+                break;
+
+            case ResourceType.Gold:
+                gold += amount;
+                break;
+
+            case ResourceType.Meat:
+                meat += amount;
+                break;
+
+            default:
+                return;
+        }
+
         OnResourcesChanged?.Invoke();
     }
 
     /// <summary>
-    /// ѕровер€ет, хватает ли дерева и золота на действие
+    /// ¬озвращает текущее количество ресурса указанного типа
     /// </summary>
+    public int GetAmount(ResourceType type)
+    {
+        return type switch
+        {
+            ResourceType.Wood => wood,
+            ResourceType.Gold => gold,
+            ResourceType.Meat => meat,
+            _ => 0
+        };
+    }
+
     public bool HasResources(int requiredWood, int requiredGold)
     {
         requiredWood = Mathf.Max(0, requiredWood);
@@ -80,9 +106,6 @@ public class ResourceStorage : MonoBehaviour
         return wood >= requiredWood && gold >= requiredGold;
     }
 
-    /// <summary>
-    /// ѕытаетс€ списать дерево и золото
-    /// </summary>
     public bool TrySpendResources(int spendWood, int spendGold)
     {
         spendWood = Mathf.Max(0, spendWood);
@@ -93,19 +116,17 @@ public class ResourceStorage : MonoBehaviour
 
         wood -= spendWood;
         gold -= spendGold;
+
         OnResourcesChanged?.Invoke();
         return true;
     }
 
-    /// <summary>
-    /// ѕолностью устанавливает новые значени€ ресурсов
-    /// ѕолезно дл€ отладки, тестов или загрузки сохранений
-    /// </summary>
     public void SetResources(int newWood, int newGold, int newMeat)
     {
         wood = Mathf.Max(0, newWood);
         gold = Mathf.Max(0, newGold);
         meat = Mathf.Max(0, newMeat);
+
         OnResourcesChanged?.Invoke();
     }
 }

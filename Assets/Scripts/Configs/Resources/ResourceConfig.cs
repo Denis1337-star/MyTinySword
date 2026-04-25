@@ -12,8 +12,13 @@ public abstract class ResourceConfig : BaseConfig
     [Min(0.1f)]
     [SerializeField] private float respawnTime;
 
+    [Min(0.1f)]
+    [SerializeField] private float workTime;
+
+
     public float Priority => priority;
     public float RespawnTime => respawnTime;
+    public float WorkTime => workTime;
 
     /// <summary>
     /// ќграничивает общие значени€ ресурса в редакторе
@@ -22,5 +27,6 @@ public abstract class ResourceConfig : BaseConfig
     {
         priority = Mathf.Max(0f, priority);
         respawnTime = Mathf.Max(0.1f, respawnTime);
+        workTime = Mathf.Max(1f, workTime);
     }
 }

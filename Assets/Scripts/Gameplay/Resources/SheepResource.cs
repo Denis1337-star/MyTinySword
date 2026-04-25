@@ -4,7 +4,6 @@ using UnityEngine;
 
 /// <summary>
 /// Овца как ресурс мяса
-/// Поддерживает временную заморозку AI, выдачу награды и респавн
 /// </summary>
 public class SheepResource : ResourceNodeBase
 {
@@ -16,68 +15,61 @@ public class SheepResource : ResourceNodeBase
     [SerializeField] private Collider2D col;
 
     private SheepAI sheepAI;
+    private Coroutine workRoutine;
 
     public override float Priority => config != null ? config.Priority : 1f;
-    public override Vector2 WorkPosition => GetWorkPosition(null);
 
     protected override void Awake()
     {
-        base.Awake();
         sheepAI = GetComponent<SheepAI>();
 
-        if (config == null)
-            Debug.LogError($"SheepResource {name}: SheepResourceConfig не назначен.", this);
+        if (sprite == null)
+            sprite = GetComponent<SpriteRenderer>();
+
+        if (col == null)
+            col = GetComponent<Collider2D>();
+
+        base.Awake();
     }
 
-    /// <summary>
-    /// Запускает рабочую рутину овцы как ресурса
-    /// </summary>
+    protected override bool ValidateInternal()
+    {
+        bool valid = base.ValidateInternal();
+
+        valid &= ValidationUtility.NotEmptyCollection(this, config, nameof(config));
+        valid &= ValidationUtility.NotEmptyCollection(this, sprite, nameof(sprite));
+        valid &= ValidationUtility.NotEmptyCollection(this, col, nameof(col));
+
+        if (config != null && !config.IsValid())
+        {
+            Debug.LogError($"{name}: SheepResourceConfig is invalid.", this);
+            valid = false;
+        }
+
+        return valid;
+    }
+
     protected override void StartWorkRoutine(Action<int> onFinished)
     {
-        StartCoroutine(WorkRoutine(onFinished));
+        if (workRoutine != null)
+            StopCoroutine(workRoutine);
+
+        workRoutine = StartCoroutine(WorkRoutine(onFinished));
     }
 
-    /// <summary>
-    /// Логика добычи мяса
-    /// ожидание, выдача награды, скрытие объекта, ожидание респавна
-    /// </summary>
     private IEnumerator WorkRoutine(Action<int> callback)
     {
-        float workTime = config != null ? config.WorkTime : 2f;
-        int meatAmount = config != null ? config.MeatAmount : 2;
-        float respawnTime = config != null ? config.RespawnTime : 15f;
+        yield return new WaitForSeconds(config.WorkTime);
 
-        yield return new WaitForSeconds(workTime);
+        callback?.Invoke(config.MeatAmount);
 
-        callback?.Invoke(meatAmount);
+        SetVisible(false);
 
-        if (sprite != null)
-            sprite.enabled = false;
-
-        if (col != null)
-            col.enabled = false;
-
-        yield return new WaitForSeconds(respawnTime);
+        yield return new WaitForSeconds(config.RespawnTime);
 
         Respawn();
     }
 
-    /// <summary>
-    /// Возвращает овцу в доступное состояние после респавна
-    /// </summary>
-    private void Respawn()
-    {
-        available = true;
-
-        sprite.enabled = true;
-        col.enabled = true;
-
-        sheepAI?.SetFrozen(false);
-    }
-
-    /// <summary>
-    /// Пытается зарезервировать слот и, если успешно, замораживает овцу
-    /// </summary>
     public override WorkSlot TryReserveSlot(Worker worker)
     {
         WorkSlot slot = base.TryReserveSlot(worker);
@@ -88,12 +80,28 @@ public class SheepResource : ResourceNodeBase
         return slot;
     }
 
-    /// <summary>
-    /// Пытается зарезервировать слот и, если успешно, замораживает овцу
-    /// </summary>
     public override void ReleaseSlot(Worker worker)
     {
         base.ReleaseSlot(worker);
+
+        if (available)
+            sheepAI?.SetFrozen(false);
+    }
+
+    private void Respawn()
+    {
+        available = true;
+        SetVisible(true);
         sheepAI?.SetFrozen(false);
+        workRoutine = null;
+    }
+
+    private void SetVisible(bool value)
+    {
+        if (sprite != null)
+            sprite.enabled = value;
+
+        if (col != null)
+            col.enabled = value;
     }
 }

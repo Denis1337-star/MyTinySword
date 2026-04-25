@@ -1,8 +1,6 @@
 using UnityEngine;
-
 /// <summary>
-/// —осто€ние поиска подход€щего ресурса дл€ текущей работы worker'а
-/// ѕри успешном поиске подготавливает движение к ресурсу
+/// —осто€ние поиска ресурса дл€ текущей работы worker
 /// </summary>
 public class WorkerFindResourceState : IWorkerState
 {
@@ -12,44 +10,40 @@ public class WorkerFindResourceState : IWorkerState
     {
         this.worker = worker;
     }
-
     public void Enter()
     {
-        if (worker.CurrentJobLogic == null) // Ѕез job-логики worker не может пон€ть, какой ресурс искать
+        if (worker.CurrentJobLogic == null)
         {
             worker.GoIdle();
             return;
         }
 
-        worker.Animator.SetWorking(false);
-        worker.Animator.SetEquipment(GetTool());
+        worker.Animator?.SetWorking(false);
+        worker.Animator?.SetEquipment(GetTool());
 
         bool assigned = WorkerResourceSelector.TryAssignResourceAndSlot(worker);
-        if (!assigned) // ≈сли ресурс или слот не найдены Ч уходим в безопасное idle-состо€ние
+        if (!assigned)
         {
             worker.GoIdle();
             return;
         }
 
-        if (!worker.HasValidResourceAssignment())
+        if (!worker.HasValidResourceAssignmentForMove())
         {
             worker.ClearCurrentAssignment();
             worker.GoIdle();
             return;
         }
 
-        worker.Movement.MoveTo(worker.TargetSlot.Position);
+        worker.Movement?.MoveTo(worker.TargetSlot.Position);
         worker.EnterGoToResourceState();
     }
-
-    public void Update() { }
-
-    public void Exit() { }
-
-    /// <summary>
-    /// ¬озвращает инструмент, который должен отображатьс€ у worker'а
-    /// при движении к ресурсу текущей профессии.
-    /// </summary>
+    public void Update()
+    {
+    }
+    public void Exit()
+    {
+    }
     private EquipmentType GetTool()
     {
         return worker.CurrentJob switch

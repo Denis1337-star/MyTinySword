@@ -1,39 +1,40 @@
 using UnityEngine;
 
 /// <summary>
-/// Простой инвентарь worker'а
-/// Хранит количество ресурса, которое worker сейчас несёт
+///  инвентарь worker
 /// </summary>
 public class WorkerInventory : MonoBehaviour
 {
-    public int CarriedAmount { get; private set; }  //Колличество переносимого ресурса
+    public ResourceType CarriedResourceType { get; private set; } = ResourceType.None;
+    public int CarriedAmount { get; private set; }
 
-    public bool HasCargo => CarriedAmount > 0;  //Есть ли сейчас груз у worker
+    public bool HasCargo => CarriedResourceType != ResourceType.None && CarriedAmount > 0;
 
-    /// <summary>
-    /// Устанавливает количество текущего груза
-    /// Отрицательные значения автоматически обрезаются до нуля
-    /// </summary>
-    public void SetCargo(int amount)
+    public void SetCargo(ResourceType resourceType, int amount)
     {
-        CarriedAmount = Mathf.Max(0, amount);
+        if (resourceType == ResourceType.None || amount <= 0)
+        {
+            Clear();
+            return;
+        }
+
+        CarriedResourceType = resourceType;
+        CarriedAmount = amount;
     }
 
-    /// <summary>
-    /// Забирает весь текущий груз и очищает инвентарь
-    /// </summary>
-    public int TakeCargo()
+    public int TakeCargo(out ResourceType resourceType)
     {
+        resourceType = CarriedResourceType;
+
         int amount = CarriedAmount;
-        CarriedAmount = 0;
+        Clear();
+
         return amount;
     }
 
-    /// <summary>
-    /// Полностью очищает инвентарь
-    /// </summary>
     public void Clear()
     {
+        CarriedResourceType = ResourceType.None;
         CarriedAmount = 0;
     }
 }

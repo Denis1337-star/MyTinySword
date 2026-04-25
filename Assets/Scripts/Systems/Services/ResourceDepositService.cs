@@ -2,8 +2,6 @@ using UnityEngine;
 
 /// <summary>
 /// —ервис сдачи ресурсов в общее хранилище
-/// ѕринимает тип ресурса и количество, после чего направл€ет
-/// данные в соответствующий метод ResourceStorage
 /// </summary>
 public class ResourceDepositService : MonoBehaviour
 {
@@ -21,7 +19,7 @@ public class ResourceDepositService : MonoBehaviour
     }
 
     /// <summary>
-    /// —даЄт ресурс указанного типа в общее хранилище
+    /// —дает ресурс указанного типа в общее хранилище
     /// </summary>
     public void Deposit(ResourceType resourceType, int amount)
     {
@@ -31,19 +29,6 @@ public class ResourceDepositService : MonoBehaviour
         if (ResourceStorage.Instance == null)
             return;
 
-        switch (resourceType)
-        {
-            case ResourceType.Wood:
-                ResourceStorage.Instance.AddWood(amount);
-                break;
-
-            case ResourceType.Gold:
-                ResourceStorage.Instance.AddGold(amount);
-                break;
-
-            case ResourceType.Meat:
-                ResourceStorage.Instance.AddMeat(amount);
-                break;
-        }
+        ResourceStorage.Instance.AddResource(resourceType, amount);
     }
 }
