@@ -1,44 +1,35 @@
+using System;
 using System.Collections.Generic;
+using UniRx;
 using UnityEngine;
 
 /// <summary>
 /// Общий реестр всех ресурсов на сцене
-/// Позволяет worker находить доступные ресурсы через единый список
 /// </summary>
 public class ResourceRegistry : MonoBehaviour
 {
-    public static ResourceRegistry Instance { get; private set; }
+    private readonly List<IResourceNode> _nodes = new();
 
-    private readonly List<IResourceNode> nodes = new();
+    private readonly Subject<IResourceNode> _nodeAdded = new();
+    private readonly Subject<IResourceNode> _nodeRemoved = new();
 
-    public IReadOnlyList<IResourceNode> Nodes => nodes;
+    public IReadOnlyList<IResourceNode> Nodes => _nodes;
 
-    private void Awake()
-    {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
+    public IObservable<IResourceNode> NodeAdded => _nodeAdded;
+    public IObservable<IResourceNode> NodeRemoved => _nodeRemoved;
 
-        Instance = this;
-    }
-
-    private void OnDestroy()
-    {
-        if (Instance == this)
-            Instance = null;
-    }
+    public int Count => _nodes.Count;
 
     public void Register(IResourceNode node)
     {
         if (node == null)
             return;
 
-        if (nodes.Contains(node))
+        if (_nodes.Contains(node))
             return;
 
-        nodes.Add(node);
+        _nodes.Add(node);
+        _nodeAdded.OnNext(node);
     }
 
     public void Unregister(IResourceNode node)
@@ -46,6 +37,25 @@ public class ResourceRegistry : MonoBehaviour
         if (node == null)
             return;
 
-        nodes.Remove(node);
+        if (!_nodes.Remove(node))
+            return;
+
+        _nodeRemoved.OnNext(node);
+    }
+
+    public bool Contains(IResourceNode node)
+    {
+        return node != null && _nodes.Contains(node);
+    }
+
+    private void OnDestroy()
+    {
+        _nodeAdded.OnCompleted();
+        _nodeRemoved.OnCompleted();
+
+        _nodeAdded.Dispose();
+        _nodeRemoved.Dispose();
+
+        _nodes.Clear();
     }
 }

@@ -1,11 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Базовый класс для всех зданий.
-/// Содержит общую конфигурацию, фракцию, здоровье
-/// и базовую реакцию на уничтожение.
+/// Базовый класс для всех зданий
 /// </summary>
 public class BuildingBase : ValidatedMonoBehaviour
 {
@@ -22,19 +18,18 @@ public class BuildingBase : ValidatedMonoBehaviour
     public Health Health => health;
     public UnitSelectable Selectable => selectable;
 
-    public string DisplayName => config != null ? config.DisplayName : name;
-    public FactionType Faction => factionMember != null ? factionMember.Faction : FactionType.Neutral;
+    public string DisplayName =>  config.DisplayName;
+    public FactionType Faction =>  factionMember.Faction;
 
     private void OnValidate()
     {
-        if (factionMember == null)
-            factionMember = GetComponent<FactionMember>();
+        ResolveReferences();
+    }
 
-        if (health == null)
-            health = GetComponent<Health>();
-
-        if (selectable == null)
-            selectable = GetComponent<UnitSelectable>();
+    protected override void Awake()
+    {
+        ResolveReferences();
+        base.Awake();
     }
 
     protected virtual void OnEnable()
@@ -60,20 +55,27 @@ public class BuildingBase : ValidatedMonoBehaviour
 
         if (config != null && !config.IsValid())
         {
-            Debug.LogError($"{name}: BuildingConfig is invalid", this);
+            Debug.LogError($"{name}: BuildingConfig is invalid.", this);
             valid = false;
         }
 
         return valid;
     }
 
-    /// <summary>
-    /// Базовая реакция на уничтожение здания.
-    /// Пока просто удаляем объект.
-    /// Позже сюда добавим VFX, SFX, анимацию разрушения и игровые события.
-    /// </summary>
     protected virtual void HandleDeath()
     {
         Destroy(gameObject);
+    }
+
+    private void ResolveReferences()
+    {
+        if (factionMember == null)
+            factionMember = GetComponent<FactionMember>();
+
+        if (health == null)
+            health = GetComponent<Health>();
+
+        if (selectable == null)
+            selectable = GetComponent<UnitSelectable>();
     }
 }

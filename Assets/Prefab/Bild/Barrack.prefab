@@ -104,7 +104,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: d0349d8d3a04044f7a4810157b116b14, type: 3}
+  m_Sprite: {fileID: 21300000, guid: e39c44d354e0a47ec89630128209e801, type: 3}
   m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -146,7 +146,7 @@ Transform:
   m_GameObject: {fileID: 7919849845947046625}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -40.65, y: 10.2, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -238,7 +238,7 @@ BoxCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0, y: -0.5}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -249,7 +249,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 5, y: 4}
+  m_Size: {x: 3, y: 3}
   m_EdgeRadius: 0
 --- !u!114 &3220185022091884751
 MonoBehaviour:
@@ -306,7 +306,6 @@ MonoBehaviour:
   factionMember: {fileID: 1098753739310984667}
   health: {fileID: 7964761670847892060}
   selectable: {fileID: 3220185022091884751}
-  availableUnits:
-  - {fileID: 11400000, guid: 8926ffe6481630043985bfd71966c63e, type: 2}
+  unitConfig: {fileID: 11400000, guid: 8926ffe6481630043985bfd71966c63e, type: 2}
   spawnPoint: {fileID: 8292293541694256964}
   maxQueue: 5

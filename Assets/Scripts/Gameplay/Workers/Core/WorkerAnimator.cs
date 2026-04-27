@@ -6,12 +6,12 @@ public class WorkerAnimator : MonoBehaviour
     private static readonly int IsWorkingHash = Animator.StringToHash("IsWorking");
     private static readonly int EquipmentHash = Animator.StringToHash("Equipment");
 
-    [SerializeField] private Animator animator;
-    [SerializeField] private UnitMovement movement;
+    [SerializeField] private Animator _animator;
+    [SerializeField] private UnitMovement _movement;
 
-    private bool isWorking;
-    private bool lastIsMoving;
-    private EquipmentType currentEquipment = EquipmentType.None;
+    private bool _isWorking;
+    private bool _lastIsMoving;
+    private EquipmentType _currentEquipment = EquipmentType.None;
 
     private void Awake()
     {
@@ -20,46 +20,62 @@ public class WorkerAnimator : MonoBehaviour
 
     private void Update()
     {
-        bool isMoving = movement != null && movement.IsMoving && !isWorking;
-
-        if (lastIsMoving == isMoving)
-            return;
-
-        lastIsMoving = isMoving;
-        animator.SetBool(IsMovingHash, isMoving);
+        UpdateMovingState();
     }
 
+    /// <summary>
+    /// Включает или выключает рабочую анимацию
+    /// </summary>
     public void SetWorking(bool value)
     {
-        if (isWorking == value)
+        if (_isWorking == value)
             return;
 
-        isWorking = value;
-        animator.SetBool(IsWorkingHash, value);
+        _isWorking = value;
+        _animator.SetBool(IsWorkingHash, value);
 
-        if (value)
-        {
-            lastIsMoving = false;
-            animator.SetBool(IsMovingHash, false);
-        }
+        if (!value)
+            return;
+
+        _lastIsMoving = false;
+        _animator.SetBool(IsMovingHash, false);
     }
 
+    /// <summary>
+    /// Меняет визуальный инструмент или переносимый груз рабочего
+    /// </summary>
     public void SetEquipment(EquipmentType equipment)
     {
-        if (currentEquipment == equipment)
+        if (_currentEquipment == equipment)
             return;
 
-        currentEquipment = equipment;
-        animator.SetFloat(EquipmentHash, (float)equipment);
+        _currentEquipment = equipment;
+        _animator.SetFloat(EquipmentHash, (float)equipment);
+    }
+
+    private void UpdateMovingState()
+    {
+        if (_animator == null)
+            return;
+
+        bool isMoving = _movement != null &&
+                        _movement.IsMoving &&
+                        !_isWorking;
+
+        if (_lastIsMoving == isMoving)
+            return;
+
+        _lastIsMoving = isMoving;
+        _animator.SetBool(IsMovingHash, isMoving);
     }
 
     private void ResolveReferences()
     {
-        if (animator == null)
-            animator = GetComponent<Animator>();
+        if (_animator == null)
+            _animator = GetComponent<Animator>();
 
-        if (movement == null)
-            movement = GetComponent<UnitMovement>();
+        if (_movement == null)
+            _movement = GetComponent<UnitMovement>();
     }
 }
 

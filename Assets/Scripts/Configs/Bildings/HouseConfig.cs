@@ -1,8 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Хранит параметры стартового количества worker'ов
-/// максимального лимита и экономики найма
+/// Хранит параметры стартового количества worker
 /// </summary>
 [CreateAssetMenu(menuName = "MyTinySword/Configs/House Config")]
 public class HouseConfig : BaseConfig

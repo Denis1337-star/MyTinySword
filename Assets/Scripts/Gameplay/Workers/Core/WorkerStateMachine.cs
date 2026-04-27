@@ -4,34 +4,31 @@
 /// </summary>
 public class WorkerStateMachine 
 {
-    private IWorkerState currentState;
+    private IWorkerState _currentState;
 
-    public IWorkerState CurrentState => currentState;
-    public string CurrentStateName => currentState?.GetType().Name ?? "None";
+    public string CurrentStateName => _currentState != null
+        ? _currentState.GetType().Name
+        : "None";
 
-    /// <summary>
-    /// Переключает в новое состояние
-    /// </summary>
     public bool ChangeState(IWorkerState newState)
     {
         if (newState == null)
             return false;
 
-        if (currentState == newState)
+        if (_currentState == newState)
             return false;
 
-        currentState?.Exit();
-        currentState = newState;
-        currentState.Enter();
+        _currentState?.Exit();
+
+        _currentState = newState;
+
+        _currentState.Enter();
 
         return true;
     }
 
-    /// <summary>
-    /// Обновляет текущее активное состояние
-    /// </summary>
     public void Update()
     {
-        currentState?.Update();
+        _currentState?.Update();
     }
 }

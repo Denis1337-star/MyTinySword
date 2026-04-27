@@ -2,130 +2,143 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Zenject;
 
 /// <summary>
-/// Базовый класс производственного здания.
-/// Умеет хранить доступных юнитов, очередь найма и спавнить готовый prefab.
+/// Базовый класс  здания найма
+///  Хранит очередь производства, списывает ресурсы и создаёт боевого юнита
 /// </summary>
 public class ProductionBuildingBase : BuildingBase
 {
-    [Header("Production")]
-    [SerializeField] private List<UnitConfig> availableUnits = new();
-    [SerializeField] private Transform spawnPoint;
-    [SerializeField] private int maxQueue = 8;
+    [SerializeField] private UnitConfig _unitConfig;
+    [SerializeField] private Transform _spawnPoint;
+    [SerializeField] private int _maxQueue = 1;
 
-    private readonly Queue<UnitConfig> productionQueue = new();
-    private bool isProducing;
+    private readonly Queue<UnitConfig> _productionQueue = new();
 
-    public IReadOnlyList<UnitConfig> AvailableUnits => availableUnits;
-    public int QueueCount => productionQueue.Count;
-    public bool IsProducing => isProducing;
+    private ResourceStorage _resourceStorage;
+    private ArmyUnitRegistry _armyUnitRegistry;
+    private ArmyUnitFactory _armyUnitFactory;
+
+    private bool _isProducing;
+    private Coroutine _productionRoutine;
+
+    public UnitConfig UnitConfig => _unitConfig;
+    public int QueueCount => _productionQueue.Count;
+    public bool IsProducing => _isProducing;
+
+    public int WoodCost =>  _unitConfig.WoodCost;
+    public int MeatCost => _unitConfig.MeatCost;
 
     public event Action OnQueueChanged;
 
+    [Inject]
+    private void Construct(
+        ResourceStorage resourceStorage,
+        ArmyUnitRegistry armyUnitRegistry,
+    ArmyUnitFactory armyUnitFactory)
+    {
+        _resourceStorage = resourceStorage;
+        _armyUnitRegistry = armyUnitRegistry;
+        _armyUnitFactory = armyUnitFactory;
+    }
+
     private void OnValidate()
     {
-        if (spawnPoint == null)
-        {
-            Transform child = transform.Find("SpawnPoint");
-            if (child != null)
-                spawnPoint = child;
-        }
+        _maxQueue = Mathf.Max(1, _maxQueue);
     }
 
-    /// <summary>
-    /// Можно ли добавить юнита в очередь.
-    /// </summary>
-    public bool CanEnqueue(UnitConfig config)
+    public bool CanEnqueue()
     {
-        if (config == null)
-            return false;
-
-        if (!availableUnits.Contains(config))
-            return false;
-
-        if (productionQueue.Count >= maxQueue)
-            return false;
-
-        if (ResourceStorage.Instance == null)
-            return false;
-
-        if (!ResourceStorage.Instance.HasResources(config.WoodCost, config.GoldCost))
-            return false;
-
-        if (ArmyUnitRegistry.Instance == null)
-            return false;
-
-        if (!ArmyUnitRegistry.Instance.HasFreePlayerSlot())
-            return false;
-
-        return true;
+        return string.IsNullOrEmpty(GetHireBlockReason());
     }
 
-    /// <summary>
-    /// Пытается добавить юнита в очередь найма.
-    /// </summary>
-    public bool TryEnqueue(UnitConfig config)
+    public string GetHireBlockReason()
     {
-        if (!CanEnqueue(config))
+        if (_unitConfig == null)
+            return "Юнит не назначен";
+
+        if (_unitConfig.Prefab == null)
+            return "Prefab юнита не назначен";
+
+        if (_spawnPoint == null)
+            return "Точка спавна не назначена";
+
+        if (_productionQueue.Count >= _maxQueue)
+            return "Очередь заполнена";
+
+        if (!_armyUnitRegistry.HasFreePlayerSlot())
+            return "Достигнут лимит армии";
+
+        if (!_resourceStorage.HasUnitResources(_unitConfig.WoodCost, _unitConfig.MeatCost))
+            return "Не хватает ресурсов";
+
+        return string.Empty;
+    }
+
+    public bool TryHireUnit()
+    {
+        return TryEnqueue();
+    }
+
+    public bool TryEnqueue()
+    {
+        if (!CanEnqueue())
             return false;
 
-        if (ResourceStorage.Instance == null)
-            return false;
+        bool spent = _resourceStorage.TrySpendUnitResources(
+            _unitConfig.WoodCost,
+            _unitConfig.MeatCost);
 
-        bool spent = ResourceStorage.Instance.TrySpendResources(config.WoodCost, config.GoldCost);
         if (!spent)
             return false;
 
-        productionQueue.Enqueue(config);
+        _productionQueue.Enqueue(_unitConfig);
         OnQueueChanged?.Invoke();
 
-        if (!isProducing)
-            StartCoroutine(ProcessQueue());
+        if (!_isProducing)
+            _productionRoutine = StartCoroutine(ProcessQueue());
 
         return true;
     }
 
-    /// <summary>
-    /// Последовательно обрабатывает очередь производства.
-    /// </summary>
     private IEnumerator ProcessQueue()
     {
-        isProducing = true;
+        _isProducing = true;
 
-        while (productionQueue.Count > 0)
+        while (_productionQueue.Count > 0)
         {
-            UnitConfig config = productionQueue.Peek();
+            UnitConfig unitConfig = _productionQueue.Peek();
 
-            if (config == null)
+            if (unitConfig == null)
             {
-                productionQueue.Dequeue();
+                _productionQueue.Dequeue();
                 OnQueueChanged?.Invoke();
                 continue;
             }
 
-            yield return new WaitForSeconds(config.BuildTime);
+            yield return new WaitForSeconds(unitConfig.BuildTime);
 
-            SpawnUnit(config);
-            productionQueue.Dequeue();
+            SpawnUnit(unitConfig);
+
+            _productionQueue.Dequeue();
             OnQueueChanged?.Invoke();
         }
 
-        isProducing = false;
+        _isProducing = false;
+        _productionRoutine = null;
     }
 
-    /// <summary>
-    /// Создаёт готового юнита в точке спавна.
-    /// </summary>
-    protected virtual void SpawnUnit(UnitConfig config)
+    protected virtual void SpawnUnit(UnitConfig unitConfig)
     {
-        if (config == null || config.Prefab == null)
+        if (unitConfig == null || unitConfig.Prefab == null)
             return;
 
-        Vector3 spawnPosition = spawnPoint != null
-            ? spawnPoint.position
-            : transform.position;
+        Vector3 spawnPosition =  _spawnPoint.position;
 
-        Instantiate(config.Prefab, spawnPosition, Quaternion.identity);
+        _armyUnitFactory.Create(
+            unitConfig.Prefab,
+            spawnPosition,
+            Quaternion.identity);
     }
 }

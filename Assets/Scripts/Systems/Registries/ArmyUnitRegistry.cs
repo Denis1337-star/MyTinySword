@@ -4,45 +4,22 @@ using UnityEngine;
 
 /// <summary>
 /// Глобальный реестр всех боевых юнитов на сцене
-/// Контроль общего лимита армии
-/// выбор всех союзных юнитов 
 /// </summary>
 public class ArmyUnitRegistry : MonoBehaviour
 {
-    public static ArmyUnitRegistry Instance { get; private set; }
+    [SerializeField] private int _maxPlayerArmyUnits = 10;
 
-    [Header("Limits")]
-    [SerializeField] private int maxPlayerArmyUnits = 10;
+    private readonly List<ArmyUnit> _allUnits = new();
 
-    private readonly List<ArmyUnit> allUnits = new();
-
-    public IReadOnlyList<ArmyUnit> AllUnits => allUnits;
-    public int MaxPlayerArmyUnits => maxPlayerArmyUnits;
+    public IReadOnlyList<ArmyUnit> AllUnits => _allUnits;
+    public int MaxPlayerArmyUnits => _maxPlayerArmyUnits;
     public int CurrentPlayerArmyUnits => CountPlayerUnits();
 
     public event Action OnArmyChanged;
 
-    private void Awake()
-    {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
-        maxPlayerArmyUnits = Mathf.Max(1, maxPlayerArmyUnits);
-    }
-
-    private void OnDestroy()
-    {
-        if (Instance == this)
-            Instance = null;
-    }
-
     private void OnValidate()
     {
-        maxPlayerArmyUnits = Mathf.Max(1, maxPlayerArmyUnits);
+        _maxPlayerArmyUnits = Mathf.Max(1, _maxPlayerArmyUnits);
     }
 
     public void Register(ArmyUnit unit)
@@ -50,10 +27,10 @@ public class ArmyUnitRegistry : MonoBehaviour
         if (unit == null)
             return;
 
-        if (allUnits.Contains(unit))
+        if (_allUnits.Contains(unit))
             return;
 
-        allUnits.Add(unit);
+        _allUnits.Add(unit);
         OnArmyChanged?.Invoke();
     }
 
@@ -62,7 +39,7 @@ public class ArmyUnitRegistry : MonoBehaviour
         if (unit == null)
             return;
 
-        if (!allUnits.Remove(unit))
+        if (!_allUnits.Remove(unit))
             return;
 
         OnArmyChanged?.Invoke();
@@ -70,14 +47,14 @@ public class ArmyUnitRegistry : MonoBehaviour
 
     public bool HasFreePlayerSlot()
     {
-        return CurrentPlayerArmyUnits < maxPlayerArmyUnits;
+        return CurrentPlayerArmyUnits < _maxPlayerArmyUnits;
     }
 
     public List<ArmyUnit> GetAllPlayerUnits()
     {
         List<ArmyUnit> result = new();
 
-        foreach (ArmyUnit unit in allUnits)
+        foreach (ArmyUnit unit in _allUnits)
         {
             if (unit == null)
                 continue;
@@ -95,7 +72,7 @@ public class ArmyUnitRegistry : MonoBehaviour
     {
         int count = 0;
 
-        foreach (ArmyUnit unit in allUnits)
+        foreach (ArmyUnit unit in _allUnits)
         {
             if (unit == null)
                 continue;

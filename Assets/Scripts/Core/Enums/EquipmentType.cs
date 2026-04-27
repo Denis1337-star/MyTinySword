@@ -1,3 +1,6 @@
+/// <summary>
+/// Что в руках у рабочего
+/// </summary>
 public enum EquipmentType
 {
     None,

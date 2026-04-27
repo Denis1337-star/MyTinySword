@@ -7,10 +7,7 @@ using UnityEngine;
 public class WorkerConfig : BaseConfig
 {
     [Header("Navigation")]
-    [Min(0.05f)]
     [SerializeField] private float reachResourceDistance = 0.3f;  //Дистанция что дошел до ресурса
-
-    [Min(0.05f)]
     [SerializeField] private float maxWorkDistance = 0.35f;  //На какой дистанции можно работать
 
     public float ReachResourceDistance => reachResourceDistance;

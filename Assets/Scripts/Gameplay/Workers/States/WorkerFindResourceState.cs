@@ -1,52 +1,43 @@
-using UnityEngine;
 /// <summary>
 /// Состояние поиска ресурса для текущей работы worker
 /// </summary>
 public class WorkerFindResourceState : IWorkerState
 {
-    private readonly Worker worker;
+    private readonly Worker _worker;
 
     public WorkerFindResourceState(Worker worker)
     {
-        this.worker = worker;
+        _worker = worker;
     }
+
     public void Enter()
     {
-        if (worker.CurrentJobLogic == null)
-        {
-            worker.GoIdle();
-            return;
-        }
+        _worker.Animator?.SetWorking(false);
 
-        worker.Animator?.SetWorking(false);
-        worker.Animator?.SetEquipment(GetTool());
-
-        bool assigned = WorkerResourceSelector.TryAssignResourceAndSlot(worker);
+        bool assigned = WorkerResourceSelector.TryAssignResourceAndSlot(_worker);
         if (!assigned)
         {
-            worker.GoIdle();
+            _worker.GoIdle();
             return;
         }
 
-        if (!worker.HasValidResourceAssignmentForMove())
-        {
-            worker.ClearCurrentAssignment();
-            worker.GoIdle();
-            return;
-        }
+        _worker.Animator?.SetEquipment(GetToolForCurrentJob());
+        _worker.Movement?.MoveTo(_worker.TargetSlot.Position);
 
-        worker.Movement?.MoveTo(worker.TargetSlot.Position);
-        worker.EnterGoToResourceState();
+        _worker.EnterGoToResourceState();
     }
+
     public void Update()
     {
     }
+
     public void Exit()
     {
     }
-    private EquipmentType GetTool()
+
+    private EquipmentType GetToolForCurrentJob()
     {
-        return worker.CurrentJob switch
+        return _worker.CurrentJob switch
         {
             WorkerJobType.ChopWood => EquipmentType.Axe,
             WorkerJobType.MineGold => EquipmentType.Pickaxe,

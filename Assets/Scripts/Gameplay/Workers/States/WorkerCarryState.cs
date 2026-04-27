@@ -5,60 +5,66 @@ using UnityEngine;
 /// </summary>
 public class WorkerCarryState : IWorkerState
 {
-    private readonly Worker worker;
+    private readonly Worker _worker;
 
     public WorkerCarryState(Worker worker)
     {
-        this.worker = worker;
+        _worker = worker;
     }
 
     public void Enter()
     {
-        worker.Animator?.SetWorking(false);
-        worker.Animator?.SetEquipment(GetCarry());
+        _worker.Animator?.SetWorking(false);
+        _worker.Animator?.SetEquipment(GetCargoEquipment());
 
-        worker.Movement?.MoveTo(worker.Home.GetDropPosition(worker));
+        if (_worker.Home == null)
+        {
+            _worker.Inventory?.Clear();
+            _worker.GoIdle();
+            return;
+        }
+
+        _worker.Movement?.MoveTo(_worker.Home.DropPoint);
     }
 
     public void Update()
     {
-        if (worker.Movement != null && worker.Movement.HasTarget)
+        if (_worker.Movement == null || _worker.Home == null)
             return;
 
-        if (worker.HasCargo)
-            worker.DeliverCargo();
+        float distance = Vector2.Distance(
+            _worker.transform.position,
+            _worker.Home.DropPoint);
 
-        ContinueAfterDelivery();
+        if (distance > _worker.GetReachResourceDistance())
+            return;
+
+        _worker.Movement.Stop();
+        _worker.DeliverCargo();
+
+        if (_worker.PendingJob != WorkerJobType.None)
+        {
+            _worker.Brain.ApplyPendingJobIfAny();
+            return;
+        }
+
+        _worker.StartFindingResource();
     }
 
     public void Exit()
     {
     }
 
-    private void ContinueAfterDelivery()
+    private EquipmentType GetCargoEquipment()
     {
-        if (worker.PendingJob != WorkerJobType.None)
-        {
-            worker.Brain.ApplyPendingJobIfAny();
-            return;
-        }
+        if (_worker.CurrentJobLogic == null)
+            return EquipmentType.None;
 
-        if (worker.CurrentJob != WorkerJobType.None)
+        return _worker.CurrentJobLogic.RewardType switch
         {
-            worker.StartFindingResource();
-            return;
-        }
-
-        worker.GoIdle();
-    }
-
-    private EquipmentType GetCarry()
-    {
-        return worker.CurrentJob switch
-        {
-            WorkerJobType.ChopWood => EquipmentType.Wood,
-            WorkerJobType.MineGold => EquipmentType.Gold,
-            WorkerJobType.HuntMeat => EquipmentType.Meat,
+            ResourceType.Wood => EquipmentType.Wood,
+            ResourceType.Gold => EquipmentType.Gold,
+            ResourceType.Meat => EquipmentType.Meat,
             _ => EquipmentType.None
         };
     }

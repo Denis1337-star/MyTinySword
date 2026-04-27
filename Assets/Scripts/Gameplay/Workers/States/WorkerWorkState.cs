@@ -6,88 +6,60 @@ using UnityEngine;
 /// </summary>
 public class WorkerWorkState : IWorkerState
 {
-    private readonly Worker worker;
-
-    private bool finished;
+    private readonly Worker _worker;
 
     public WorkerWorkState(Worker worker)
     {
-        this.worker = worker;
+        _worker = worker;
     }
 
     public void Enter()
     {
-        finished = false;
-
-        if (!worker.HasValidResourceAssignmentForWork())
+        if (!_worker.HasValidResourceAssignmentForWork())
         {
-            RestartResourceSearch();
+            _worker.ClearCurrentAssignment();
+            _worker.GoIdle();
             return;
         }
 
-        if (!IsWithinWorkDistance())
-        {
-            RestartResourceSearch();
-            return;
-        }
+        _worker.Animator?.SetWorking(true);
 
-        bool started = worker.TargetResource.TryStartWork(worker, OnFinished);
+        bool started = _worker.TargetResource.TryStartWork(
+            _worker,
+            OnWorkFinished);
+
         if (!started)
         {
-            RestartResourceSearch();
-            return;
+            _worker.Animator?.SetWorking(false);
+            _worker.ClearCurrentAssignment();
+            _worker.StartFindingResource();
         }
-
-        worker.Animator?.SetWorking(true);
     }
 
     public void Update()
     {
-        if (finished)
-            return;
-
-        if (!worker.HasValidResourceAssignmentForWork())
-        {
-            RestartResourceSearch();
-            return;
-        }
-
-        if (!IsWithinWorkDistance())
-            RestartResourceSearch();
     }
 
     public void Exit()
     {
-        worker.Animator?.SetWorking(false);
+        _worker.Animator?.SetWorking(false);
     }
 
-    private void OnFinished(int amount)
+    private void OnWorkFinished(int amount)
     {
-        if (finished)
+        if (amount <= 0)
+        {
+            _worker.ClearCurrentAssignment();
+            _worker.StartFindingResource();
             return;
+        }
 
-        finished = true;
+        ResourceType resourceType = _worker.CurrentJobLogic != null
+            ? _worker.CurrentJobLogic.RewardType
+            : ResourceType.None;
 
-        worker.Animator?.SetWorking(false);
-
-        worker.Inventory.SetCargo(worker.CurrentJobLogic.RewardType, amount);
-        worker.ClearCurrentAssignment();
-        worker.EnterCarryState();
-    }
-
-    private bool IsWithinWorkDistance()
-    {
-        Vector2 currentPosition = worker.transform.position;
-        Vector2 targetPosition = worker.TargetSlot.Position;
-        float maxDistance = worker.GetMaxWorkDistance();
-
-        return (targetPosition - currentPosition).sqrMagnitude <= maxDistance * maxDistance;
-    }
-
-    private void RestartResourceSearch()
-    {
-        worker.Animator?.SetWorking(false);
-        worker.ClearCurrentAssignment();
-        worker.StartFindingResource();
+        _worker.Inventory.SetCargo(resourceType, amount);
+        _worker.ClearCurrentAssignment();
+        _worker.EnterCarryState();
     }
 }

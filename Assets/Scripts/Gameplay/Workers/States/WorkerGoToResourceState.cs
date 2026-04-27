@@ -5,66 +5,50 @@ using UnityEngine;
 /// </summary>
 public class WorkerGoToResourceState : IWorkerState
 {
-    private readonly Worker worker;
-
-    private float repathTimer;
-
-    private const float RepathInterval = 0.4f; //для повторного перестроение пути
+    private readonly Worker _worker;
 
     public WorkerGoToResourceState(Worker worker)
     {
-        this.worker = worker;
+        _worker = worker;
     }
 
     public void Enter()
     {
-        repathTimer = RepathInterval;
-
-        if (!worker.HasValidResourceAssignmentForMove())
+        if (!_worker.HasValidResourceAssignmentForMove())
         {
-            RestartResourceSearch();
+            _worker.ClearCurrentAssignment();
+            _worker.GoIdle();
             return;
         }
 
-        worker.Movement?.MoveTo(worker.TargetSlot.Position);
+        _worker.Movement?.MoveTo(_worker.TargetSlot.Position);
     }
 
     public void Update()
     {
-        if (!worker.HasValidResourceAssignmentForMove())
+        if (!_worker.HasValidResourceAssignmentForMove())
         {
-            RestartResourceSearch();
+            _worker.ClearCurrentAssignment();
+            _worker.GoIdle();
             return;
         }
 
-        float distanceSqr = ((Vector2)worker.transform.position - worker.TargetSlot.Position).sqrMagnitude;
-        float reachDistance = worker.GetReachResourceDistance();
-
-        if (distanceSqr <= reachDistance * reachDistance)
-        {
-            worker.Movement?.Stop();
-            worker.EnterWorkState();
+        if (_worker.Movement == null)
             return;
-        }
 
-        repathTimer -= Time.deltaTime;
-        if (repathTimer <= 0f)
-        {
-            repathTimer = RepathInterval;
-            worker.Movement?.MoveTo(worker.TargetSlot.Position);
-        }
+        float distance = Vector2.Distance(
+            _worker.transform.position,
+            _worker.TargetSlot.Position);
 
-        if (worker.Movement != null && !worker.Movement.HasTarget)
-            RestartResourceSearch();
+        if (distance > _worker.GetReachResourceDistance())
+            return;
+
+        _worker.Movement.Stop();
+        _worker.EnterWorkState();
     }
+
 
     public void Exit()
     {
-    }
-
-    private void RestartResourceSearch()
-    {
-        worker.ClearCurrentAssignment();
-        worker.StartFindingResource();
     }
 }

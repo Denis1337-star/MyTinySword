@@ -1,68 +1,60 @@
+using TMPro;
+using UniRx;
 using UnityEngine;
-using UnityEngine.UI;
+using Zenject;
 
+/// <summary>
+/// UI-отображение ресурсов игрока
+/// </summary>
 public class ResourceStorageView : MonoBehaviour
 {
-    [SerializeField] private Text woodText;
-    [SerializeField] private Text goldText;
-    [SerializeField] private Text meatText;
+    [Header("Text")]
+    [SerializeField] private TMP_Text _woodText;
+    [SerializeField] private TMP_Text _goldText;
+    [SerializeField] private TMP_Text _meatText;
 
-    private ResourceStorage subscribedStorage;
+    private readonly CompositeDisposable _disposables = new();
 
-    private void Awake()
+    private ResourceStorage _resourceStorage;
+
+    [Inject]
+    private void Construct(ResourceStorage resourceStorage)
     {
-        TrySubscribe();
+        _resourceStorage = resourceStorage;
+    }
+
+    private void Start()
+    {
+        if (_resourceStorage == null)
+        {
+            Debug.LogError($"{name}: ResourceStorage не внедрён через Zenject.", this);
+            return;
+        }
+
+        _resourceStorage.ResourcesChanged
+            .Subscribe(_ => Refresh())
+            .AddTo(_disposables);
+
         Refresh();
-    }
-
-    private void OnEnable()
-    {
-        TrySubscribe();
-        Refresh();
-    }
-
-    private void OnDisable()
-    {
-        Unsubscribe();
-    }
-
-    private void TrySubscribe()
-    {
-        ResourceStorage storage = ResourceStorage.Instance;
-        if (storage == null)
-            return;
-
-        if (subscribedStorage == storage)
-            return;
-
-        Unsubscribe();
-
-        subscribedStorage = storage;
-        subscribedStorage.OnResourcesChanged += Refresh;
-    }
-
-    private void Unsubscribe()
-    {
-        if (subscribedStorage == null)
-            return;
-
-        subscribedStorage.OnResourcesChanged -= Refresh;
-        subscribedStorage = null;
     }
 
     private void Refresh()
     {
-        ResourceStorage storage = ResourceStorage.Instance;
-        if (storage == null)
+        if (_resourceStorage == null)
             return;
 
-        if (woodText != null)
-            woodText.text = storage.Wood.ToString();
+        if (_woodText != null)
+            _woodText.text = _resourceStorage.Wood.ToString();
 
-        if (goldText != null)
-            goldText.text = storage.Gold.ToString();
+        if (_goldText != null)
+            _goldText.text = _resourceStorage.Gold.ToString();
 
-        if (meatText != null)
-            meatText.text = storage.Meat.ToString();
+        if (_meatText != null)
+            _meatText.text = _resourceStorage.Meat.ToString();
+    }
+
+    private void OnDestroy()
+    {
+        _disposables.Dispose();
     }
 }

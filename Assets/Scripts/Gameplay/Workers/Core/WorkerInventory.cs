@@ -5,10 +5,12 @@ using UnityEngine;
 /// </summary>
 public class WorkerInventory : MonoBehaviour
 {
-    public ResourceType CarriedResourceType { get; private set; } = ResourceType.None;
-    public int CarriedAmount { get; private set; }
+    private ResourceType _resourceType = ResourceType.None;
+    private int _carriedAmount;
 
-    public bool HasCargo => CarriedResourceType != ResourceType.None && CarriedAmount > 0;
+    public ResourceType CarriedResourceType => _resourceType;
+    public int CarriedAmount => _carriedAmount;
+    public bool HasCargo => _resourceType != ResourceType.None && _carriedAmount > 0;
 
     public void SetCargo(ResourceType resourceType, int amount)
     {
@@ -18,15 +20,16 @@ public class WorkerInventory : MonoBehaviour
             return;
         }
 
-        CarriedResourceType = resourceType;
-        CarriedAmount = amount;
+        _resourceType = resourceType;
+        _carriedAmount = amount;
     }
 
     public int TakeCargo(out ResourceType resourceType)
     {
-        resourceType = CarriedResourceType;
+        resourceType = _resourceType;
 
-        int amount = CarriedAmount;
+        int amount = _carriedAmount;
+
         Clear();
 
         return amount;
@@ -34,7 +37,7 @@ public class WorkerInventory : MonoBehaviour
 
     public void Clear()
     {
-        CarriedResourceType = ResourceType.None;
-        CarriedAmount = 0;
+        _resourceType = ResourceType.None;
+        _carriedAmount = 0;
     }
 }

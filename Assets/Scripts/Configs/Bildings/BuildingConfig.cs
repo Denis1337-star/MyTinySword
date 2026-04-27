@@ -9,6 +9,7 @@ public class BuildingConfig : BaseConfig
     [Header("Info")]
     [SerializeField] private string buildingId;
     [SerializeField] private string displayName;
+
     [TextArea]
     [SerializeField] private string description;
     [SerializeField] private Sprite icon;
@@ -17,19 +18,15 @@ public class BuildingConfig : BaseConfig
     [SerializeField] private GameObject buildingPrefab;
 
     [Header("Cost")]
-    [Min(0)]
     [SerializeField] private int woodCost;
-
-    [Min(0)]
     [SerializeField] private int goldCost;
 
     [Header("Stats")]
-    [Min(1)]
     [SerializeField] private int maxHealth;
 
     [Header("Construction")]
-    [Min(0.1f)]
     [SerializeField] private float buildTime;
+    [SerializeField] private bool uniqueBuilding;
 
     public string BuildingId => buildingId;
     public string DisplayName => displayName;
@@ -40,6 +37,7 @@ public class BuildingConfig : BaseConfig
     public int GoldCost => goldCost;
     public int MaxHealth => maxHealth;
     public float BuildTime => buildTime;
+    public bool UniqueBuilding => uniqueBuilding;
 
     public override bool IsValid()
     {

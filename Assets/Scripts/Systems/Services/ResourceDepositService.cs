@@ -1,4 +1,5 @@
 using UnityEngine;
+using Zenject;
 
 /// <summary>
 /// —ервис сдачи ресурсов в общее хранилище
@@ -6,6 +7,14 @@ using UnityEngine;
 public class ResourceDepositService : MonoBehaviour
 {
     public static ResourceDepositService Instance { get; private set; }
+
+    private ResourceStorage resourceStorage;
+
+    [Inject]
+    private void Construct(ResourceStorage resourceStorage)
+    {
+        this.resourceStorage = resourceStorage;
+    }
 
     private void Awake()
     {
@@ -18,17 +27,17 @@ public class ResourceDepositService : MonoBehaviour
         Instance = this;
     }
 
-    /// <summary>
-    /// —дает ресурс указанного типа в общее хранилище
-    /// </summary>
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
+    }
+
     public void Deposit(ResourceType resourceType, int amount)
     {
         if (amount <= 0)
             return;
 
-        if (ResourceStorage.Instance == null)
-            return;
-
-        ResourceStorage.Instance.AddResource(resourceType, amount);
+        resourceStorage.AddResource(resourceType, amount);
     }
 }

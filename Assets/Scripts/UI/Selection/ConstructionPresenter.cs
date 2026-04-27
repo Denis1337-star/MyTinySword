@@ -1,59 +1,46 @@
 using UnityEngine;
+using Zenject;
 
-// <summary>
+/// <summary>
 /// Показывает или скрывает панель строительства
-/// в зависимости от выбранного объекта.
 /// </summary>
 public class ConstructionPresenter : MonoBehaviour
 {
-    [SerializeField] private SelectionSystem selectionSystem;
-    [SerializeField] private ConstructionPanel panel;
+    private SelectionSystem _selectionSystem;
+    private ConstructionPanel _panel;
 
-    private void Awake()
+    [Inject]
+    private void Construct(
+        SelectionSystem selectionSystem,
+        ConstructionPanel panel)
     {
-        ResolveReferences();
-    }
-
-    private void OnValidate()
-    {
-        ResolveReferences();
+        _selectionSystem = selectionSystem;
+        _panel = panel;
     }
 
     private void OnEnable()
     {
-        if (selectionSystem == null)
+        if (_selectionSystem == null)
             return;
 
-        selectionSystem.SelectionChanged += OnSelectionChanged;
-        selectionSystem.SelectionCleared += OnSelectionCleared;
+        _selectionSystem.SelectionChanged += OnSelectionChanged;
+        _selectionSystem.SelectionCleared += OnSelectionCleared;
     }
 
     private void OnDisable()
     {
-        if (selectionSystem == null)
+        if (_selectionSystem == null)
             return;
 
-        selectionSystem.SelectionChanged -= OnSelectionChanged;
-        selectionSystem.SelectionCleared -= OnSelectionCleared;
-    }
-
-    private void ResolveReferences()
-    {
-        if (selectionSystem == null)
-            selectionSystem = FindObjectOfType<SelectionSystem>(true);
-
-        if (panel == null)
-            panel = FindObjectOfType<ConstructionPanel>(true);
+        _selectionSystem.SelectionChanged -= OnSelectionChanged;
+        _selectionSystem.SelectionCleared -= OnSelectionCleared;
     }
 
     private void OnSelectionChanged(UnitSelectable selectable)
     {
-        Debug.Log("ConstructionPresenter: SelectionChanged", this);
-
         if (selectable == null)
         {
-            Debug.Log("ConstructionPresenter: selectable == null", this);
-            panel?.Hide();
+            _panel?.Hide();
             return;
         }
 
@@ -63,25 +50,21 @@ public class ConstructionPresenter : MonoBehaviour
 
         if (slot == null)
         {
-            Debug.Log("ConstructionPresenter: ConstructionSlot not found", selectable);
-            panel?.Hide();
+            _panel?.Hide();
             return;
         }
-
-        Debug.Log($"ConstructionPresenter: slot found = {slot.name}", slot);
 
         if (!slot.HasConstruction)
         {
-            panel?.Show(slot);
+            _panel?.Show(slot);
             return;
         }
 
-        panel?.Hide();
+        _panel?.Hide();
     }
 
     private void OnSelectionCleared()
     {
-        Debug.Log("ConstructionPresenter: SelectionCleared", this);
-        panel?.Hide();
+        _panel?.Hide();
     }
 }

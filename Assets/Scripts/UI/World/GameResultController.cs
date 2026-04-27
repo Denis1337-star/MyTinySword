@@ -1,21 +1,20 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Следит за уничтожением главных баз и завершает матч.
+/// Следит за уничтожением главных баз и завершает матч
 /// </summary>
 public class GameResultController : MonoBehaviour
 {
+    [Header("References")]
+    [SerializeField] private Castle playerCastle;
+    [SerializeField] private Castle enemyCastle;
     [SerializeField] private GameResultPanel resultPanel;
 
-    private Castle playerCastle;
-    private Castle enemyCastle;
     private bool gameFinished;
 
     private void Awake()
     {
-        ResolveReferences();
+        ValidateReferences();
         Subscribe();
     }
 
@@ -24,23 +23,16 @@ public class GameResultController : MonoBehaviour
         Unsubscribe();
     }
 
-    private void ResolveReferences()
+    private void ValidateReferences()
     {
+        if (playerCastle == null)
+            Debug.LogError($"{name}: Player Castle is not assigned.", this);
+
+        if (enemyCastle == null)
+            Debug.LogError($"{name}: Enemy Castle is not assigned.", this);
+
         if (resultPanel == null)
-            resultPanel = FindObjectOfType<GameResultPanel>(true);
-
-        Castle[] castles = FindObjectsOfType<Castle>(true);
-
-        foreach (Castle castle in castles)
-        {
-            if (castle == null || castle.FactionMember == null)
-                continue;
-
-            if (castle.FactionMember.Faction == FactionType.Player)
-                playerCastle = castle;
-            else if (castle.FactionMember.Faction == FactionType.Enemy)
-                enemyCastle = castle;
-        }
+            Debug.LogError($"{name}: GameResultPanel is not assigned.", this);
     }
 
     private void Subscribe()
@@ -66,12 +58,27 @@ public class GameResultController : MonoBehaviour
         if (gameFinished || destroyedCastle == null)
             return;
 
+        if (destroyedCastle == playerCastle)
+        {
+            FinishGame(false);
+            return;
+        }
+
+        if (destroyedCastle == enemyCastle)
+        {
+            FinishGame(true);
+            return;
+        }
+    }
+
+    private void FinishGame(bool victory)
+    {
         gameFinished = true;
 
-        if (destroyedCastle == playerCastle)
-            resultPanel?.ShowDefeat();
-        else if (destroyedCastle == enemyCastle)
+        if (victory)
             resultPanel?.ShowVictory();
+        else
+            resultPanel?.ShowDefeat();
 
         Time.timeScale = 0f;
     }

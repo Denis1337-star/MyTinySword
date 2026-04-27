@@ -1,53 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
+using UniRx;
 using UnityEngine;
 
 /// <summary>
 /// Глобальный реестр всех worker на сцене
-/// уведомляет подписчиков об изменениях состава
 /// </summary>
 public class WorkerRegistry : MonoBehaviour
 {
-    public static WorkerRegistry Instance { get; private set; }
+    private readonly List<Worker> _workers = new();
+    private readonly Subject<Worker> _workerAdded = new();
+    private readonly Subject<Worker> _workerRemoved = new();
 
-    public event Action<Worker> OnWorkerAdded;
-    public event Action<Worker> OnWorkerRemoved;
+    private int _workerCounter;
 
-    private readonly List<Worker> workers = new();
-    private int workerCounter;
+    public IReadOnlyList<Worker> Workers => _workers;
 
-    public IReadOnlyList<Worker> Workers => workers;
+    public IObservable<Worker> WorkerAdded => _workerAdded;
+    public IObservable<Worker> WorkerRemoved => _workerRemoved;
 
-    private void Awake()
-    {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
-    }
-
-    private void OnDestroy()
-    {
-        if (Instance == this)
-            Instance = null;
-    }
+    public int Count => _workers.Count;
 
     public void Register(Worker worker)
     {
         if (worker == null)
             return;
 
-        if (workers.Contains(worker))
+        if (_workers.Contains(worker))
             return;
 
-        workerCounter++;
-        worker.name = $"Worker {workerCounter}";
+        _workerCounter++;
+        worker.name = $"Worker {_workerCounter}";
 
-        workers.Add(worker);
-        OnWorkerAdded?.Invoke(worker);
+        _workers.Add(worker);
+        _workerAdded.OnNext(worker);
     }
 
     public void Unregister(Worker worker)
@@ -55,14 +41,25 @@ public class WorkerRegistry : MonoBehaviour
         if (worker == null)
             return;
 
-        if (!workers.Remove(worker))
+        if (!_workers.Remove(worker))
             return;
 
-        OnWorkerRemoved?.Invoke(worker);
+        _workerRemoved.OnNext(worker);
     }
 
     public bool Contains(Worker worker)
     {
-        return worker != null && workers.Contains(worker);
+        return worker != null && _workers.Contains(worker);
+    }
+
+    private void OnDestroy()
+    {
+        _workerAdded.OnCompleted();
+        _workerRemoved.OnCompleted();
+
+        _workerAdded.Dispose();
+        _workerRemoved.Dispose();
+
+        _workers.Clear();
     }
 }

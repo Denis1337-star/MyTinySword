@@ -1,182 +1,104 @@
+using TMPro;
+using UniRx;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 /// <summary>
-/// Общая UI-панель производственных зданий:
-/// Barracks, Archery, Monastery.
-/// Показывает данные выбранного юнита и позволяет поставить его в очередь.
+/// Общая UI-панель производственных зданий
 /// </summary>
 public class ProductionBuildingPanel : MonoBehaviour
 {
-    [Header("Main Info")]
-    [SerializeField] private Text titleText;
-    [SerializeField] private Text descriptionText;
-    [SerializeField] private Text statsText;
-    [SerializeField] private Text costText;
-    [SerializeField] private Text queueText;
-    [SerializeField] private Image iconImage;
+    [Header("Root")]
+    [FormerlySerializedAs("root")]
+    [SerializeField] private GameObject _root;
+
+    [Header("Text")]
+    [FormerlySerializedAs("titleText")]
+    [SerializeField] private TMP_Text _titleText;
+
+    [FormerlySerializedAs("costText")]
+    [SerializeField] private TMP_Text _costText;
+
+    [FormerlySerializedAs("blockReasonText")]
+    [SerializeField] private TMP_Text _blockReasonText;
 
     [Header("Button")]
-    [SerializeField] private Button hireButton;
-    [SerializeField] private Text hireButtonText;
+    [FormerlySerializedAs("hireButton")]
+    [SerializeField] private Button _hireButton;
 
-    private ProductionBuildingBase currentBuilding;
-    private UnitConfig selectedUnit;
+    private ProductionBuildingBase _currentBuilding;
 
     private void Awake()
     {
-        if (hireButton != null)
-            hireButton.onClick.AddListener(OnHireClicked);
-
-        gameObject.SetActive(false);
+        Hide();
     }
 
-    private void OnDestroy()
+    private void OnEnable()
     {
-        if (hireButton != null)
-            hireButton.onClick.RemoveListener(OnHireClicked);
-
-        Unsubscribe();
+        if (_hireButton != null)
+            _hireButton.onClick.AddListener(HireUnit);
     }
 
-    /// <summary>
-    /// Показывает панель для выбранного производственного здания.
-    /// </summary>
+    private void OnDisable()
+    {
+        if (_hireButton != null)
+            _hireButton.onClick.RemoveListener(HireUnit);
+    }
+
     public void Show(ProductionBuildingBase building)
     {
         if (building == null)
-            return;
-
-        if (currentBuilding == building && gameObject.activeSelf)
         {
-            Refresh();
+            Hide();
             return;
         }
 
-        Unsubscribe();
+        _currentBuilding = building;
 
-        currentBuilding = building;
-        Subscribe();
+        if (_root != null)
+            _root.SetActive(true);
 
-        if (currentBuilding.AvailableUnits != null && currentBuilding.AvailableUnits.Count > 0)
-            selectedUnit = currentBuilding.AvailableUnits[0];
-        else
-            selectedUnit = null;
-
-        gameObject.SetActive(true);
         Refresh();
     }
 
-    /// <summary>
-    /// Скрывает панель.
-    /// </summary>
     public void Hide()
     {
-        Unsubscribe();
-        currentBuilding = null;
-        selectedUnit = null;
-        gameObject.SetActive(false);
+        _currentBuilding = null;
+
+        if (_root != null)
+            _root.SetActive(false);
     }
 
-    /// <summary>
-    /// Позже пригодится, если в одном здании будет несколько видов юнитов.
-    /// </summary>
-    public void SelectUnit(UnitConfig unit)
+    private void HireUnit()
     {
-        selectedUnit = unit;
+        if (_currentBuilding == null)
+            return;
+
+        _currentBuilding.TryHireUnit();
         Refresh();
-    }
-
-    private void Subscribe()
-    {
-        if (currentBuilding != null)
-            currentBuilding.OnQueueChanged += Refresh;
-    }
-
-    private void Unsubscribe()
-    {
-        if (currentBuilding != null)
-            currentBuilding.OnQueueChanged -= Refresh;
     }
 
     private void Refresh()
     {
-        if (currentBuilding == null)
+        if (_currentBuilding == null)
             return;
 
-        if (selectedUnit == null)
+        if (_titleText != null)
+            _titleText.text = _currentBuilding.DisplayName;
+
+        if (_costText != null)
         {
-            if (titleText != null)
-                titleText.text = "Нет доступного юнита";
-
-            if (descriptionText != null)
-                descriptionText.text = string.Empty;
-
-            if (statsText != null)
-                statsText.text = string.Empty;
-
-            if (costText != null)
-                costText.text = string.Empty;
-
-            if (queueText != null)
-                queueText.text = $"В очереди: {currentBuilding.QueueCount}";
-
-            if (iconImage != null)
-                iconImage.sprite = null;
-
-            if (hireButton != null)
-                hireButton.interactable = false;
-
-            if (hireButtonText != null)
-                hireButtonText.text = "Нанять";
-
-            return;
+            _costText.text =
+               $"Wood: {_currentBuilding.WoodCost}  Meat: {_currentBuilding.MeatCost}";
         }
 
-        if (titleText != null)
-            titleText.text = selectedUnit.DisplayName;
+        string blockReason = _currentBuilding.GetHireBlockReason();
 
-        if (descriptionText != null)
-            descriptionText.text = selectedUnit.Description;
+        if (_blockReasonText != null)
+            _blockReasonText.text = blockReason;
 
-        if (statsText != null)
-        {
-            statsText.text =
-                $"Урон: {selectedUnit.Damage}\n" +
-                $"Здоровье: {selectedUnit.MaxHealth} HP";
-        }
-
-        if (costText != null)
-        {
-            costText.text =
-                $"Стоимость: {selectedUnit.GoldCost} золота и {selectedUnit.WoodCost} дерева\n" +
-                $"Время найма: {selectedUnit.BuildTime:0.#} секунды";
-        }
-
-        if (queueText != null)
-            queueText.text = $"В очереди: {currentBuilding.QueueCount}";
-
-        if (iconImage != null)
-            iconImage.sprite = selectedUnit.Icon;
-
-        bool canHire = currentBuilding.CanEnqueue(selectedUnit);
-
-        if (hireButton != null)
-            hireButton.interactable = canHire;
-
-        if (hireButtonText != null)
-            hireButtonText.text = canHire ? "Нанять" : "Не хватает ресурсов";
-    }
-
-    private void OnHireClicked()
-    {
-        if (currentBuilding == null || selectedUnit == null)
-            return;
-
-        bool success = currentBuilding.TryEnqueue(selectedUnit);
-        if (!success)
-            return;
-
-        Refresh();
+        if (_hireButton != null)
+            _hireButton.interactable = string.IsNullOrEmpty(blockReason);
     }
 }

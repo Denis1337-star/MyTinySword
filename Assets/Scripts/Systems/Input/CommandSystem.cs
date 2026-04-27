@@ -1,48 +1,22 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem.EnhancedTouch;
+using Zenject;
 
 /// <summary>
 /// Система пользовательских команд
-/// Отвечает за обработку тапа по миру и отдачу команды движения
-/// выбранным юнитам, которые поддерживают ручное перемещение
 /// </summary>
 public class CommandSystem : MonoBehaviour
 {
-    [SerializeField] private SelectionSystem selectionSystem;
-    [SerializeField] private Camera mainCamera;
+    private SelectionSystem _selectionSystem;
+    private Camera _mainCamera;
 
-    private void Awake()
+    [Inject]
+    private void Construct(
+        SelectionSystem selectionSystem,
+        Camera mainCamera)
     {
-        ResolveReferences();
-    }
-
-    private void OnValidate()
-    {
-        ResolveReferences();
-    }
-
-    /// <summary>
-    /// Пытается заполнить отсутствующие ссылки через GameServices
-    /// или через прямой поиск по сцене
-    /// </summary>
-    private void ResolveReferences()
-    {
-        if (selectionSystem == null)
-        {
-            if (GameServices.Instance != null && GameServices.Instance.SelectionSystem != null)
-                selectionSystem = GameServices.Instance.SelectionSystem;
-            else
-                selectionSystem = FindObjectOfType<SelectionSystem>(true);
-        }
-
-        if (mainCamera == null)
-        {
-            if (GameServices.Instance != null && GameServices.Instance.MainCamera != null)
-                mainCamera = GameServices.Instance.MainCamera;
-            else
-                mainCamera = Camera.main;
-        }
+        _selectionSystem = selectionSystem;
+        _mainCamera = mainCamera;
     }
 
     private void Update()
@@ -52,26 +26,25 @@ public class CommandSystem : MonoBehaviour
 
     private void HandleInput()
     {
-        if (!TouchUtility.TryGetEndedTouch(out var touch))
+        if (!TouchUtility.TryGetEndedTap(out var touch))
             return;
 
         if (TouchUtility.IsPointerOverUI(touch))
             return;
 
-        if (selectionSystem == null || mainCamera == null)
+        if (_selectionSystem == null || _mainCamera == null)
             return;
 
-        IReadOnlyList<UnitSelectable> selected = selectionSystem.GetSelectedUnits();
+        IReadOnlyList<UnitSelectable> selected = _selectionSystem.GetSelectedUnits();
         if (selected == null || selected.Count == 0)
             return;
 
-        Vector3 worldPos = TouchUtility.ScreenToWorld(mainCamera, touch.screenPosition);
+        Vector3 worldPosition = TouchUtility.ScreenToWorld(_mainCamera, touch.screenPosition);
 
-        // Работать должны только боевые юниты игрока.
         if (!ContainsPlayerArmyUnits(selected))
             return;
 
-        IDamageable target = FindEnemyDamageableAt(worldPos, selected);
+        IDamageable target = FindEnemyDamageableAt(worldPosition, selected);
 
         foreach (UnitSelectable selectable in selected)
         {
@@ -88,7 +61,7 @@ public class CommandSystem : MonoBehaviour
             if (target != null)
                 brain.Attack(target);
             else
-                brain.MoveTo(worldPos);
+                brain.MoveTo(worldPosition);
         }
     }
 
@@ -110,9 +83,11 @@ public class CommandSystem : MonoBehaviour
         return false;
     }
 
-    private IDamageable FindEnemyDamageableAt(Vector3 worldPos, IReadOnlyList<UnitSelectable> selected)
+    private IDamageable FindEnemyDamageableAt(
+        Vector3 worldPosition,
+        IReadOnlyList<UnitSelectable> selected)
     {
-        Collider2D hit = Physics2D.OverlapPoint(worldPos);
+        Collider2D hit = Physics2D.OverlapPoint(worldPosition);
         if (hit == null)
             return null;
 
@@ -134,8 +109,6 @@ public class CommandSystem : MonoBehaviour
         if (targetFaction == null)
             return null;
 
-        // Достаточно, чтобы первый выбранный боевой юнит подтвердил,
-        // что цель действительно вражеская.
         foreach (UnitSelectable selectable in selected)
         {
             if (selectable == null)
@@ -152,10 +125,7 @@ public class CommandSystem : MonoBehaviour
             if (unitFaction == null)
                 continue;
 
-            if (unitFaction.IsEnemy(targetFaction))
-                return damageable;
-
-            return null;
+            return unitFaction.IsEnemy(targetFaction) ? damageable : null;
         }
 
         return null;

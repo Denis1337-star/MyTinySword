@@ -131,7 +131,7 @@ public class ArmySelectionPanel : MonoBehaviour
 
     private void OnSelectAllClicked()
     {
-        SelectAllArmyUnitsButton.Instance?.SelectAllPlayerUnits();
+       // SelectAllArmyUnitsButton.Instance?.SelectAllPlayerUnits();
     }
 
     private struct GroupInfo

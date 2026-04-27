@@ -32,7 +32,7 @@ Transform:
   m_GameObject: {fileID: 148874888745276253}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -41.5, y: 5.67, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -164,12 +164,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 315dc0f965815074eb10bde54b671786, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  config: {fileID: 11400000, guid: e578381acf1390e47bd9bd49568a46e3, type: 2}
-  spawnPoint: {fileID: 1492884252047116931}
-  dropPoint: {fileID: 1924322427756946528}
-  idlePointsRoot: {fileID: 9043028756338710659}
-  workerPrefab: {fileID: 4596641850069108570, guid: f508677d4c21cf44da86baaf33f36fb8, type: 3}
-  dropRadius: 0.6
+  _config: {fileID: 11400000, guid: e578381acf1390e47bd9bd49568a46e3, type: 2}
+  _spawnPoint: {fileID: 1492884252047116931}
+  _dropPoint: {fileID: 1924322427756946528}
+  _idlePointsRoot: {fileID: 9043028756338710659}
+  _workerPrefab: {fileID: 4596641850069108570, guid: f508677d4c21cf44da86baaf33f36fb8, type: 3}
+  _dropRadius: 0.6
 --- !u!114 &1435012739113869488
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -20,50 +20,29 @@ public class UnitConfig : BaseConfig
     [SerializeField] private GameObject prefab;
 
     [Header("Cost")]
-    [Min(0)]
     [SerializeField] private int woodCost;
-
-    [Min(0)]
-    [SerializeField] private int goldCost;
+    [SerializeField] private int meatCost;
 
     [Header("Stats")]
-    [Min(1)]
     [SerializeField] private int maxHealth;
-
-    [Min(0)]
     [SerializeField] private int damage;
-
-    [Min(0.1f)]
     [SerializeField] private float moveSpeed;
 
     [Header("Combat")]
-    [Min(0.1f)]
     [SerializeField] private float attackRange;
-
-    [Min(0.1f)]
     [SerializeField] private float attackCooldown;
-
-    [Min(0.1f)]
     [SerializeField] private float visionRange;
 
     [Header("Healing")]
-    [Min(0)]
     [SerializeField] private int healAmount;
-
-    [Min(0.1f)]
     [SerializeField] private float healRange;
-
-    [Min(0.1f)]
     [SerializeField] private float healCooldown;
 
     [Header("Projectile")]
     [SerializeField] private ProjectileArrow arrowPrefab;
-
-    [Min(0.1f)]
     [SerializeField] private float arrowSpeed;
 
     [Header("Production")]
-    [Min(0.1f)]
     [SerializeField] private float buildTime;
 
     public string UnitId => unitId;
@@ -73,7 +52,7 @@ public class UnitConfig : BaseConfig
     public ArmyUnitType UnitType => unitType;
     public GameObject Prefab => prefab;
     public int WoodCost => woodCost;
-    public int GoldCost => goldCost;
+    public int MeatCost => meatCost;
     public int MaxHealth => maxHealth;
     public int Damage => damage;
     public float MoveSpeed => moveSpeed;
@@ -115,7 +94,7 @@ public class UnitConfig : BaseConfig
     private void OnValidate()
     {
         woodCost = Mathf.Max(0, woodCost);
-        goldCost = Mathf.Max(0, goldCost);
+        meatCost = Mathf.Max(0, meatCost);
 
         maxHealth = Mathf.Max(1, maxHealth);
         damage = Mathf.Max(0, damage);

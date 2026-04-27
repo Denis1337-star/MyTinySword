@@ -1,11 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
-/// Показывает экран победы или поражения.
+/// Показывает экран победы или поражения
 /// </summary>
 public class GameResultPanel : MonoBehaviour
 {

@@ -230,9 +230,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed1b2ae3aac6fae4cbc17cad7a1e2539, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  workSlot: {fileID: 5005038742377153201}
+  _workSlot: {fileID: 5005038742377153201}
   config: {fileID: 11400000, guid: fcf2a7b93da70fe4aa95d276a7ac9941, type: 2}
-  sprite: {fileID: 0}
+  sprite: {fileID: 487309473237773883}
   col: {fileID: 25945001822367249}
 --- !u!195 &2947089080037236613
 NavMeshAgent:

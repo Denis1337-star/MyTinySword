@@ -1,8 +1,9 @@
 ﻿using System;
 using UnityEngine;
+using Zenject;
 
 /// <summary>
-/// Центральная сущность worker'а
+/// Центральная сущность worker
 /// Объединяет state machine, brain, inventory, movement и текущую job-логику
 /// </summary>
 [RequireComponent(typeof(UnitMovement))]
@@ -11,7 +12,16 @@ using UnityEngine;
 public class Worker : ValidatedMonoBehaviour
 {
     [Header("Config")]
-    [SerializeField] private WorkerConfig config;
+    [SerializeField] private WorkerConfig _config;
+
+    private WorkerIdleState _idleState;
+    private WorkerFindResourceState _findResourceState;
+    private WorkerGoToResourceState _goToResourceState;
+    private WorkerWorkState _workState;
+    private WorkerCarryState _carryState;
+
+    private ResourceDepositService _resourceDepositService;
+    private WorkerRegistry _workerRegistry;
 
     public WorkerStateMachine StateMachine { get; private set; }
     public UnitMovement Movement { get; private set; }
@@ -28,7 +38,7 @@ public class Worker : ValidatedMonoBehaviour
     public ResourceNodeBase TargetResource { get; set; }
     public WorkSlot TargetSlot { get; set; }
 
-    public WorkerConfig Config => config;
+    public WorkerConfig Config => _config;
 
     public event Action OnJobChanged;
     public event Action OnActivityChanged;
@@ -37,11 +47,14 @@ public class Worker : ValidatedMonoBehaviour
     public bool HasCargo => Inventory != null && Inventory.HasCargo;
     public bool HasPendingJob => PendingJob != WorkerJobType.None;
 
-    private WorkerIdleState idleState;
-    private WorkerFindResourceState findResourceState;
-    private WorkerGoToResourceState goToResourceState;
-    private WorkerWorkState workState;
-    private WorkerCarryState carryState;
+    [Inject]
+    private void Construct(
+        ResourceDepositService resourceDepositService,
+        WorkerRegistry workerRegistry)
+    {
+        _resourceDepositService = resourceDepositService;
+        _workerRegistry = workerRegistry;
+    }
 
     protected override void Awake()
     {
@@ -53,11 +66,11 @@ public class Worker : ValidatedMonoBehaviour
         StateMachine = new WorkerStateMachine();
         CurrentJob = WorkerJobType.None;
 
-        idleState = new WorkerIdleState(this);
-        findResourceState = new WorkerFindResourceState(this);
-        goToResourceState = new WorkerGoToResourceState(this);
-        workState = new WorkerWorkState(this);
-        carryState = new WorkerCarryState(this);
+        _idleState = new WorkerIdleState(this);
+        _findResourceState = new WorkerFindResourceState(this);
+        _goToResourceState = new WorkerGoToResourceState(this);
+        _workState = new WorkerWorkState(this);
+        _carryState = new WorkerCarryState(this);
 
         base.Awake();
     }
@@ -66,11 +79,11 @@ public class Worker : ValidatedMonoBehaviour
     {
         bool valid = true;
 
-        valid &= ValidationUtility.NotEmptyCollection(this, config, nameof(config));
+        valid &= ValidationUtility.NotEmptyCollection(this, _config, nameof(_config));
 
-        if (config != null && !config.IsValid())
+        if (_config != null && !_config.IsValid())
         {
-            Debug.LogError($"{name}: WorkerConfig is invalid.", this);
+            Debug.LogError($"{name}: WorkerConfig некорректный.", this);
             valid = false;
         }
 
@@ -90,13 +103,15 @@ public class Worker : ValidatedMonoBehaviour
         ClearCurrentAssignment();
 
         Home?.RemoveWorker(this);
-        WorkerRegistry.Instance?.Unregister(this);
+        _workerRegistry?.Unregister(this);
     }
 
     public void SetHome(House house)
     {
         Home = house;
-        WorkerRegistry.Instance?.Register(this);
+
+        _workerRegistry?.Register(this);
+
         EnterIdleState();
     }
 
@@ -112,18 +127,21 @@ public class Worker : ValidatedMonoBehaviour
     {
         CurrentJob = job;
         CurrentJobLogic = logic;
+
         OnJobChanged?.Invoke();
     }
 
     public void SetPendingJob(WorkerJobType job)
     {
         PendingJob = job;
+
         OnJobChanged?.Invoke();
     }
 
     public void ClearPendingJob()
     {
         PendingJob = WorkerJobType.None;
+
         OnJobChanged?.Invoke();
     }
 
@@ -133,33 +151,34 @@ public class Worker : ValidatedMonoBehaviour
             return;
 
         bool changed = StateMachine.ChangeState(state);
+
         if (changed)
             OnActivityChanged?.Invoke();
     }
 
     public void EnterIdleState()
     {
-        ChangeState(idleState);
+        ChangeState(_idleState);
     }
 
     public void EnterFindResourceState()
     {
-        ChangeState(findResourceState);
+        ChangeState(_findResourceState);
     }
 
     public void EnterGoToResourceState()
     {
-        ChangeState(goToResourceState);
+        ChangeState(_goToResourceState);
     }
 
     public void EnterWorkState()
     {
-        ChangeState(workState);
+        ChangeState(_workState);
     }
 
     public void EnterCarryState()
     {
-        ChangeState(carryState);
+        ChangeState(_carryState);
     }
 
     public bool CanSwitchJobImmediately()
@@ -184,8 +203,10 @@ public class Worker : ValidatedMonoBehaviour
     public void ResetTaskState()
     {
         ClearCurrentAssignment();
+
         Inventory?.Clear();
         Animator?.SetWorking(false);
+
         OnActivityChanged?.Invoke();
     }
 
@@ -194,11 +215,14 @@ public class Worker : ValidatedMonoBehaviour
         if (Inventory == null || !Inventory.HasCargo)
             return;
 
-        if (ResourceDepositService.Instance == null)
+        if (_resourceDepositService == null)
+        {
+            Debug.LogError($"{name}: ResourceDepositService не внедрён через Zenject.", this);
             return;
+        }
 
         int amount = Inventory.TakeCargo(out ResourceType resourceType);
-        ResourceDepositService.Instance.Deposit(resourceType, amount);
+        _resourceDepositService.Deposit(resourceType, amount);
     }
 
     public void StartFindingResource()
@@ -223,13 +247,11 @@ public class Worker : ValidatedMonoBehaviour
 
     public float GetReachResourceDistance()
     {
-        return config != null ? config.ReachResourceDistance : 0.3f;
+        return _config != null ? _config.ReachResourceDistance : 0.3f;
     }
 
     public float GetMaxWorkDistance()
     {
-        return config != null ? config.MaxWorkDistance : 0.35f;
+        return _config != null ? _config.MaxWorkDistance : 0.35f;
     }
 }
-
-

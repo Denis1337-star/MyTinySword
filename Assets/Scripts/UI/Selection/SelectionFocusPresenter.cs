@@ -1,60 +1,48 @@
 using UnityEngine;
+using Zenject;
 
 /// <summary>
-/// Слушает изменение выбранного объекта и,
-/// если выбран worker, передаёт команду системе камеры сфокусироваться на нём.
+/// Слушает изменение выбранного объекта 
+/// если выбран worker, передаёт команду системе камеры сфокусироваться на нём
 /// </summary>
 public class SelectionFocusPresenter : MonoBehaviour
 {
-    [SerializeField] private SelectionSystem selectionSystem;
-    [SerializeField] private CameraFocusController focusController;
+    private SelectionSystem _selectionSystem;
+    private CameraFocusController _focusController;
 
-    /// <summary>
-    /// Пытается восстановить отсутствующие ссылки через GameServices
-    /// или через поиск по сцене.
-    /// </summary>
-    private void OnValidate()
+    [Inject]
+    private void Construct(
+        SelectionSystem selectionSystem,
+        CameraFocusController focusController)
     {
-        if (selectionSystem == null)
-        {
-            if (GameServices.Instance != null && GameServices.Instance.SelectionSystem != null)
-                selectionSystem = GameServices.Instance.SelectionSystem;
-            else
-                selectionSystem = FindObjectOfType<SelectionSystem>(true);
-        }
-
-        if (focusController == null)
-        {
-            if (GameServices.Instance != null && GameServices.Instance.CameraFocusController != null)
-                focusController = GameServices.Instance.CameraFocusController;
-            else
-                focusController = FindObjectOfType<CameraFocusController>(true);
-        }
+        _selectionSystem = selectionSystem;
+        _focusController = focusController;
     }
 
     private void OnEnable()
     {
-        if (selectionSystem == null)
+        if (_selectionSystem == null)
             return;
 
-        selectionSystem.SelectionChanged += OnSelectionChanged;
-        selectionSystem.SelectionCleared += OnSelectionCleared;
+        _selectionSystem.SelectionChanged += OnSelectionChanged;
+        _selectionSystem.SelectionCleared += OnSelectionCleared;
     }
 
     private void OnDisable()
     {
-        if (selectionSystem == null)
+        if (_selectionSystem == null)
             return;
 
-        selectionSystem.SelectionChanged -= OnSelectionChanged;
-        selectionSystem.SelectionCleared -= OnSelectionCleared;
+        _selectionSystem.SelectionChanged -= OnSelectionChanged;
+        _selectionSystem.SelectionCleared -= OnSelectionCleared;
     }
+
     /// <summary>
-    /// Если выбран worker, переводим фокус камеры на него
+    /// Если выбран worker, переводит камеру в follow-режим 
     /// </summary>
     private void OnSelectionChanged(UnitSelectable selectable)
     {
-        if (selectable == null || focusController == null)
+        if (selectable == null || _focusController == null)
             return;
 
         Worker worker = selectable.GetComponent<Worker>();
@@ -62,12 +50,14 @@ public class SelectionFocusPresenter : MonoBehaviour
             worker = selectable.GetComponentInParent<Worker>();
 
         if (worker != null)
-            focusController.FocusOn(worker.transform);
+            _focusController.FocusOn(worker.transform);
     }
 
+    /// <summary>
+    /// При очистке выбора отменяет focus-режим камеры
+    /// </summary>
     private void OnSelectionCleared()
     {
-        if (focusController != null)
-            focusController.CancelFocus();
+        _focusController?.CancelFocus();
     }
 }

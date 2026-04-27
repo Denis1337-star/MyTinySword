@@ -1,73 +1,132 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
+using Zenject;
 
 /// <summary>
-/// Точка на карте, на которой можно построить здание.
-/// Игрок кликает по ней и выбирает, что строить.
+/// место  на котором можно построить здание
 /// </summary>
 public class ConstructionSlot : MonoBehaviour
 {
     [Header("Available Buildings")]
-    [SerializeField] private List<BuildingConfig> availableBuildings = new();
+    [FormerlySerializedAs("availableBuildings")]
+    [SerializeField] private List<BuildingConfig> _availableBuildings = new();
 
     [Header("Construction")]
-    [SerializeField] private ConstructionSite constructionPrefab;
+    [FormerlySerializedAs("constructionPrefab")]
+    [SerializeField] private ConstructionSite _constructionPrefab;
 
-    private ConstructionSite currentConstruction;
+    private ConstructionSite _currentConstruction;
+    private ResourceStorage _resourceStorage;
+    private BuildingRegistry _buildingRegistry;
+    private BuildingFactory _buildingFactory;
 
-    public IReadOnlyList<BuildingConfig> AvailableBuildings => availableBuildings;
-    public bool HasConstruction => currentConstruction != null;
+    public IReadOnlyList<BuildingConfig> AvailableBuildings => _availableBuildings;
+    public bool HasConstruction => _currentConstruction != null;
 
-    /// <summary>
-    /// Проверяет, можно ли начать строительство на этом слоте.
-    /// </summary>
-    public bool CanBuild(BuildingConfig config = null)
+    [Inject]
+    private void Construct(
+        ResourceStorage resourceStorage,
+        BuildingRegistry buildingRegistry,
+        BuildingFactory buildingFactory)
     {
-        if (currentConstruction != null)
-            return false;
-
-        if (constructionPrefab == null)
-            return false;
-
-        if (config != null && !availableBuildings.Contains(config))
-            return false;
-
-        return true;
+        _resourceStorage = resourceStorage;
+        _buildingRegistry = buildingRegistry;
+        _buildingFactory = buildingFactory;
     }
 
-    /// <summary>
-    /// Запускает строительство выбранного здания.
-    /// </summary>
+    public bool CanBuild(BuildingConfig config = null)
+    {
+        if (config == null)
+        {
+            if (_currentConstruction != null)
+                return false;
+
+            if (_constructionPrefab == null)
+                return false;
+
+            return true;
+        }
+
+        return string.IsNullOrEmpty(GetBuildBlockReason(config));
+    }
+
+    public string GetBuildBlockReason(BuildingConfig config)
+    {
+        if (config == null)
+            return "Здание не выбрано";
+
+        if (_currentConstruction != null)
+            return "Уже строится";
+
+        if (_constructionPrefab == null)
+            return "Prefab стройки не назначен";
+
+        if (!_availableBuildings.Contains(config))
+            return "Это здание нельзя построить здесь";
+
+        if (config.UniqueBuilding &&
+            _buildingRegistry != null &&
+            _buildingRegistry.IsBuiltOrConstructing(config))
+        {
+            return "Лимит достигнут";
+        }
+
+        if (_resourceStorage == null)
+            return "Хранилище ресурсов не найдено";
+
+        if (!_resourceStorage.HasResources(config.WoodCost, config.GoldCost))
+            return "Не хватает ресурсов";
+
+        return string.Empty;
+    }
+
     public bool StartConstruction(BuildingConfig config)
     {
         if (config == null)
             return false;
 
+        if (!config.IsValid())
+            return false;
+
         if (!CanBuild(config))
             return false;
 
-        if (ResourceStorage.Instance == null)
+        if (_resourceStorage == null)
             return false;
 
-        bool spent = ResourceStorage.Instance.TrySpendResources(config.WoodCost, config.GoldCost);
+        if (_buildingFactory == null)
+        {
+            Debug.LogError($"{name}: BuildingFactory не внедрён через Zenject.", this);
+            return false;
+        }
+
+        bool spent = _resourceStorage.TrySpendResources(config.WoodCost, config.GoldCost);
         if (!spent)
             return false;
 
-        ConstructionSite site = Instantiate(constructionPrefab, transform.position, Quaternion.identity);
-        site.Initialize(this, config);
+        ConstructionSite site = _buildingFactory.CreateConstructionSite(
+            _constructionPrefab,
+            transform.position,
+            Quaternion.identity);
 
-        currentConstruction = site;
+        if (site == null)
+            return false;
+
+        _currentConstruction = site;
+
+        _buildingRegistry?.RegisterConstruction(config);
+
+        site.Initialize(this, config, _buildingRegistry, _buildingFactory);
+
         gameObject.SetActive(false);
 
         return true;
     }
 
-    /// <summary>
-    /// Вызывается, когда строительство завершено.
-    /// </summary>
     public void OnConstructionFinished()
     {
-        currentConstruction = null;
+        _currentConstruction = null;
         Destroy(gameObject);
     }
 }

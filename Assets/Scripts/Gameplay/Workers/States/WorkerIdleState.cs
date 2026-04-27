@@ -5,47 +5,47 @@ using UnityEngine;
 /// </summary>
 public class WorkerIdleState : IWorkerState
 {
-    private readonly Worker worker;
+    private const float RetryInterval = 0.35f;
 
-    private float retryTimer;
+    private readonly Worker _worker;
 
-    private const float RetryInterval = 0.35f; //через сколько снова ищет работу
+    private float _retryTimer;
 
     public WorkerIdleState(Worker worker)
     {
-        this.worker = worker;
+        _worker = worker;
     }
+
     public void Enter()
     {
-        retryTimer = RetryInterval;
+        _retryTimer = RetryInterval;
 
-        worker.Animator?.SetWorking(false);
-        worker.Animator?.SetEquipment(EquipmentType.None);
+        _worker.Animator?.SetWorking(false);
+        _worker.Animator?.SetEquipment(EquipmentType.None);
 
-        if (worker.Home != null)
-            worker.Movement?.MoveTo(worker.Home.GetIdlePosition(worker));
+        if (_worker.Home != null)
+            _worker.Movement?.MoveTo(_worker.Home.GetIdlePosition(_worker));
     }
+
     public void Update()
     {
-        retryTimer -= Time.deltaTime;
+        _retryTimer -= Time.deltaTime;
 
-        if (retryTimer > 0f)
+        if (_retryTimer > 0f)
             return;
 
-        retryTimer = RetryInterval;
+        _retryTimer = RetryInterval;
 
-        if (worker.PendingJob != WorkerJobType.None)
+        if (_worker.PendingJob != WorkerJobType.None)
         {
-            worker.Brain.ApplyPendingJobIfAny();
+            _worker.Brain.ApplyPendingJobIfAny();
             return;
         }
 
-        if (worker.CurrentJob != WorkerJobType.None)
-        {
-            worker.StartFindingResource();
-            return;
-        }
+        if (_worker.CurrentJob != WorkerJobType.None)
+            _worker.StartFindingResource();
     }
+
     public void Exit()
     {
     }

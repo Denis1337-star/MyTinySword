@@ -3,13 +3,20 @@ using UnityEngine;
 /// <summary>
 ///  работа дровосек 
 /// </summary>
-public class ChopWoodJob : IWorkerJob
+public sealed class ChopWoodJob : IWorkerJob
 {
+    private readonly ResourceSearchService _resourceSearchService;
+
+    public ChopWoodJob(ResourceSearchService resourceSearchService)
+    {
+        _resourceSearchService = resourceSearchService;
+    }
+
     public WorkerJobType JobType => WorkerJobType.ChopWood;
     public ResourceType RewardType => ResourceType.Wood;
 
     public ResourceNodeBase FindResource(Vector2 from)
     {
-        return ResourceFinder.FindBest<TreeResource>(from);
+        return _resourceSearchService.FindBest<TreeResource>(from);
     }
 }

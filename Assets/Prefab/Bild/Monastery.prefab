@@ -73,7 +73,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: d0349d8d3a04044f7a4810157b116b14, type: 3}
+  m_Sprite: {fileID: 21300000, guid: d8438425f07ba4e019d15b79cb6ce389, type: 3}
   m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -97,8 +97,8 @@ GameObject:
   - component: {fileID: 7234057474138002409}
   - component: {fileID: 7491471523709675784}
   - component: {fileID: 524759571906041623}
-  - component: {fileID: 4375208059564724539}
   - component: {fileID: 7302005276912915982}
+  - component: {fileID: 86413426410218618}
   m_Layer: 0
   m_Name: Monastery
   m_TagString: Untagged
@@ -115,11 +115,12 @@ Transform:
   m_GameObject: {fileID: 4383023627181470350}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -40.65, y: 10.2, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4502294534051459233}
+  - {fileID: 1267953345011277818}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &8006507769808733386
@@ -213,22 +214,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   selectionVisual: {fileID: 1494610084361953686}
---- !u!114 &4375208059564724539
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4383023627181470350}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 407e838d1ae05e94b92c10b2cbd5c447, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  config: {fileID: 11400000, guid: a5f21c5f1dcfee340bfbd778929ee4a0, type: 2}
-  factionMember: {fileID: 7234057474138002409}
-  health: {fileID: 7491471523709675784}
-  selectable: {fileID: 524759571906041623}
 --- !u!61 &7302005276912915982
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -261,7 +246,7 @@ BoxCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0, y: -0.5}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -272,5 +257,55 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 5, y: 4}
+  m_Size: {x: 3, y: 4}
   m_EdgeRadius: 0
+--- !u!114 &86413426410218618
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4383023627181470350}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ccea2eb328bbeb488ce2361e278be5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  config: {fileID: 11400000, guid: a5f21c5f1dcfee340bfbd778929ee4a0, type: 2}
+  factionMember: {fileID: 7234057474138002409}
+  health: {fileID: 7491471523709675784}
+  selectable: {fileID: 524759571906041623}
+  unitConfig: {fileID: 11400000, guid: 8a59abba60df7de4e9584e63da5fa513, type: 2}
+  spawnPoint: {fileID: 1267953345011277818}
+  maxQueue: 5
+--- !u!1 &5701405091619826596
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1267953345011277818}
+  m_Layer: 0
+  m_Name: SpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 1206586993520771344, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1267953345011277818
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5701405091619826596}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -3, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5969554902637644028}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

@@ -2,8 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// UI-панель списка worker'ов текущего дома.
-/// Следит за составом worker'ов в House и синхронизирует набор WorkerListItem на UI
+/// UI-панель списка worker текущего дома
 /// </summary>
 public class WorkerListPanel : MonoBehaviour
 {

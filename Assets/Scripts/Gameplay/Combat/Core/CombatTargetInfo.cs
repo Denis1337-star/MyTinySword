@@ -1,10 +1,7 @@
-
 using UnityEngine;
 
 /// <summary>
-/// Описывает боевую цель для системы выбора цели.
-/// Помогает юнитам понимать, что перед ними:
-/// боевой юнит, башня, обычное здание или castle.
+/// Описывает боевую цель 
 /// </summary>
 public class CombatTargetInfo : MonoBehaviour
 {

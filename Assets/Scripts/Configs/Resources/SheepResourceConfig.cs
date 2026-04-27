@@ -6,7 +6,6 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "MyTinySword/Configs/Resources/Sheep Config")]
 public class SheepResourceConfig : ResourceConfig
 {
-    [Min(1)]
     [SerializeField] private int meatAmount;
 
     public int MeatAmount => meatAmount;

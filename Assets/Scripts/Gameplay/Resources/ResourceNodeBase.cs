@@ -1,12 +1,17 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
+using Zenject;
 
 /// <summary>
 /// Ѕазова€ логика всех ресурсов
 /// </summary>
 public abstract class ResourceNodeBase : ValidatedMonoBehaviour, IResourceNode
 {
-    [SerializeField] private WorkSlot workSlot;
+    [FormerlySerializedAs("workSlot")]
+    [SerializeField] private WorkSlot _workSlot;
+
+    private ResourceRegistry _resourceRegistry;
 
     protected bool available = true;
 
@@ -14,62 +19,58 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour, IResourceNode
 
     public abstract float Priority { get; }
 
+    [Inject]
+    private void Construct(ResourceRegistry resourceRegistry)
+    {
+        _resourceRegistry = resourceRegistry;
+    }
+
     protected virtual void Start()
     {
-        if (ResourceRegistry.Instance != null)
-            ResourceRegistry.Instance.Register(this);
-        else
-            Debug.LogWarning($"{name}: ResourceRegistry not found.", this);
+        if (_resourceRegistry == null)
+        {
+            Debug.LogWarning($"{name}: ResourceRegistry is missing.", this);
+            return;
+        }
+
+        _resourceRegistry.Register(this);
     }
 
     protected virtual void OnDestroy()
     {
-        if (ResourceRegistry.Instance != null)
-            ResourceRegistry.Instance.Unregister(this);
+        _resourceRegistry?.Unregister(this);
     }
 
     protected override bool ValidateInternal()
     {
         bool valid = true;
 
-        valid &= ValidationUtility.NotEmptyCollection(this, workSlot, nameof(workSlot));
+        valid &= ValidationUtility.NotEmptyCollection(this, _workSlot, nameof(_workSlot));
 
         return valid;
     }
 
-    /// <summary>
-    /// ѕровер€ет, свободен ли слот ресурса
-    /// </summary>
     public bool HasFreeSlot()
     {
-        return workSlot != null && workSlot.IsFree;
+        return _workSlot != null && _workSlot.IsFree;
     }
 
-    /// <summary>
-    /// резервирует рабочий слот за worker
-    /// </summary>
     public virtual WorkSlot TryReserveSlot(Worker worker)
     {
-        if (worker == null || workSlot == null)
+        if (worker == null || _workSlot == null)
             return null;
 
-        return workSlot.TryReserve(worker) ? workSlot : null;
+        return _workSlot.TryReserve(worker) ? _workSlot : null;
     }
 
-    /// <summary>
-    /// ќсвобождает рабочий слот если он принадлежит этому worker
-    /// </summary>
     public virtual void ReleaseSlot(Worker worker)
     {
-        if (worker == null || workSlot == null)
+        if (worker == null || _workSlot == null)
             return;
 
-        workSlot.Release(worker);
+        _workSlot.Release(worker);
     }
 
-    /// <summary>
-    ///  начинает работу на ресурсе
-    /// </summary>
     public virtual bool TryStartWork(Worker worker, Action<int> onFinished)
     {
         if (!CanStartWork(worker))
@@ -80,9 +81,6 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour, IResourceNode
         return true;
     }
 
-    /// <summary>
-    /// ¬озвращает позицию работы дл€ worker
-    /// </summary>
     public virtual Vector2 GetWorkPosition(Worker worker)
     {
         if (worker != null &&
@@ -92,23 +90,17 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour, IResourceNode
             return worker.TargetSlot.Position;
         }
 
-        if (workSlot != null)
-            return workSlot.Position;
+        if (_workSlot != null)
+            return _workSlot.Position;
 
         return transform.position;
     }
 
-    /// <summary>
-    /// ќтмен€ет работу worker на ресурсе
-    /// </summary>
     public virtual void CancelWork(Worker worker)
     {
         ReleaseSlot(worker);
     }
 
-    /// <summary>
-    /// ресурс сам реализует свою рабочую рутину
-    /// </summary>
     protected abstract void StartWorkRoutine(Action<int> onFinished);
 
     private bool CanStartWork(Worker worker)

@@ -2,8 +2,7 @@ using System;
 
 
 /// <summary>
-/// Главная база игрока или врага.
-/// Её уничтожение завершает матч.
+/// Главная база 
 /// </summary>
 public class Castle : BuildingBase
 {

@@ -1,71 +1,63 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Zenject;
 
 /// <summary>
-/// —лушает изменение выбранного объекта и показывает подход€щую панель:
-/// дл€ worker'а Ч WorkerCommandPanel,
-/// дл€ дома Ч HousePanel,
-/// дл€ производственного здани€ Ч ProductionBuildingPanel,
-/// дл€ группы боевых юнитов Ч ArmySelectionPanel.
+///  показывает подход€щую панель
 /// </summary>
 public class SelectionUiPresenter : MonoBehaviour
 {
-    [SerializeField] private SelectionSystem selectionSystem;
-    [SerializeField] private WorkerCommandPanel workerCommandPanel;
-    [SerializeField] private HousePanel housePanel;
-    [SerializeField] private ProductionBuildingPanel productionBuildingPanel;
-    [SerializeField] private ArmySelectionPanel armySelectionPanel;
+    private SelectionSystem _selectionSystem;
+    private WorkerCommandPanel _workerCommandPanel;
+    private HousePanel _housePanel;
+    private ProductionBuildingPanel _productionBuildingPanel;
+    private ArmySelectionPanel _armySelectionPanel;
 
-    private void OnValidate()
+    [Inject]
+    private void Construct(
+        SelectionSystem selectionSystem,
+        WorkerCommandPanel workerCommandPanel,
+        HousePanel housePanel,
+        ProductionBuildingPanel productionBuildingPanel,
+        ArmySelectionPanel armySelectionPanel)
     {
-        if (selectionSystem == null)
-            selectionSystem = FindObjectOfType<SelectionSystem>(true);
-
-        if (workerCommandPanel == null)
-            workerCommandPanel = FindObjectOfType<WorkerCommandPanel>(true);
-
-        if (housePanel == null)
-            housePanel = FindObjectOfType<HousePanel>(true);
-
-        if (productionBuildingPanel == null)
-            productionBuildingPanel = FindObjectOfType<ProductionBuildingPanel>(true);
-
-        if (armySelectionPanel == null)
-            armySelectionPanel = FindObjectOfType<ArmySelectionPanel>(true);
+        _selectionSystem = selectionSystem;
+        _workerCommandPanel = workerCommandPanel;
+        _housePanel = housePanel;
+        _productionBuildingPanel = productionBuildingPanel;
+        _armySelectionPanel = armySelectionPanel;
     }
 
     private void OnEnable()
     {
-        if (selectionSystem == null)
+        if (_selectionSystem == null)
             return;
 
-        selectionSystem.SelectionChanged += OnSelectionChanged;
-        selectionSystem.SelectionCleared += OnSelectionCleared;
+        _selectionSystem.SelectionChanged += OnSelectionChanged;
+        _selectionSystem.SelectionCleared += OnSelectionCleared;
     }
 
     private void OnDisable()
     {
-        if (selectionSystem == null)
+        if (_selectionSystem == null)
             return;
 
-        selectionSystem.SelectionChanged -= OnSelectionChanged;
-        selectionSystem.SelectionCleared -= OnSelectionCleared;
+        _selectionSystem.SelectionChanged -= OnSelectionChanged;
+        _selectionSystem.SelectionCleared -= OnSelectionCleared;
     }
 
     private void OnSelectionChanged(UnitSelectable selectable)
     {
         HideAll();
 
-        if (selectionSystem == null)
+        if (_selectionSystem == null)
             return;
 
-        IReadOnlyList<UnitSelectable> selectedUnits = selectionSystem.GetSelectedUnits();
+        IReadOnlyList<UnitSelectable> selectedUnits = _selectionSystem.GetSelectedUnits();
 
         if (ContainsPlayerArmyUnits(selectedUnits))
         {
-            if (armySelectionPanel != null)
-                armySelectionPanel.Show(selectedUnits);
-
+            _armySelectionPanel?.Show(selectedUnits);
             return;
         }
 
@@ -78,9 +70,7 @@ public class SelectionUiPresenter : MonoBehaviour
 
         if (worker != null)
         {
-            if (workerCommandPanel != null)
-                workerCommandPanel.ShowForWorker(worker);
-
+            _workerCommandPanel?.ShowForWorker(worker);
             return;
         }
 
@@ -90,9 +80,7 @@ public class SelectionUiPresenter : MonoBehaviour
 
         if (house != null)
         {
-            if (housePanel != null)
-                housePanel.Show(house);
-
+            _housePanel?.Show(house);
             return;
         }
 
@@ -101,12 +89,7 @@ public class SelectionUiPresenter : MonoBehaviour
             productionBuilding = selectable.GetComponentInParent<ProductionBuildingBase>();
 
         if (productionBuilding != null)
-        {
-            if (productionBuildingPanel != null)
-                productionBuildingPanel.Show(productionBuilding);
-
-            return;
-        }
+            _productionBuildingPanel?.Show(productionBuilding);
     }
 
     private void OnSelectionCleared()
@@ -116,17 +99,10 @@ public class SelectionUiPresenter : MonoBehaviour
 
     private void HideAll()
     {
-        if (workerCommandPanel != null)
-            workerCommandPanel.Hide();
-
-        if (housePanel != null)
-            housePanel.Hide();
-
-        if (productionBuildingPanel != null)
-            productionBuildingPanel.Hide();
-
-        if (armySelectionPanel != null)
-            armySelectionPanel.Hide();
+        _workerCommandPanel?.Hide();
+        _housePanel?.Hide();
+        _productionBuildingPanel?.Hide();
+        _armySelectionPanel?.Hide();
     }
 
     private bool ContainsPlayerArmyUnits(IReadOnlyList<UnitSelectable> selectedUnits)

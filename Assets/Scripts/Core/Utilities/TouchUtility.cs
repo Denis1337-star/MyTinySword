@@ -1,29 +1,56 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem.EnhancedTouch;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
-using TouchPhase = UnityEngine.InputSystem.TouchPhase;
 
+/// <summary>
+/// Единая утилита для touch-ввода
+/// Используется gameplay-системами для обработки tap-действий
+/// </summary>
 public static class TouchUtility
 {
-    public static bool TryGetEndedTouch(out Touch touch)
+
+    private const float MaxTapMovement = 20f;
+
+    /// <summary>
+    /// Пытается получить завершённый tap
+    /// </summary>
+    public static bool TryGetEndedTap(out Touch touch)
     {
-        if (Touch.activeTouches.Count == 0)
+        touch = default;
+
+        foreach (Touch activeTouch in Touch.activeTouches)
         {
-            touch = default;
-            return false;
+            if (activeTouch.phase != UnityEngine.InputSystem.TouchPhase.Ended)
+                continue;
+
+            float movedDistance = Vector2.Distance(
+                activeTouch.startScreenPosition,
+                activeTouch.screenPosition);
+
+            if (movedDistance > MaxTapMovement)
+                continue;
+
+            touch = activeTouch;
+            return true;
         }
 
-        touch = Touch.activeTouches[0];
-        return touch.phase == TouchPhase.Ended;
+        return false;
     }
 
+    /// <summary>
+    /// Проверяет, находится ли touch над UI
+    /// </summary>
     public static bool IsPointerOverUI(Touch touch)
     {
-        return EventSystem.current != null &&
-               EventSystem.current.IsPointerOverGameObject(touch.touchId);
+        if (EventSystem.current == null)
+            return false;
+
+        return EventSystem.current.IsPointerOverGameObject(touch.touchId);
     }
 
+    /// <summary>
+    /// Переводит экранную позицию в позицию мира
+    /// </summary>
     public static Vector2 ScreenToWorld(Camera camera, Vector2 screenPosition)
     {
         if (camera == null)

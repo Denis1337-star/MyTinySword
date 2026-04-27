@@ -6,8 +6,6 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "MyTinySword/Configs/Resources/Tree Config")]
 public class TreeResourceConfig : ResourceConfig
 {
-
-    [Min(1)]
     [SerializeField] private int rewardAmount;
     public int RewardAmount => rewardAmount;
 

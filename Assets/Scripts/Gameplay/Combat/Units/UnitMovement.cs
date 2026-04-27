@@ -5,83 +5,116 @@ using UnityEngine.AI;
 [RequireComponent(typeof(NavMeshAgent))]
 public class UnitMovement : MonoBehaviour
 {
-    private NavMeshAgent agent;
+    private const float DefaultStoppingDistance = 0.2f;
+    private const float InitialNavMeshSearchRadius = 5f;
+    private const float TargetNavMeshSearchRadius = 3f;
+    private const float MovingVelocityThreshold = 0.01f;
+
+    private NavMeshAgent _agent;
+
     public bool HasTarget
     {
         get
         {
-            if (agent == null || !agent.isOnNavMesh)
+            if (!CanUseAgent())
                 return false;
 
-            if (agent.pathPending)
+            if (_agent.pathPending)
                 return true;
 
-            return agent.hasPath && agent.remainingDistance > agent.stoppingDistance;
+            return _agent.hasPath &&
+                   _agent.remainingDistance > _agent.stoppingDistance;
         }
     }
+
     public bool IsMoving
     {
         get
         {
-            if (agent == null || !agent.isOnNavMesh)
+            if (!CanUseAgent())
                 return false;
 
-            if (agent.pathPending)
+            if (_agent.pathPending)
                 return true;
 
-            return agent.velocity.sqrMagnitude > 0.01f;
+            return _agent.velocity.sqrMagnitude > MovingVelocityThreshold;
         }
     }
+
     public Vector2 Velocity
     {
         get
         {
-            if (agent == null)
+            if (_agent == null)
                 return Vector2.zero;
 
-            return agent.velocity;
+            return _agent.velocity;
         }
     }
 
     private void Awake()
     {
-        agent = GetComponent<NavMeshAgent>();
+        _agent = GetComponent<NavMeshAgent>();
 
-        agent.updateRotation = false;
-        agent.updateUpAxis = false;
-        agent.stoppingDistance = 0.2f;
+        ConfigureAgent();
+        PlaceOnNavMesh();
+    }
+
+    /// <summary>
+    /// Отправляет юнита к ближайшей валидной точке NavMesh рядом с указанной позицией
+    /// </summary>
+    public void MoveTo(Vector2 position)
+    {
+        if (!EnsureAgentOnNavMesh())
+            return;
+
+        if (!NavMesh.SamplePosition(position, out NavMeshHit hit, TargetNavMeshSearchRadius, NavMesh.AllAreas))
+            return;
+
+        _agent.SetDestination(hit.position);
+    }
+
+    /// <summary>
+    /// Останавливает движение и сбрасывает текущий путь
+    /// </summary>
+    public void Stop()
+    {
+        if (!CanUseAgent())
+            return;
+
+        _agent.ResetPath();
+    }
+
+    private void ConfigureAgent()
+    {
+        _agent.updateRotation = false;
+        _agent.updateUpAxis = false;
+        _agent.stoppingDistance = DefaultStoppingDistance;
+    }
+
+    private bool EnsureAgentOnNavMesh()
+    {
+        if (CanUseAgent())
+            return true;
 
         PlaceOnNavMesh();
+
+        return CanUseAgent();
     }
 
     private void PlaceOnNavMesh()
     {
-        if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 5f, NavMesh.AllAreas))
-        {
-            agent.Warp(hit.position);
-        }
-    }
-
-    public void MoveTo(Vector2 position)
-    {
-        if (!agent.isOnNavMesh)
-        {
-            PlaceOnNavMesh();
-            if (!agent.isOnNavMesh)
-                return;
-        }
-
-        if (NavMesh.SamplePosition(position, out NavMeshHit hit, 3f, NavMesh.AllAreas))
-        {
-            agent.SetDestination(hit.position);
-        }
-    }
-
-    public void Stop()
-    {
-        if (!agent.isOnNavMesh)
+        if (_agent == null)
             return;
 
-        agent.ResetPath();
+        if (!NavMesh.SamplePosition(transform.position, out NavMeshHit hit, InitialNavMeshSearchRadius, NavMesh.AllAreas))
+            return;
+
+        _agent.Warp(hit.position);
+    }
+
+    private bool CanUseAgent()
+    {
+        return _agent != null && _agent.isOnNavMesh;
     }
 }

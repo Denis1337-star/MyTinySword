@@ -18,7 +18,8 @@ MonoBehaviour:
     \u043B\u0443\u0447\u043D\u0438\u043A\u043E\u0432"
   icon: {fileID: 21300000, guid: 5bdc3e2b64c8049f4a66e1061f28dd70, type: 3}
   buildingPrefab: {fileID: 3979921759978543857, guid: 972c344402871ec4b80cb2e8fbb2d1bf, type: 3}
-  woodCost: 60
-  goldCost: 30
+  woodCost: 10
+  goldCost: 5
   maxHealth: 160
   buildTime: 9
+  uniqueBuilding: 1

@@ -113,7 +113,7 @@ Transform:
   m_GameObject: {fileID: 8737428911780524509}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -29.43, y: 0.72, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -229,13 +229,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c287916f31e18ca4896d9f749c260b05, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  availableBuildings:
-  - {fileID: 11400000, guid: 64b304de36f2ede47b453e895a7266e3, type: 2}
+  _availableBuildings:
   - {fileID: 11400000, guid: 2599f896fec1da645a0200120c3aba10, type: 2}
+  - {fileID: 11400000, guid: 64b304de36f2ede47b453e895a7266e3, type: 2}
+  - {fileID: 11400000, guid: b08c2fb403701434e89a6f5966fc098f, type: 2}
   - {fileID: 11400000, guid: a5f21c5f1dcfee340bfbd778929ee4a0, type: 2}
   - {fileID: 11400000, guid: b07f55771df368045a2d8c223a24b1f9, type: 2}
-  - {fileID: 11400000, guid: b08c2fb403701434e89a6f5966fc098f, type: 2}
-  constructionPrefab: {fileID: 6110782568272128809, guid: 28acf9e68d7513846b483aa82a711561, type: 3}
+  _constructionPrefab: {fileID: 6110782568272128809, guid: 28acf9e68d7513846b483aa82a711561, type: 3}
 --- !u!114 &79982762370251407
 MonoBehaviour:
   m_ObjectHideFlags: 0

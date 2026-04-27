@@ -1,24 +1,28 @@
 using System;
 using UnityEngine;
+using UniRx;
 
 /// <summary>
 /// √лобальное хранилище ресурсов игрока
-/// уведомл€ет подписчиков при изменении значений
 /// </summary>
 public class ResourceStorage : MonoBehaviour
 {
     public static ResourceStorage Instance { get; private set; }
-
-    public event Action OnResourcesChanged;
 
     [Header("Current Resources")]
     [SerializeField] private int wood;
     [SerializeField] private int gold;
     [SerializeField] private int meat;
 
+    private readonly Subject<Unit> resourcesChanged = new();
+
     public int Wood => wood;
     public int Gold => gold;
     public int Meat => meat;
+
+    public event Action OnResourcesChanged;
+
+    public IObservable<Unit> ResourcesChanged => resourcesChanged;
 
     private void Awake()
     {
@@ -29,41 +33,29 @@ public class ResourceStorage : MonoBehaviour
         }
 
         Instance = this;
-
-        wood = Mathf.Max(0, wood);
-        gold = Mathf.Max(0, gold);
-        meat = Mathf.Max(0, meat);
+        ClampResources();
     }
 
     private void Start()
     {
-        OnResourcesChanged?.Invoke();
+        NotifyResourcesChanged();
     }
 
-    public void AddWood(int amount)
+    private void OnDestroy()
     {
-        AddResource(ResourceType.Wood, amount);
+        if (Instance == this)
+            Instance = null;
+
+        resourcesChanged.OnCompleted();
+        resourcesChanged.Dispose();
     }
 
-    public void AddGold(int amount)
-    {
-        AddResource(ResourceType.Gold, amount);
-    }
-
-    public void AddMeat(int amount)
-    {
-        AddResource(ResourceType.Meat, amount);
-    }
-
-    /// <summary>
-    /// ”ниверсальное добавление ресурса по его типу
-    /// </summary>
-    public void AddResource(ResourceType type, int amount)
+    public void AddResource(ResourceType resourceType, int amount)
     {
         if (amount <= 0)
             return;
 
-        switch (type)
+        switch (resourceType)
         {
             case ResourceType.Wood:
                 wood += amount;
@@ -77,25 +69,12 @@ public class ResourceStorage : MonoBehaviour
                 meat += amount;
                 break;
 
+            case ResourceType.None:
             default:
                 return;
         }
 
-        OnResourcesChanged?.Invoke();
-    }
-
-    /// <summary>
-    /// ¬озвращает текущее количество ресурса указанного типа
-    /// </summary>
-    public int GetAmount(ResourceType type)
-    {
-        return type switch
-        {
-            ResourceType.Wood => wood,
-            ResourceType.Gold => gold,
-            ResourceType.Meat => meat,
-            _ => 0
-        };
+        NotifyResourcesChanged();
     }
 
     public bool HasResources(int requiredWood, int requiredGold)
@@ -117,7 +96,30 @@ public class ResourceStorage : MonoBehaviour
         wood -= spendWood;
         gold -= spendGold;
 
-        OnResourcesChanged?.Invoke();
+        NotifyResourcesChanged();
+        return true;
+    }
+
+    public bool HasUnitResources(int requiredWood, int requiredMeat)
+    {
+        requiredWood = Mathf.Max(0, requiredWood);
+        requiredMeat = Mathf.Max(0, requiredMeat);
+
+        return wood >= requiredWood && meat >= requiredMeat;
+    }
+
+    public bool TrySpendUnitResources(int spendWood, int spendMeat)
+    {
+        spendWood = Mathf.Max(0, spendWood);
+        spendMeat = Mathf.Max(0, spendMeat);
+
+        if (!HasUnitResources(spendWood, spendMeat))
+            return false;
+
+        wood -= spendWood;
+        meat -= spendMeat;
+
+        NotifyResourcesChanged();
         return true;
     }
 
@@ -127,7 +129,25 @@ public class ResourceStorage : MonoBehaviour
         gold = Mathf.Max(0, newGold);
         meat = Mathf.Max(0, newMeat);
 
+        NotifyResourcesChanged();
+    }
+
+    private void OnValidate()
+    {
+        ClampResources();
+    }
+
+    private void ClampResources()
+    {
+        wood = Mathf.Max(0, wood);
+        gold = Mathf.Max(0, gold);
+        meat = Mathf.Max(0, meat);
+    }
+
+    private void NotifyResourcesChanged()
+    {
         OnResourcesChanged?.Invoke();
+        resourcesChanged.OnNext(Unit.Default);
     }
 }
 

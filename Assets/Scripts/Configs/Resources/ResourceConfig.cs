@@ -6,13 +6,8 @@ using UnityEngine;
 public abstract class ResourceConfig : BaseConfig
 {
     [Header("Common")]
-    [Min(0f)]
     [SerializeField] private float priority = 1f;
-
-    [Min(0.1f)]
     [SerializeField] private float respawnTime;
-
-    [Min(0.1f)]
     [SerializeField] private float workTime;
 
 

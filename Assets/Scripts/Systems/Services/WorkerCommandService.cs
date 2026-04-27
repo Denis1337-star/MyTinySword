@@ -1,9 +1,8 @@
-using UnityEngine;
 
 /// <summary>
 /// —ервис команд дл€ worker
 /// </summary>
-public class WorkerCommandService : MonoBehaviour
+public class WorkerCommandService 
 {
     /// <summary>
     ///назначает worker новую работу

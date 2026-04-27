@@ -1,70 +1,80 @@
 using UnityEngine;
 
 /// <summary>
-/// Объект стройки.
-/// Хранит прогресс строительства и создает финальное здание.
+/// Объект стройки
 /// </summary>
 public class ConstructionSite : MonoBehaviour
 {
-    private ConstructionSlot slot;
-    private BuildingConfig config;
+    private ConstructionSlot _slot;
+    private BuildingConfig _config;
+    private BuildingRegistry _buildingRegistry;
+    private BuildingFactory _buildingFactory;
 
-    private float progress;
-    private float buildTime;
-    private bool finished;
+    private float _progress;
+    private float _buildTime;
+    private bool _initialized;
+    private bool _finished;
 
-    public float Progress01 => buildTime > 0f ? Mathf.Clamp01(progress / buildTime) : 1f;
-    public BuildingConfig Config => config;
+    public float Progress01 => _buildTime > 0f ? Mathf.Clamp01(_progress / _buildTime) : 1f;
+    public BuildingConfig Config => _config;
 
-    /// <summary>
-    /// Инициализация стройки.
-    /// </summary>
-    public void Initialize(ConstructionSlot slot, BuildingConfig config)
+    public void Initialize(
+        ConstructionSlot slot,
+        BuildingConfig config,
+        BuildingRegistry buildingRegistry,
+        BuildingFactory buildingFactory)
     {
-        this.slot = slot;
-        this.config = config;
+        _slot = slot;
+        _config = config;
+        _buildingRegistry = buildingRegistry;
+        _buildingFactory = buildingFactory;
 
-        buildTime = config != null ? Mathf.Max(0.1f, config.BuildTime) : 1f;
-        progress = 0f;
-        finished = false;
+        _buildTime = config.BuildTime;
+        _progress = 0f;
+        _finished = false;
+        _initialized = true;
     }
 
     private void Update()
     {
-        if (finished)
+        if (!_initialized || _finished)
             return;
 
-        progress += Time.deltaTime;
+        _progress += Time.deltaTime;
 
-        if (progress >= buildTime)
+        if (_progress >= _buildTime)
             CompleteConstruction();
     }
 
-    /// <summary>
-    /// Завершает строительство и создаёт готовое здание.
-    /// </summary>
     private void CompleteConstruction()
     {
-        if (finished)
+        if (_finished)
             return;
 
-        finished = true;
+        _finished = true;
 
-        if (config == null)
+        if (_buildingFactory == null)
         {
-            Destroy(gameObject);
+            Debug.LogError($"{name}: BuildingFactory не передан в ConstructionSite.", this);
             return;
         }
 
-        if (config.BuildingPrefab == null)
-        {
-            Destroy(gameObject);
+        GameObject building = _buildingFactory.CreateBuilding(
+            _config.BuildingPrefab,
+            transform.position,
+            Quaternion.identity);
+
+        if (building == null)
             return;
-        }
 
-        Instantiate(config.BuildingPrefab, transform.position, Quaternion.identity);
+        _buildingRegistry?.RegisterBuilt(_config);
 
-        slot?.OnConstructionFinished();
+        NotifySlotAndDestroy();
+    }
+
+    private void NotifySlotAndDestroy()
+    {
+        _slot?.OnConstructionFinished();
         Destroy(gameObject);
     }
 }

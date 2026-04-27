@@ -1,21 +1,28 @@
-п»їusing UnityEngine;
+using UnityEngine;
 
 /// <summary>
-/// РћС‚РІРµС‡Р°РµС‚ Р·Р° РїРѕРёСЃРє Р»СѓС‡С€РµРіРѕ СЂРµСЃСѓСЂСЃР° РґР»СЏ worker
+/// Ищет наилучший доступный узел ресурсов 
 /// </summary>
-public static class ResourceFinder
+public sealed class ResourceSearchService
 {
     private const float PriorityWeight = 100f;
 
-    public static T FindBest<T>(Vector2 from) where T : ResourceNodeBase
+    private readonly ResourceRegistry _resourceRegistry;
+
+    public ResourceSearchService(ResourceRegistry resourceRegistry)
     {
-        if (ResourceRegistry.Instance == null)
+        _resourceRegistry = resourceRegistry;
+    }
+
+    public T FindBest<T>(Vector2 from) where T : ResourceNodeBase
+    {
+        if (_resourceRegistry == null)
             return null;
 
         T best = null;
         float bestScore = float.MinValue;
 
-        foreach (IResourceNode node in ResourceRegistry.Instance.Nodes)
+        foreach (IResourceNode node in _resourceRegistry.Nodes)
         {
             if (node is not T typed)
                 continue;

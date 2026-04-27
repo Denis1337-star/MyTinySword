@@ -1,39 +1,51 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using Zenject;
+
 /// <summary>
-/// Сервис выбора всех союзных боевых юнитов игрока.
-/// Вызывается из кнопки на панели армии.
+/// Кнопка выбора всех боевых юнитов игрока
 /// </summary>
+[RequireComponent(typeof(Button))]
 public class SelectAllArmyUnitsButton : MonoBehaviour
 {
-    public static SelectAllArmyUnitsButton Instance { get; private set; }
+    private Button _button;
+    private SelectionSystem _selectionSystem;
+    private ArmyUnitRegistry _armyUnitRegistry;
 
-    [SerializeField] private SelectionSystem selectionSystem;
+    [Inject]
+    private void Construct(
+        SelectionSystem selectionSystem,
+        ArmyUnitRegistry armyUnitRegistry)
+    {
+        _selectionSystem = selectionSystem;
+        _armyUnitRegistry = armyUnitRegistry;
+    }
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
-
-        if (selectionSystem == null)
-            selectionSystem = FindObjectOfType<SelectionSystem>(true);
+        _button = GetComponent<Button>();
     }
 
-    /// <summary>
-    /// Выбирает всех боевых юнитов игрока.
-    /// </summary>
-    public void SelectAllPlayerUnits()
+    private void OnEnable()
     {
-        if (selectionSystem == null || ArmyUnitRegistry.Instance == null)
+        if (_button != null)
+            _button.onClick.AddListener(SelectAllPlayerUnits);
+    }
+
+    private void OnDisable()
+    {
+        if (_button != null)
+            _button.onClick.RemoveListener(SelectAllPlayerUnits);
+    }
+
+    private void SelectAllPlayerUnits()
+    {
+        if (_selectionSystem == null || _armyUnitRegistry == null)
             return;
 
-        List<ArmyUnit> units = ArmyUnitRegistry.Instance.GetAllPlayerUnits();
-        selectionSystem.SelectArmyUnits(units);
+        List<ArmyUnit> units = _armyUnitRegistry.GetAllPlayerUnits();
+
+        _selectionSystem.SelectArmyUnits(units);
     }
 }

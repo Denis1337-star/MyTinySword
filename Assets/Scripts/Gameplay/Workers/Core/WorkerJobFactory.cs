@@ -1,19 +1,22 @@
 /// <summary>
 ///  фабрика  логики работы worker по enum профессии
 /// </summary>
-public static class WorkerJobFactory
+public sealed class WorkerJobFactory
 {
-    private static readonly IWorkerJob ChopWood = new ChopWoodJob();
-    private static readonly IWorkerJob MineGold = new MineGoldJob();
-    private static readonly IWorkerJob HuntMeat = new HuntMeatJob();
+    private readonly ResourceSearchService _resourceSearchService;
 
-    public static IWorkerJob Create(WorkerJobType type)
+    public WorkerJobFactory(ResourceSearchService resourceSearchService)
+    {
+        _resourceSearchService = resourceSearchService;
+    }
+
+    public IWorkerJob Create(WorkerJobType type)
     {
         return type switch
         {
-            WorkerJobType.ChopWood => ChopWood,
-            WorkerJobType.MineGold => MineGold,
-            WorkerJobType.HuntMeat => HuntMeat,
+            WorkerJobType.ChopWood => new ChopWoodJob(_resourceSearchService),
+            WorkerJobType.MineGold => new MineGoldJob(_resourceSearchService),
+            WorkerJobType.HuntMeat => new HuntMeatJob(_resourceSearchService),
             _ => null
         };
     }

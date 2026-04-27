@@ -1,78 +1,89 @@
 using UnityEngine;
+using Zenject;
 
 /// <summary>
 /// принимает решения о назначении и переключении работы worker
 /// </summary>
  [RequireComponent(typeof(Worker))]
-public class WorkerBrain : MonoBehaviour
+public sealed class WorkerBrain : MonoBehaviour
 {
-    private Worker worker;
+    private Worker _worker;
+    private WorkerJobFactory _workerJobFactory;
+
+    [Inject]
+    private void Construct(WorkerJobFactory workerJobFactory)
+    {
+        _workerJobFactory = workerJobFactory;
+    }
 
     private void Awake()
     {
-        worker = GetComponent<Worker>();
+        _worker = GetComponent<Worker>();
     }
 
     /// <summary>
-    /// Назначает worker новую работу
+    /// Назначает новую работу рабочему
     /// </summary>
     public void AssignJob(WorkerJobType job)
     {
-        if (worker == null || worker.Home == null)
+        if (_worker == null || _worker.Home == null)
             return;
 
-        if (worker.CurrentJob == job && worker.PendingJob == WorkerJobType.None)
+        if (_worker.CurrentJob == job && _worker.PendingJob == WorkerJobType.None)
             return;
 
-        if (worker.PendingJob == job)
+        if (_worker.PendingJob == job)
             return;
 
-        bool canSwitchNow = worker.CanSwitchJobImmediately();
+        bool canSwitchNow = _worker.CanSwitchJobImmediately();
 
-        if (canSwitchNow || worker.CurrentJob == WorkerJobType.None || job == WorkerJobType.None)
+        if (canSwitchNow ||
+            _worker.CurrentJob == WorkerJobType.None ||
+            job == WorkerJobType.None)
         {
             ApplyJobImmediately(job);
             return;
         }
 
-        worker.SetPendingJob(job);
+        _worker.SetPendingJob(job);
     }
 
     /// <summary>
-    /// Применяет отложенную работу
+    /// Применяет отложенную работу, если она есть
     /// </summary>
     public void ApplyPendingJobIfAny()
     {
-        if (worker == null)
+        if (_worker == null)
             return;
 
-        if (worker.PendingJob == WorkerJobType.None)
+        if (_worker.PendingJob == WorkerJobType.None)
             return;
 
-        WorkerJobType nextJob = worker.PendingJob;
-        worker.ClearPendingJob();
+        WorkerJobType nextJob = _worker.PendingJob;
+
+        _worker.ClearPendingJob();
         ApplyJobImmediately(nextJob);
     }
 
     /// <summary>
-    /// Немедленно применяет новую работу 
+    /// Сразу применяет работу
     /// </summary>
     public void ApplyJobImmediately(WorkerJobType job)
     {
-        if (worker == null)
+        if (_worker == null)
             return;
 
-        IWorkerJob logic = WorkerJobFactory.Create(job);
+        IWorkerJob logic = _workerJobFactory.Create(job);
 
-        worker.ResetTaskState();
-        worker.SetCurrentJob(job, logic);
+        _worker.ResetTaskState();
+        _worker.SetCurrentJob(job, logic);
 
         if (job == WorkerJobType.None || logic == null)
         {
-            worker.GoIdle();
+            _worker.GoIdle();
             return;
         }
 
-        worker.StartFindingResource();
+        _worker.StartFindingResource();
     }
 }

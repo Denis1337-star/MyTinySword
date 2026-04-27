@@ -1,53 +1,68 @@
 using System;
 using System.Collections.Generic;
+using UniRx;
 using UnityEngine;
+using Zenject;
 
 /// <summary>
-/// Дом — владелец группы worker'ов
-/// Отвечает за стартовый спавн, найм новых worker'ов
-/// хранение локального списка своих рабочих,
-/// выдачу idle-позиций и drop-позиций возле дома
+/// Дом — владелец группы worker
 /// </summary>
 public class House : ValidatedMonoBehaviour
 {
     [Header("Config")]
-    [SerializeField] private HouseConfig config;
+    [SerializeField] private HouseConfig _config;
 
     [Header("Spawn & Drop")]
-    [SerializeField] private Transform spawnPoint;
-    [SerializeField] private Transform dropPoint;
+    [SerializeField] private Transform _spawnPoint;
+    [SerializeField] private Transform _dropPoint;
 
     [Header("Idle Positions")]
-    [SerializeField] private Transform idlePointsRoot;
+    [SerializeField] private Transform _idlePointsRoot;
 
     [Header("Workers")]
-    [SerializeField] private Worker workerPrefab;
+    [SerializeField] private Worker _workerPrefab;
 
-    [SerializeField] private float dropRadius = 0.6f;
+    [Header("Drop")]
+    [SerializeField] private float _dropRadius = 0.6f;
 
-    private readonly List<Transform> idlePoints = new();  // Все доступные idle-точки, собранные из idlePointsRoot
-    private readonly Dictionary<Worker, Transform> occupiedIdlePoints = new();   // Какая idle-точка занята каким worker'ом
-    private readonly List<Worker> workers = new();  // Локальный список worker'ов, принадлежащих этому дому
+    private readonly List<Transform> _idlePoints = new();
+    private readonly Dictionary<Worker, Transform> _occupiedIdlePoints = new();
+    private readonly List<Worker> _workers = new();
 
-    private bool isHiringInProgress;
+    private bool _isHiringInProgress;
 
-    public Vector2 DropPoint => dropPoint != null ? dropPoint.position : (Vector2)transform.position;
+    private WorkerFactory _workerFactory;
+    private ResourceStorage _resourceStorage;
 
-    public int MaxWorkers => config != null ? config.MaxWorkers : 0;
-    public int CurrentWorkers => workers.Count;
-    public IReadOnlyList<Worker> Workers => workers;
+    public Vector2 DropPoint => _dropPoint.position;
 
-    public int CurrentWoodCost => config != null
-        ? config.BaseWoodCost + CurrentWorkers * config.WoodIncreasePerWorker
-        : 0;
+    public int MaxWorkers => _config.MaxWorkers;
+    public int CurrentWorkers => _workers.Count;
+    public IReadOnlyList<Worker> Workers => _workers;
 
-    public int CurrentGoldCost => config != null
-        ? config.BaseGoldCost + CurrentWorkers * config.GoldIncreasePerWorker
-        : 0;
+    public int CurrentWoodCost => _config.BaseWoodCost + CurrentWorkers * _config.WoodIncreasePerWorker;
+    public int CurrentGoldCost => _config.BaseGoldCost + CurrentWorkers * _config.GoldIncreasePerWorker;
 
     public event Action OnWorkersChanged;
     public event Action<Worker> OnWorkerAdded;
     public event Action<Worker> OnWorkerRemoved;
+
+    private readonly Subject<Unit> _workersChanged = new();
+    private readonly Subject<Worker> _workerAdded = new();
+    private readonly Subject<Worker> _workerRemoved = new();
+
+    public IObservable<Unit> WorkersChanged => _workersChanged;
+    public IObservable<Worker> WorkerAdded => _workerAdded;
+    public IObservable<Worker> WorkerRemoved => _workerRemoved;
+
+    [Inject]
+    private void Construct(
+        WorkerFactory workerFactory,
+        ResourceStorage resourceStorage)
+    {
+        _workerFactory = workerFactory;
+        _resourceStorage = resourceStorage;
+    }
 
     protected override void Awake()
     {
@@ -58,24 +73,17 @@ public class House : ValidatedMonoBehaviour
     protected override bool ValidateInternal()
     {
         bool valid = true;
-        // Проверяем обязательные ссылки
-        valid &= ValidationUtility.NotEmptyCollection(this, config, nameof(config));
-        valid &= ValidationUtility.NotEmptyCollection(this, spawnPoint, nameof(spawnPoint));
-        valid &= ValidationUtility.NotEmptyCollection(this, workerPrefab, nameof(workerPrefab));
 
-        if (config != null && !config.IsValid())
-        {
-            Debug.LogError($"{name}: HouseConfig is invalid", this);
-            valid = false;
-        }
+        valid &= ValidationUtility.NotEmptyCollection(this, _config, nameof(_config));
+        valid &= ValidationUtility.NotEmptyCollection(this, _spawnPoint, nameof(_spawnPoint));
+        valid &= ValidationUtility.NotEmptyCollection(this, _workerPrefab, nameof(_workerPrefab));
 
-        dropRadius = Mathf.Max(0f, dropRadius);
         return valid;
     }
 
     private void OnValidate()
     {
-        dropRadius = Mathf.Max(0f, dropRadius);
+        _dropRadius = Mathf.Max(0f, _dropRadius);
     }
 
     private void Start()
@@ -83,9 +91,8 @@ public class House : ValidatedMonoBehaviour
         if (!enabled)
             return;
 
-        int startWorkers = config != null ? Mathf.Max(0, config.StartWorkers) : 0;
+        int startWorkers = _config.StartWorkers;
 
-        // Спавним стартовых worker'ов, но не выходим за лимит
         for (int i = 0; i < startWorkers; i++)
         {
             if (CurrentWorkers >= MaxWorkers)
@@ -95,82 +102,68 @@ public class House : ValidatedMonoBehaviour
         }
 
         OnWorkersChanged?.Invoke();
+        _workersChanged.OnNext(Unit.Default);
     }
-    /// <summary>
-    /// Кэширует все дочерние idle-точки из idlePointsRoot
-    /// </summary>
+
     private void CacheIdlePoints()
     {
-        idlePoints.Clear();
+        _idlePoints.Clear();
 
-        if (idlePointsRoot == null)
+        if (_idlePointsRoot == null)
             return;
 
-        foreach (Transform child in idlePointsRoot)
+        foreach (Transform child in _idlePointsRoot)
         {
             if (child != null)
-                idlePoints.Add(child);
+                _idlePoints.Add(child);
         }
     }
-    /// Создаёт нового worker'а, привязывает его к дому
-    /// и добавляет в локальный список дома
-    /// </summary>
+
     private Worker SpawnWorker()
     {
         if (!enabled)
             return null;
 
-        if (workerPrefab == null || spawnPoint == null)
-        {
-            Debug.LogError($"House {name}: workerPrefab or spawnPoint is missing.", this);
-            return null;
-        }
-
-        Worker worker = Instantiate(workerPrefab, spawnPoint.position, Quaternion.identity);
+        Worker worker = CreateWorker();
         if (worker == null)
             return null;
 
+        _workers.Add(worker);
         worker.SetHome(this);
-        workers.Add(worker);
 
-        Vector2 idlePos = GetIdlePosition(worker);
-        worker.transform.position = idlePos;
+        Vector2 idlePosition = GetIdlePosition(worker);
+        worker.transform.position = idlePosition;
 
         OnWorkerAdded?.Invoke(worker);
         OnWorkersChanged?.Invoke();
 
         return worker;
     }
-    /// <summary>
-    /// Можно ли сейчас нанять нового worker'а
-    /// </summary>
+
+    private Worker CreateWorker()
+    {
+
+        return _workerFactory.Create(
+            _workerPrefab,
+            _spawnPoint.position,
+            Quaternion.identity);
+    }
+
     public bool CanHire()
     {
         return string.IsNullOrEmpty(GetHireBlockReason());
     }
-    /// <summary>
-    /// Возвращает причину, по которой найм сейчас невозможен
-    /// Пустая строка означает, что найм разрешён
-    /// </summary>
+
     public string GetHireBlockReason()
     {
-        if (!enabled)
-            return "Дом выключен из-за ошибки";
-
-        if (config == null)
-            return "Конфиг дома не назначен";
-
-        if (isHiringInProgress)
-            return "Найм уже выполняется";
+        if (_resourceStorage == null)
+            return "Хранилище ресурсов не найдено";
 
         if (CurrentWorkers >= MaxWorkers)
             return "Достигнут лимит рабочих";
 
-        if (ResourceStorage.Instance == null)
-            return "Хранилище ресурсов не найдено";
-
-        bool enoughWood = ResourceStorage.Instance.Wood >= CurrentWoodCost;
-        bool enoughGold = ResourceStorage.Instance.Gold >= CurrentGoldCost;
+        bool enoughWood = _resourceStorage.Wood >= CurrentWoodCost;
+        bool enoughGold = _resourceStorage.Gold >= CurrentGoldCost;
 
         if (!enoughWood && !enoughGold)
             return "Не хватает дерева и золота";
@@ -183,112 +176,75 @@ public class House : ValidatedMonoBehaviour
 
         return string.Empty;
     }
-    /// <summary>
-    /// Нанимает нового worker'а, если это возможно
-    /// </summary>
+
     public void HireWorker()
     {
-        if (isHiringInProgress)
+        if (_isHiringInProgress)
             return;
 
         if (!CanHire())
             return;
 
-        if (ResourceStorage.Instance == null)
-            return;
-
-        isHiringInProgress = true;
+        _isHiringInProgress = true;
 
         try
         {
-            bool spent = ResourceStorage.Instance.TrySpendResources(CurrentWoodCost, CurrentGoldCost);
+            bool spent = _resourceStorage.TrySpendResources(CurrentWoodCost, CurrentGoldCost);
             if (!spent)
                 return;
 
             Worker worker = SpawnWorker();
             if (worker == null)
-            {
-                Debug.LogError($"House {name}: failed to spawn worker after spending resources.", this);
-            }
+                Debug.LogError($"{name}: не удалось создать рабочего после списания ресурсов.", this);
         }
         finally
         {
-            isHiringInProgress = false;
+            _isHiringInProgress = false;
         }
     }
-    /// <summary>
-    /// Удаляет worker'а из локального списка дома
-    /// и освобождает его idle-позицию
-    /// </summary>
+
     public void RemoveWorker(Worker worker)
     {
         if (worker == null)
             return;
 
-        if (!workers.Remove(worker))
+        if (!_workers.Remove(worker))
             return;
 
         ReleaseIdlePosition(worker);
+
         OnWorkerRemoved?.Invoke(worker);
         OnWorkersChanged?.Invoke();
     }
-    /// <summary>
-    /// Возвращает idle-позицию для worker'а
-    /// Если worker уже имеет закреплённую точку — возвращает её
-    /// Иначе ищет первую свободную
-    /// </summary>
+
     public Vector2 GetIdlePosition(Worker worker)
     {
         if (worker == null)
-            return spawnPoint != null ? (Vector2)spawnPoint.position : (Vector2)transform.position;
+            return _spawnPoint.position;
 
-        if (occupiedIdlePoints.TryGetValue(worker, out Transform existing) && existing != null)
+        if (_occupiedIdlePoints.TryGetValue(worker, out Transform existing) && existing != null)
             return existing.position;
 
-        foreach (Transform point in idlePoints)
+        foreach (Transform point in _idlePoints)
         {
             if (point == null)
                 continue;
 
-            if (!occupiedIdlePoints.ContainsValue(point))
-            {
-                occupiedIdlePoints[worker] = point;
-                return point.position;
-            }
+            if (_occupiedIdlePoints.ContainsValue(point))
+                continue;
+
+            _occupiedIdlePoints[worker] = point;
+            return point.position;
         }
 
-        return spawnPoint != null ? (Vector2)spawnPoint.position : (Vector2)transform.position;
+        return _spawnPoint.position;
     }
-    /// <summary>
-    /// Освобождает закреплённую idle-точку worker'а
-    /// </summary>
+
     public void ReleaseIdlePosition(Worker worker)
     {
         if (worker == null)
             return;
 
-        occupiedIdlePoints.Remove(worker);
-    }
-    /// <summary>
-    /// Возвращает точку сдачи ресурсов для worker'а
-    /// Worker'ы разводятся по окружности вокруг dropPoint,
-    /// чтобы уменьшить скучивание возле дома.
-    /// </summary>
-    public Vector2 GetDropPosition(Worker worker)
-    {
-        Vector2 center = DropPoint;
-
-        if (worker == null || workers.Count <= 1)
-            return center;
-
-        int index = workers.IndexOf(worker);
-        if (index < 0)
-            return center;
-
-        float angleStep = 360f / Mathf.Max(1, workers.Count);
-        float angle = angleStep * index * Mathf.Deg2Rad;
-
-        Vector2 offset = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * dropRadius;
-        return center + offset;
+        _occupiedIdlePoints.Remove(worker);
     }
 }

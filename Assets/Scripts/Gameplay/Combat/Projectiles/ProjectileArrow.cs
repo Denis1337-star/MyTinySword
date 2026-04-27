@@ -2,21 +2,27 @@ using UnityEngine;
 
 
 /// <summary>
-/// Простой проектайл стрелы.
-/// Летит к цели и при попадании наносит урон.
+/// Летит к цели и при попадании наносит урон
 /// </summary>
 public class ProjectileArrow : MonoBehaviour
 {
-    private IDamageable target;
+    private Health target;
     private int damage;
     private float speed;
     private bool initialized;
 
-    public void Initialize(IDamageable target, int damage, float speed)
+    public void Initialize(Health target, int damage, float speed)
     {
+        if (target == null || damage <= 0 || speed <= 0f)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         this.target = target;
         this.damage = damage;
         this.speed = speed;
+
         initialized = true;
     }
 
@@ -31,24 +37,42 @@ public class ProjectileArrow : MonoBehaviour
             return;
         }
 
-        MonoBehaviour targetBehaviour = target as MonoBehaviour;
-        if (targetBehaviour == null)
-        {
-            Destroy(gameObject);
-            return;
-        }
+        MoveToTarget();
+    }
 
-        Vector3 targetPosition = targetBehaviour.transform.position;
+    private void MoveToTarget()
+    {
+        Vector3 targetPosition = target.transform.position;
         Vector3 direction = targetPosition - transform.position;
+
         float step = speed * Time.deltaTime;
 
-        if (direction.magnitude <= step)
+        if (direction.sqrMagnitude <= step * step)
         {
-            target.TakeDamage(damage);
-            Destroy(gameObject);
+            HitTarget();
             return;
         }
 
-        transform.position += direction.normalized * step;
+        Vector3 moveDirection = direction.normalized;
+        transform.position += moveDirection * step;
+
+        RotateToDirection(moveDirection);
+    }
+
+    private void HitTarget()
+    {
+        if (target != null && !target.IsDead)
+            target.TakeDamage(damage);
+
+        Destroy(gameObject);
+    }
+
+    private void RotateToDirection(Vector3 direction)
+    {
+        if (direction.sqrMagnitude <= 0.0001f)
+            return;
+
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.Euler(0f, 0f, angle);
     }
 }

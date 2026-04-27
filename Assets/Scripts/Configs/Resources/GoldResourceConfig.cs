@@ -6,8 +6,6 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "MyTinySword/Configs/Resources/Gold Config")]
 public class GoldResourceConfig : ResourceConfig
 {
-
-    [Min(0.1f)]
     [SerializeField] private float growInterval ;
 
     public float GrowInterval => growInterval;
