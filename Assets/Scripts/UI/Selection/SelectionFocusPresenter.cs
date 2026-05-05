@@ -2,13 +2,14 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Слушает изменение выбранного объекта 
-/// если выбран worker, передаёт команду системе камеры сфокусироваться на нём
+/// Связывает выбор объекта с focus камеры
 /// </summary>
-public class SelectionFocusPresenter : MonoBehaviour
+public sealed class SelectionFocusPresenter : MonoBehaviour
 {
     private SelectionSystem _selectionSystem;
     private CameraFocusController _focusController;
+
+    private bool _isSubscribed;
 
     [Inject]
     private void Construct(
@@ -19,27 +20,21 @@ public class SelectionFocusPresenter : MonoBehaviour
         _focusController = focusController;
     }
 
+    private void Start()
+    {
+        Subscribe();
+    }
+
     private void OnEnable()
     {
-        if (_selectionSystem == null)
-            return;
-
-        _selectionSystem.SelectionChanged += OnSelectionChanged;
-        _selectionSystem.SelectionCleared += OnSelectionCleared;
+        Subscribe();
     }
 
     private void OnDisable()
     {
-        if (_selectionSystem == null)
-            return;
-
-        _selectionSystem.SelectionChanged -= OnSelectionChanged;
-        _selectionSystem.SelectionCleared -= OnSelectionCleared;
+        Unsubscribe();
     }
 
-    /// <summary>
-    /// Если выбран worker, переводит камеру в follow-режим 
-    /// </summary>
     private void OnSelectionChanged(UnitSelectable selectable)
     {
         if (selectable == null || _focusController == null)
@@ -49,15 +44,38 @@ public class SelectionFocusPresenter : MonoBehaviour
         if (worker == null)
             worker = selectable.GetComponentInParent<Worker>();
 
-        if (worker != null)
-            _focusController.FocusOn(worker.transform);
+        if (worker == null)
+            return;
+
+        _focusController.FocusOn(worker.transform);
     }
 
-    /// <summary>
-    /// При очистке выбора отменяет focus-режим камеры
-    /// </summary>
     private void OnSelectionCleared()
     {
         _focusController?.CancelFocus();
+    }
+
+    private void Subscribe()
+    {
+        if (_isSubscribed)
+            return;
+
+        _selectionSystem.SelectionChanged += OnSelectionChanged;
+        _selectionSystem.SelectionCleared += OnSelectionCleared;
+
+        _isSubscribed = true;
+    }
+
+    private void Unsubscribe()
+    {
+        if (!_isSubscribed)
+            return;
+
+
+        _selectionSystem.SelectionChanged -= OnSelectionChanged;
+        _selectionSystem.SelectionCleared -= OnSelectionCleared;
+
+
+        _isSubscribed = false;
     }
 }

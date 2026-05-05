@@ -1,25 +1,25 @@
 using UnityEngine;
 
 /// <summary>
-/// Определяет  количество мяса
+/// Конфиг овцы как ресурс
 /// </summary>
 [CreateAssetMenu(menuName = "MyTinySword/Configs/Resources/Sheep Config")]
-public class SheepResourceConfig : ResourceConfig
+public sealed class SheepResourceConfig : ResourceConfig
 {
-    [SerializeField] private int meatAmount;
+    [SerializeField, Min(1)] private int _meatAmount;
 
-    public int MeatAmount => meatAmount;
+    public int MeatAmount => _meatAmount;
 
     public override bool IsValid()
     {
-        return Priority >= 0f &&
-               RespawnTime >= 0.1f &&
-               meatAmount >= 1;
+        return base.IsValid() &&
+               _meatAmount >= 1;
     }
 
     protected override void OnValidate()
     {
         base.OnValidate();
-        meatAmount = Mathf.Max(1, meatAmount);
+
+        _meatAmount = Mathf.Max(1, _meatAmount);
     }
 }

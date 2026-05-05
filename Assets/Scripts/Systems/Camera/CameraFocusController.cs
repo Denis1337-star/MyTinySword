@@ -1,81 +1,70 @@
-using UnityEngine;
-using UnityEngine.InputSystem.EnhancedTouch;
 using Cinemachine;
-using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
+using UnityEngine;
 
 /// <summary>
-///  онтроллер follow-фокуса камеры.
-/// ”правл€ет тем, за каким target должна следовать Cinemachine-камера,
-/// и снимает фокус, если игрок начинает вручную двигать камеру.
+/// ”правл€ет focus-режимом Cinemachine камеры
+/// ћожет сфокусировать камеру на цели и отмен€ет focus при ручном drag камеры
 /// </summary>
 public class CameraFocusController : MonoBehaviour
 {
-    [SerializeField] private CinemachineVirtualCamera virtualCamera;
-    [SerializeField] private CameraController cameraController;
+    [SerializeField] private CinemachineVirtualCamera _virtualCamera;
+    [SerializeField] private CameraController _cameraController;
 
-    public bool HasFocus => virtualCamera != null && virtualCamera.Follow != null;
+    private Transform _currentTarget;
+
+    public bool HasFocus => _currentTarget != null;
 
     private void Awake()
     {
         ResolveReferences();
     }
 
-    private void OnValidate()
-    {
-        ResolveReferences();
-    }
-    /// <summary>
-    /// ѕытаетс€ восстановить отсутствующие ссылки.
-    /// </summary>
-    private void ResolveReferences()
-    {
-        if (cameraController == null)
-            cameraController = FindObjectOfType<CameraController>(true);
-    }
-
     private void Update()
     {
-        // ≈сли игрок вручную двигает камеру по игровому миру,
-        // считаем это €вным выходом из режима follow-фокуса
-        if (cameraController != null && cameraController.IsDragging && !IsPointerOverUI())
+        if (!HasFocus)
+            return;
+
+        if (_cameraController == null)
+            return;
+
+        if (_cameraController.IsDragging)
             CancelFocus();
     }
 
     /// <summary>
-    /// ѕереводит камеру в режим follow на указанную цель.
+    /// ѕереводит камеру в follow-режим на указанную цель
     /// </summary>
     public void FocusOn(Transform target)
     {
-        if (virtualCamera == null || target == null)
+        if (target == null || _virtualCamera == null)
             return;
 
-        virtualCamera.Follow = target;
+        _currentTarget = target;
+        _virtualCamera.Follow = target;
     }
+
     /// <summary>
-    /// ѕереводит камеру в режим follow на указанную цель.
+    /// ќтмен€ет follow-режим камеры
     /// </summary>
     public void CancelFocus()
     {
-        if (virtualCamera == null)
-            return;
+        _currentTarget = null;
 
-        virtualCamera.Follow = null;
+        if (_virtualCamera != null)
+            _virtualCamera.Follow = null;
     }
-    /// <summary>
-    /// ѕровер€ет, находитс€ ли хот€ бы одно активное касание поверх UI.
-    /// ≈сли да, drag по UI не должен отмен€ть фокус камеры.
-    /// </summary>
-    private bool IsPointerOverUI()
+
+    private void ResolveReferences()
     {
-        if (Touch.activeTouches.Count == 0)
-            return false;
+        if (_virtualCamera == null)
+            _virtualCamera = GetComponent<CinemachineVirtualCamera>();
 
-        foreach (var touch in Touch.activeTouches)
-        {
-            if (TouchUtility.IsPointerOverUI(touch))
-                return true;
-        }
+        if (_cameraController == null)
+            _cameraController = GetComponent<CameraController>();
+    }
 
-        return false;
+    private void OnValidate()
+    {
+        ResolveReferences();
     }
 }

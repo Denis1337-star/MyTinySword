@@ -1,112 +1,93 @@
+п»їusing System;
+using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
-/// UI-элемент одного worker'а в списке дома
-/// Показывает имя, текущую работу, pending job и текущее состояние,
-/// а также позволяет выбрать worker'а по клику из UI
+/// UI-СЌР»РµРјРµРЅС‚ РѕРґРЅРѕРіРѕ СЂР°Р±РѕС‡РµРіРѕ РІ СЃРїРёСЃРєРµ СЂР°Р±РѕС‡РёС… РґРѕРјР°
+/// РџРѕРєР°Р·С‹РІР°РµС‚ СЂР°Р±РѕС‚Сѓ, СЃРѕСЃС‚РѕСЏРЅРёРµ Рё РїРѕР·РІРѕР»СЏРµС‚ РІС‹Р±СЂР°С‚СЊ СЂР°Р±РѕС‡РµРіРѕ
 /// </summary>
-public class WorkerListItem : MonoBehaviour, IPointerClickHandler
+public class WorkerListItem : MonoBehaviour
 {
-    [SerializeField] private Text workerText;
+    [SerializeField] private TMP_Text _infoText;
+    [SerializeField] private Button _selectButton;
 
-    private Worker worker;
-    private SelectionSystem selectionSystem;
+    private Worker _worker;
+    private Action<Worker> _onSelected;
 
-    /// <summary>
-    /// Привязывает item к конкретному worker'у и selection system.
-    /// </summary>
-    public void Bind(Worker worker, SelectionSystem selectionSystem)
+    private void OnEnable()
     {
-        Unsubscribe();
+        _selectButton?.onClick.AddListener(HandleSelectClicked);
 
-        this.worker = worker;
-        this.selectionSystem = selectionSystem;
-
-        Subscribe();
-        UpdateView();
+        SubscribeToWorker();
     }
 
     private void OnDisable()
     {
-        Unsubscribe();
-    }
+        _selectButton?.onClick.RemoveListener(HandleSelectClicked);
 
-    private void OnDestroy()
-    {
-        Unsubscribe();
+        UnsubscribeFromWorker();
     }
 
     /// <summary>
-    /// Подписывается на события worker'а,
-    /// чтобы строка автоматически обновлялась при изменениях.
+    /// РџСЂРёРІСЏР·С‹РІР°РµС‚ item Рє РєРѕРЅРєСЂРµС‚РЅРѕРјСѓ СЂР°Р±РѕС‡РµРјСѓ
     /// </summary>
-    private void Subscribe()
+    public void Bind(Worker worker, Action<Worker> onSelected)
     {
-        if (worker == null)
+        UnsubscribeFromWorker();
+
+        _worker = worker;
+        _onSelected = onSelected;
+
+        SubscribeToWorker();
+        Refresh();
+    }
+
+    private void Refresh()
+    {
+        if (_infoText == null)
             return;
 
-        worker.OnJobChanged += UpdateView;
-        worker.OnActivityChanged += UpdateView;
-    }
-
-    /// <summary>
-    /// Снимает подписки с текущего worker'а.
-    /// </summary>
-    private void Unsubscribe()
-    {
-        if (worker == null)
-            return;
-
-        worker.OnJobChanged -= UpdateView;
-        worker.OnActivityChanged -= UpdateView;
-    }
-
-    /// <summary>
-    /// Обновляет текст строки под текущее состояние worker'а.
-    /// </summary>
-    private void UpdateView()
-    {
-        if (worker == null || workerText == null)
-            return;
-
-        string currentJob = WorkerJobLocalization.GetName(worker.CurrentJob);
-        string pendingJob = worker.HasPendingJob
-            ? WorkerJobLocalization.GetName(worker.PendingJob)
-            : "Нет";
-
-        workerText.text =
-            $"{worker.name}\n" +
-            $"Работа: {currentJob}\n" +
-            $"Следующая: {pendingJob}\n" +
-            $"Состояние: {GetReadableState(worker.CurrentStateName)}\n";
-    }
-
-    /// <summary>
-    /// Переводит внутреннее имя состояния worker'а в понятный текст для UI.
-    /// </summary>
-    private string GetReadableState(string stateName)
-    {
-        return stateName switch
+        if (_worker == null)
         {
-            nameof(WorkerIdleState) => "Ожидает",
-            nameof(WorkerFindResourceState) => "Ищет ресурс",
-            nameof(WorkerGoToResourceState) => "Идёт к ресурсу",
-            nameof(WorkerWorkState) => "Работает",
-            nameof(WorkerCarryState) => "Несёт ресурс",
-            _ => stateName
-        };
+            _infoText.text = string.Empty;
+            return;
+        }
+
+        string currentJob = WorkerJobLocalization.GetName(_worker.CurrentJob);
+
+        string jobLine = _worker.HasPendingJob
+            ? $"Job: {currentJob} в†’ {WorkerJobLocalization.GetName(_worker.PendingJob)}"
+            : $"Job: {currentJob}";
+
+        _infoText.text =
+            $"{_worker.name}\n" +
+            $"{jobLine}";
     }
 
-    /// <summary>
-    /// По клику на строку выбираем соответствующего worker'а через общую selection-систему.
-    /// </summary>
-    public void OnPointerClick(PointerEventData eventData)
+    private void HandleSelectClicked()
     {
-        if (worker == null || selectionSystem == null)
+        if (_worker == null)
             return;
 
-        selectionSystem.SelectWorkerFromUI(worker);
+        _onSelected?.Invoke(_worker);
+    }
+
+    private void SubscribeToWorker()
+    {
+        if (_worker == null)
+            return;
+
+        _worker.OnJobChanged += Refresh;
+        _worker.OnActivityChanged += Refresh;
+    }
+
+    private void UnsubscribeFromWorker()
+    {
+        if (_worker == null)
+            return;
+
+        _worker.OnJobChanged -= Refresh;
+        _worker.OnActivityChanged -= Refresh;
     }
 }

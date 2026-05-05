@@ -1,42 +1,57 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+using Object = UnityEngine.Object;
+
 /// <summary>
-/// Набор вспомогательных методов для проверки обязательных ссылок и коллекций
+/// утилита для проверки обязательных ссылок 
 /// </summary>
 public static class ValidationUtility
 {
+    private const string UnknownOwnerName = "Unknown Owner";
 
-    // Проверяет, что обязательная ссылка назначена
-    public static bool NotEmptyCollection(Object owner, Object value, string fieldName)
+    /// <summary>
+    /// проверяет что обязательная ссылка назначена
+    /// </summary>
+    public static bool IsAssigned(Object owner, Object value, string fieldName)
     {
         if (value != null)
             return true;
 
-        string ownerName = owner != null ? owner.name : "Unknown Owner";
-        Debug.LogError($"{ownerName}: required field '{fieldName}' is missing.", owner);
+        LogError(owner, fieldName, "не назначено");
         return false;
     }
 
-    // Проверяет, что массив существует и содержит хотя бы один элемент
-    public static bool NotEmptyArray(Object owner, Object[] array, string fieldName)
+    /// <summary>
+    /// проверяет что массив существует и содержит хотя бы один элемент
+    /// </summary>
+    public static bool NotEmptyArray<T>(Object owner, T[] array, string fieldName)
     {
         if (array != null && array.Length > 0)
             return true;
 
-        string ownerName = owner != null ? owner.name : "Unknown Owner";
-        Debug.LogError($"{ownerName}: required array '{fieldName}' is empty or null.", owner);
+        LogError(owner, fieldName, "массив пустой или не назначен");
         return false;
     }
 
-    // Проверяет, что список существует и содержит хотя бы один элемент
+    /// <summary>
+    /// проверяет что список существует и содержит хотя бы один элемент
+    /// </summary>
     public static bool NotEmptyList<T>(Object owner, IReadOnlyList<T> list, string fieldName)
     {
         if (list != null && list.Count > 0)
             return true;
 
-        string ownerName = owner != null ? owner.name : "Unknown Owner";
-        Debug.LogError($"{ownerName}: required list '{fieldName}' is empty or null.", owner);
+        LogError(owner, fieldName, "список пустой или не назначен");
         return false;
+    }
+
+    private static void LogError(Object owner, string fieldName, string reason)
+    {
+        string ownerName = owner != null
+            ? owner.name
+            : UnknownOwnerName;
+
+        Debug.LogError($"{ownerName}: обязательное поле \"{fieldName}\" {reason}.", owner);
     }
 }

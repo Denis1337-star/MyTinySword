@@ -1,7 +1,9 @@
 using UnityEngine;
 
 /// <summary>
-/// —осто€ние движени€ рабочего к слоту
+/// —осто€ние движени€ к ресурсу.
+/// Worker идЄт к зарезервированному рабочему слоту
+/// и после прибыти€ переходит в состо€ние работы.
 /// </summary>
 public class WorkerGoToResourceState : IWorkerState
 {
@@ -46,7 +48,6 @@ public class WorkerGoToResourceState : IWorkerState
         _worker.Movement.Stop();
         _worker.EnterWorkState();
     }
-
 
     public void Exit()
     {

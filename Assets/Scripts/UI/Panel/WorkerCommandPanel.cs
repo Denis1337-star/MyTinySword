@@ -4,24 +4,25 @@ using UnityEngine.UI;
 using Zenject;
 
 /// <summary>
-/// UI-панель выбранного worker
+/// UI-панель выбранного worker.
+/// Показывает текущую/следующую работу и кнопки назначения jobs.
 /// </summary>
 public class WorkerCommandPanel : MonoBehaviour
 {
-    [Header("Root")]
-    [SerializeField] private GameObject _root;
-
-    [Header("Text")]
-    [SerializeField] private TMP_Text _titleText;
+    [Header("Job Text")]
+    [SerializeField] private TMP_Text _currentJobText;
+    [SerializeField] private TMP_Text _pendingJobText;
 
     [Header("Buttons")]
     [SerializeField] private Button _chopWoodButton;
     [SerializeField] private Button _mineGoldButton;
     [SerializeField] private Button _huntMeatButton;
-    [SerializeField] private Button _idleButton;
 
     private WorkerCommandService _workerCommandService;
     private Worker _currentWorker;
+
+    private bool _buttonsSubscribed;
+    private bool _workerSubscribed;
 
     [Inject]
     private void Construct(WorkerCommandService workerCommandService)
@@ -31,17 +32,20 @@ public class WorkerCommandPanel : MonoBehaviour
 
     private void Awake()
     {
-        Hide();
+        gameObject.SetActive(false);
     }
 
     private void OnEnable()
     {
-        BindButtons();
+        SubscribeButtons();
+        SubscribeToWorker();
+        Refresh();
     }
 
     private void OnDisable()
     {
-        UnbindButtons();
+        UnsubscribeButtons();
+        UnsubscribeFromWorker();
     }
 
     public void ShowForWorker(Worker worker)
@@ -52,56 +56,47 @@ public class WorkerCommandPanel : MonoBehaviour
             return;
         }
 
-        _currentWorker = worker;
+        if (_currentWorker != worker)
+        {
+            UnsubscribeFromWorker();
+            _currentWorker = worker;
 
-        if (_root != null)
-            _root.SetActive(true);
+            if (gameObject.activeInHierarchy)
+                SubscribeToWorker();
+        }
 
-        RefreshTitle();
+        if (!gameObject.activeSelf)
+            gameObject.SetActive(true);
+
+        Refresh();
     }
 
     public void Hide()
     {
+        UnsubscribeFromWorker();
+
         _currentWorker = null;
 
-        if (_root != null)
-            _root.SetActive(false);
+        ClearText();
+        RefreshButtons();
+
+        if (gameObject.activeSelf)
+            gameObject.SetActive(false);
     }
 
-    private void BindButtons()
-    {
-        _chopWoodButton?.onClick.AddListener(SetChopWood);
-        _mineGoldButton?.onClick.AddListener(SetMineGold);
-        _huntMeatButton?.onClick.AddListener(SetHuntMeat);
-        _idleButton?.onClick.AddListener(SetIdle);
-    }
-
-    private void UnbindButtons()
-    {
-        _chopWoodButton?.onClick.RemoveListener(SetChopWood);
-        _mineGoldButton?.onClick.RemoveListener(SetMineGold);
-        _huntMeatButton?.onClick.RemoveListener(SetHuntMeat);
-        _idleButton?.onClick.RemoveListener(SetIdle);
-    }
-
-    private void SetChopWood()
+    private void OnChopWoodClicked()
     {
         AssignJob(WorkerJobType.ChopWood);
     }
 
-    private void SetMineGold()
+    private void OnMineGoldClicked()
     {
         AssignJob(WorkerJobType.MineGold);
     }
 
-    private void SetHuntMeat()
+    private void OnHuntMeatClicked()
     {
         AssignJob(WorkerJobType.HuntMeat);
-    }
-
-    private void SetIdle()
-    {
-        AssignJob(WorkerJobType.None);
     }
 
     private void AssignJob(WorkerJobType job)
@@ -109,21 +104,124 @@ public class WorkerCommandPanel : MonoBehaviour
         if (_currentWorker == null || _workerCommandService == null)
             return;
 
-        _workerCommandService.TryAssignJob(_currentWorker, job);
-        RefreshTitle();
+        bool assigned = _workerCommandService.TryAssignJob(_currentWorker, job);
+
+        if (assigned)
+            Refresh();
     }
 
-    private void RefreshTitle()
+    private void Refresh()
     {
-        if (_titleText == null)
-            return;
-
         if (_currentWorker == null)
         {
-            _titleText.text = string.Empty;
+            ClearText();
+            RefreshButtons();
             return;
         }
 
-        _titleText.text = _currentWorker.CurrentJob.ToString();
+        if (_currentJobText != null)
+        {
+            _currentJobText.text =
+                $"Текущая работа: {WorkerJobLocalization.GetName(_currentWorker.CurrentJob)}";
+        }
+
+        if (_pendingJobText != null)
+        {
+            _pendingJobText.text = _currentWorker.HasPendingJob
+                ? $"Следующая работа: {WorkerJobLocalization.GetName(_currentWorker.PendingJob)}"
+                : "Следующая работа: нет";
+        }
+
+        RefreshButtons();
+    }
+
+    private void RefreshButtons()
+    {
+        SetButtonInteractable(_chopWoodButton, CanSelectJob(WorkerJobType.ChopWood));
+        SetButtonInteractable(_mineGoldButton, CanSelectJob(WorkerJobType.MineGold));
+        SetButtonInteractable(_huntMeatButton, CanSelectJob(WorkerJobType.HuntMeat));
+    }
+
+    private bool CanSelectJob(WorkerJobType job)
+    {
+        if (_currentWorker == null)
+            return false;
+
+        if (_currentWorker.CurrentJob == job && !_currentWorker.HasPendingJob)
+            return false;
+
+        if (_currentWorker.PendingJob == job)
+            return false;
+
+        return true;
+    }
+
+    private void SetButtonInteractable(Button button, bool interactable)
+    {
+        if (button == null)
+            return;
+
+        button.interactable = interactable;
+    }
+
+    private void ClearText()
+    {
+        if (_currentJobText != null)
+            _currentJobText.text = "Текущая работа: нет";
+
+        if (_pendingJobText != null)
+            _pendingJobText.text = "Следующая работа: нет";
+    }
+
+    private void SubscribeButtons()
+    {
+        if (_buttonsSubscribed)
+            return;
+
+        _chopWoodButton?.onClick.AddListener(OnChopWoodClicked);
+        _mineGoldButton?.onClick.AddListener(OnMineGoldClicked);
+        _huntMeatButton?.onClick.AddListener(OnHuntMeatClicked);
+
+        _buttonsSubscribed = true;
+    }
+
+    private void UnsubscribeButtons()
+    {
+        if (!_buttonsSubscribed)
+            return;
+
+        _chopWoodButton?.onClick.RemoveListener(OnChopWoodClicked);
+        _mineGoldButton?.onClick.RemoveListener(OnMineGoldClicked);
+        _huntMeatButton?.onClick.RemoveListener(OnHuntMeatClicked);
+
+        _buttonsSubscribed = false;
+    }
+
+    private void SubscribeToWorker()
+    {
+        if (_workerSubscribed)
+            return;
+
+        if (_currentWorker == null)
+            return;
+
+        _currentWorker.OnJobChanged += Refresh;
+        _currentWorker.OnActivityChanged += Refresh;
+
+        _workerSubscribed = true;
+    }
+
+    private void UnsubscribeFromWorker()
+    {
+        if (!_workerSubscribed)
+            return;
+
+        if (_currentWorker != null)
+        {
+            _currentWorker.OnJobChanged -= Refresh;
+            _currentWorker.OnActivityChanged -= Refresh;
+        }
+
+        _workerSubscribed = false;
     }
 }

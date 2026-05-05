@@ -3,8 +3,8 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Центральная сущность worker
-/// Объединяет state machine, brain, inventory, movement и текущую job-логику
+/// Центральная сущность worker'а.
+/// Хранит ссылки на компоненты, состояние работы, текущий ресурс и управляет worker state machine.
 /// </summary>
 [RequireComponent(typeof(UnitMovement))]
 [RequireComponent(typeof(WorkerInventory))]
@@ -43,7 +43,10 @@ public class Worker : ValidatedMonoBehaviour
     public event Action OnJobChanged;
     public event Action OnActivityChanged;
 
-    public string CurrentStateName => StateMachine != null ? StateMachine.CurrentStateName : "None";
+    public string CurrentStateName => StateMachine != null
+        ? StateMachine.CurrentStateName
+        : "None";
+
     public bool HasCargo => Inventory != null && Inventory.HasCargo;
     public bool HasPendingJob => PendingJob != WorkerJobType.None;
 
@@ -79,7 +82,7 @@ public class Worker : ValidatedMonoBehaviour
     {
         bool valid = true;
 
-        valid &= ValidationUtility.NotEmptyCollection(this, _config, nameof(_config));
+        valid &= ValidationUtility.IsAssigned(this, _config, nameof(_config));
 
         if (_config != null && !_config.IsValid())
         {

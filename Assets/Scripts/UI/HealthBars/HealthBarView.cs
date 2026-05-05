@@ -1,50 +1,110 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 /// <summary>
-/// UI-представление полоски здоровья над объектом
-/// Отвечает за позиционирование, цвет и заполнение полоски
+/// UI-представление полоски здоровья над world-объектом.
+/// Живёт внутри Screen Canvas, но следует за Transform в мире.
 /// </summary>
-public class HealthBarView : MonoBehaviour
+public sealed class HealthBarView : MonoBehaviour
 {
     [Header("UI")]
-    [SerializeField] private Image fillImage;
+    [FormerlySerializedAs("fillImage")]
+    [SerializeField] private Image _fillImage;
 
-    private Transform target;
-    private Camera mainCamera;
-    private Vector3 worldOffset;
+    private RectTransform _rectTransform;
+    private RectTransform _canvasRectTransform;
 
-    /// <summary>
-    /// Привязывает полоску к цели и задаёт цвет заполнения
-    /// </summary>
-    public void Initialize(Transform target, Camera mainCamera, Color fillColor, Vector3 worldOffset)
+    private Transform _target;
+    private Camera _mainCamera;
+    private Canvas _canvas;
+    private Vector3 _worldOffset;
+
+    private void Awake()
     {
-        this.target = target;
-        this.mainCamera = mainCamera;
-        this.worldOffset = worldOffset;
-
-        if (fillImage != null)
-            fillImage.color = fillColor;
+        _rectTransform = transform as RectTransform;
     }
 
-    /// <summary>
-    /// Устанавливает текущее заполнение полоски
-    /// </summary>
+    public void Initialize(
+        Transform target,
+        Camera mainCamera,
+        Canvas canvas,
+        Color fillColor,
+        Vector3 worldOffset)
+    {
+        _target = target;
+        _mainCamera = mainCamera;
+        _canvas = canvas;
+        _worldOffset = worldOffset;
+
+        _canvasRectTransform = _canvas != null
+            ? _canvas.transform as RectTransform
+            : null;
+
+        if (_fillImage != null)
+            _fillImage.color = fillColor;
+
+        UpdatePosition();
+    }
+
     public void SetFill(float normalizedValue)
     {
-        if (fillImage != null)
-            fillImage.fillAmount = Mathf.Clamp01(normalizedValue);
+        if (_fillImage == null)
+            return;
+
+        _fillImage.fillAmount = Mathf.Clamp01(normalizedValue);
     }
 
     private void LateUpdate()
     {
-        if (target == null || mainCamera == null)
+        UpdatePosition();
+    }
+
+    private void UpdatePosition()
+    {
+        if (_target == null || _mainCamera == null || _canvas == null)
         {
             Destroy(gameObject);
             return;
         }
 
-        Vector3 worldPosition = target.position + worldOffset;
-        transform.position = mainCamera.WorldToScreenPoint(worldPosition);
+        Vector3 worldPosition = _target.position + _worldOffset;
+        Vector3 screenPosition = _mainCamera.WorldToScreenPoint(worldPosition);
+
+        if (screenPosition.z < 0f)
+        {
+            gameObject.SetActive(false);
+            return;
+        }
+
+        if (!gameObject.activeSelf)
+            gameObject.SetActive(true);
+
+        if (_rectTransform == null)
+            return;
+
+        if (_canvas.renderMode == RenderMode.ScreenSpaceOverlay)
+        {
+            _rectTransform.position = screenPosition;
+            return;
+        }
+
+        if (_canvasRectTransform == null)
+            return;
+
+        Camera canvasCamera = _canvas.worldCamera != null
+            ? _canvas.worldCamera
+            : _mainCamera;
+
+        bool converted = RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            _canvasRectTransform,
+            screenPosition,
+            canvasCamera,
+            out Vector2 localPoint);
+
+        if (!converted)
+            return;
+
+        _rectTransform.localPosition = localPoint;
     }
 }

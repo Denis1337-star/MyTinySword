@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7948623345042352385}
   - component: {fileID: 8078068275751895715}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: GameObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -94,7 +94,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6881242652062844867}
   - component: {fileID: 7400537261624263493}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: WorldHealthBarAcnchor
   m_TagString: Untagged
   m_Icon: {fileID: 7174288486110832750, guid: 0000000000000000d000000000000000, type: 0}
@@ -110,7 +110,7 @@ Transform:
   m_GameObject: {fileID: 7594153289835101138}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.2, z: 0}
+  m_LocalPosition: {x: 0, y: 1.7, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -145,7 +145,7 @@ GameObject:
   - component: {fileID: 2413038661450940897}
   - component: {fileID: 665738415218090706}
   - component: {fileID: 5098812676112508204}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Castle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -246,7 +246,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d863b4175fec7474fbe95caa77d2c1ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 1
+  _maxHealth: 1
 --- !u!114 &2447943090280393786
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -259,7 +259,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 507f63778ea5555489bca8495389a9e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  selectionVisual: {fileID: 2605418899053075279}
+  _selectionVisual: {fileID: 2605418899053075279}
+  _canBeSelected: 1
 --- !u!61 &145707289838189892
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -317,14 +318,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7b9f595cd0fc4c4aa32a6f197fde8af, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  health: {fileID: 8551916879802076425}
-  factionMember: {fileID: 4350631894577379448}
-  selectable: {fileID: 2447943090280393786}
-  anchor: {fileID: 7400537261624263493}
-  healthBarPrefab: {fileID: 2669886924976918483, guid: 97e2bb3049e8e734db19c6aadda234d0, type: 3}
-  screenCanvas: {fileID: 0}
-  isBuilding: 0
-  fallbackOffset: {x: 0, y: 1.5, z: 0}
+  _health: {fileID: 8551916879802076425}
+  _factionMember: {fileID: 4350631894577379448}
+  _selectable: {fileID: 2447943090280393786}
+  _anchor: {fileID: 7400537261624263493}
+  _healthBarPrefab: {fileID: 2669886924976918483, guid: 97e2bb3049e8e734db19c6aadda234d0, type: 3}
+  _showWhenSelected: 1
+  _showWhenDamaged: 1
+  _fallbackOffset: {x: 0, y: 1.5, z: 0}
 --- !u!114 &665738415218090706
 MonoBehaviour:
   m_ObjectHideFlags: 0

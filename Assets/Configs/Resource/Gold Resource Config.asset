@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 0}
   m_Name: Gold Resource Config
   m_EditorClassIdentifier: Assembly-CSharp::GoldResourceConfig
-  priority: 1
-  respawnTime: 60
-  mineTime: 3
-  growInterval: 30
+  _resourceType: 2
+  _priority: 1
+  _respawnTime: 60
+  _workTime: 3
+  _growInterval: 10

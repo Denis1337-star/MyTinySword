@@ -2,7 +2,8 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Базовый компонент боевого юнита
+/// Базовый компонент боевого юнита.
+/// Работает и для player, и для enemy.
 /// </summary>
 public class ArmyUnit : MonoBehaviour
 {
@@ -38,9 +39,21 @@ public class ArmyUnit : MonoBehaviour
         ApplyConfig();
     }
 
+    private void OnEnable()
+    {
+        if (_health != null)
+            _health.OnDied += HandleDeath;
+    }
+
     private void Start()
     {
         _armyUnitRegistry?.Register(this);
+    }
+
+    private void OnDisable()
+    {
+        if (_health != null)
+            _health.OnDied -= HandleDeath;
     }
 
     private void OnDestroy()
@@ -63,30 +76,56 @@ public class ArmyUnit : MonoBehaviour
         return _factionMember != null && _factionMember.IsEnemy();
     }
 
-    private void ResolveReferences()
-    {
-        if (_health == null)
-            _health = GetComponent<Health>();
-
-        if (_factionMember == null)
-            _factionMember = GetComponent<FactionMember>();
-
-        if (_movement == null)
-            _movement = GetComponent<UnitMovement>();
-
-        if (_animatorBridge == null)
-            _animatorBridge = GetComponent<UnitAnimatorBridge>();
-
-        if (_brain == null)
-            _brain = GetComponent<ArmyUnitBrain>();
-    }
-
     private void ApplyConfig()
     {
         if (_config == null)
             return;
 
         if (_health != null)
-            _health.ResetHealth();
+            _health.Initialize(_config.MaxHealth);
+
+        if (_movement != null)
+            _movement.SetSpeed(_config.MoveSpeed);
+    }
+
+    private void HandleDeath()
+    {
+        Destroy(gameObject);
+    }
+
+    private void ResolveReferences()
+    {
+        if (_health == null)
+            _health = GetComponent<Health>();
+
+        if (_health == null)
+            _health = GetComponentInChildren<Health>();
+
+        if (_factionMember == null)
+            _factionMember = GetComponent<FactionMember>();
+
+        if (_factionMember == null)
+            _factionMember = GetComponentInParent<FactionMember>();
+
+        if (_factionMember == null)
+            _factionMember = GetComponentInChildren<FactionMember>();
+
+        if (_movement == null)
+            _movement = GetComponent<UnitMovement>();
+
+        if (_movement == null)
+            _movement = GetComponentInChildren<UnitMovement>();
+
+        if (_animatorBridge == null)
+            _animatorBridge = GetComponent<UnitAnimatorBridge>();
+
+        if (_animatorBridge == null)
+            _animatorBridge = GetComponentInChildren<UnitAnimatorBridge>();
+
+        if (_brain == null)
+            _brain = GetComponent<ArmyUnitBrain>();
+
+        if (_brain == null)
+            _brain = GetComponentInChildren<ArmyUnitBrain>();
     }
 }

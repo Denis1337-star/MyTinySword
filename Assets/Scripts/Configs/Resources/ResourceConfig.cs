@@ -1,27 +1,32 @@
 using UnityEngine;
 
 /// <summary>
-/// Базовый конфиг для всех ресурсов
+/// Базовый конфиг ресурсов
 /// </summary>
 public abstract class ResourceConfig : BaseConfig
 {
-    [Header("Common")]
-    [SerializeField] private float priority = 1f;
-    [SerializeField] private float respawnTime;
-    [SerializeField] private float workTime;
+    [SerializeField] private ResourceType _resourceType = ResourceType.None;
+    [SerializeField, Min(0f)] private float _priority;
+    [SerializeField, Min(0f)] private float _respawnTime;
+    [SerializeField, Min(0.1f)] private float _workTime;
 
+    public ResourceType ResourceType => _resourceType;
+    public float Priority => _priority;
+    public float RespawnTime => _respawnTime;
+    public float WorkTime => _workTime;
 
-    public float Priority => priority;
-    public float RespawnTime => respawnTime;
-    public float WorkTime => workTime;
+    public override bool IsValid()
+    {
+        return _resourceType != ResourceType.None &&
+               _workTime > 0f &&
+               _respawnTime >= 0f &&
+               _priority >= 0f;
+    }
 
-    /// <summary>
-    /// Ограничивает общие значения ресурса в редакторе
-    /// </summary>
     protected virtual void OnValidate()
     {
-        priority = Mathf.Max(0f, priority);
-        respawnTime = Mathf.Max(0.1f, respawnTime);
-        workTime = Mathf.Max(1f, workTime);
+        _workTime = Mathf.Max(0.1f, _workTime);
+        _respawnTime = Mathf.Max(0f, _respawnTime);
+        _priority = Mathf.Max(0f, _priority);
     }
 }

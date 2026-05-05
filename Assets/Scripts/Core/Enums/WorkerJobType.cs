@@ -1,10 +1,11 @@
 /// <summary>
-/// типы работ рабочего
+/// Тип работы worker'а.
+/// Определяет, какой ресурс рабочий будет искать и добывать.
 /// </summary>
 public enum WorkerJobType
 {
-    None,
-    ChopWood,
-    MineGold,
-    HuntMeat
+    None = 0,
+    ChopWood = 1,
+    MineGold = 2,
+    HuntMeat = 3
 }

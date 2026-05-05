@@ -1,19 +1,32 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Zenject;
 
 /// <summary>
-/// UI-панель выбранного дома
+/// UI-панель дома
+/// Показывает количество рабочих, стоимость найма
 /// </summary>
 public class HousePanel : MonoBehaviour
 {
+    [Header("Root")]
     [SerializeField] private GameObject _root;
-    [SerializeField] private TMP_Text _workersText;
-    [SerializeField] private TMP_Text _costText;
-    [SerializeField] private TMP_Text _blockReasonText;
+
+    [Header("Text")]
+    [SerializeField] private TMP_Text _workersLimitText;
+    [SerializeField] private TMP_Text _hireCostText;
+
+    [Header("Buttons")]
     [SerializeField] private Button _hireButton;
 
     private House _currentHouse;
+    private WorkerListPanel _workerListPanel;
+
+    [Inject]
+    private void Construct(WorkerListPanel workerListPanel)
+    {
+        _workerListPanel = workerListPanel;
+    }
 
     private void Awake()
     {
@@ -22,15 +35,12 @@ public class HousePanel : MonoBehaviour
 
     private void OnEnable()
     {
-        if (_hireButton != null)
-            _hireButton.onClick.AddListener(HireWorker);
+        _hireButton?.onClick.AddListener(HireWorker);
     }
 
     private void OnDisable()
     {
-        if (_hireButton != null)
-            _hireButton.onClick.RemoveListener(HireWorker);
-
+        _hireButton?.onClick.RemoveListener(HireWorker);
         UnsubscribeFromHouse();
     }
 
@@ -44,8 +54,9 @@ public class HousePanel : MonoBehaviour
 
         if (_currentHouse == house)
         {
-            Refresh();
             ShowRoot();
+            Refresh();
+            _workerListPanel?.Show(house);
             return;
         }
 
@@ -56,11 +67,17 @@ public class HousePanel : MonoBehaviour
 
         ShowRoot();
         Refresh();
+
+        _workerListPanel?.Show(house);
     }
 
     public void Hide()
     {
         UnsubscribeFromHouse();
+
+        _currentHouse = null;
+
+        _workerListPanel?.Hide();
 
         if (_root != null)
             _root.SetActive(false);
@@ -78,27 +95,37 @@ public class HousePanel : MonoBehaviour
     private void Refresh()
     {
         if (_currentHouse == null)
+        {
+            ClearText();
             return;
-
-        if (_workersText != null)
-        {
-            _workersText.text =
-                $"{_currentHouse.CurrentWorkers}/{_currentHouse.MaxWorkers}";
         }
 
-        if (_costText != null)
+        if (_workersLimitText != null)
         {
-            _costText.text =
-                $"Wood: {_currentHouse.CurrentWoodCost}  Gold: {_currentHouse.CurrentGoldCost}";
+            _workersLimitText.text =
+                $"Нанято: {_currentHouse.CurrentWorkers}/{_currentHouse.MaxWorkers}";
         }
 
-        string blockReason = _currentHouse.GetHireBlockReason();
-
-        if (_blockReasonText != null)
-            _blockReasonText.text = blockReason;
+        if (_hireCostText != null)
+        {
+            _hireCostText.text =
+                $"Стоимость: Wood {_currentHouse.CurrentWoodCost} / Gold {_currentHouse.CurrentGoldCost}";
+        }
 
         if (_hireButton != null)
-            _hireButton.interactable = string.IsNullOrEmpty(blockReason);
+            _hireButton.interactable = _currentHouse.CanHire();
+    }
+
+    private void ClearText()
+    {
+        if (_workersLimitText != null)
+            _workersLimitText.text = "Нанято: 0/0";
+
+        if (_hireCostText != null)
+            _hireCostText.text = "Стоимость: -";
+
+        if (_hireButton != null)
+            _hireButton.interactable = false;
     }
 
     private void ShowRoot()
@@ -109,9 +136,9 @@ public class HousePanel : MonoBehaviour
 
     private void UnsubscribeFromHouse()
     {
-        if (_currentHouse != null)
-            _currentHouse.OnWorkersChanged -= Refresh;
+        if (_currentHouse == null)
+            return;
 
-        _currentHouse = null;
+        _currentHouse.OnWorkersChanged -= Refresh;
     }
 }

@@ -1,13 +1,13 @@
 using UnityEngine;
 
 /// <summary>
-/// Базовый класс для компонентов сцены, которые должны проверять свою настройку при запуске
-/// Если проверка не проходит, компонент отключается
+/// класс для компонентов сцены для проверки настроек при запуске
+/// если проверка не проходит компонент отключается
 /// </summary>
 public abstract class ValidatedMonoBehaviour : MonoBehaviour
 {
     /// <summary>
-    /// Выполняет базовую валидацию компонента при инициализации
+    /// проверка компонента при инициализации
     /// </summary>
     protected virtual void Awake()
     {
@@ -16,10 +16,12 @@ public abstract class ValidatedMonoBehaviour : MonoBehaviour
         if (isValid)
             return;
 
-        Debug.LogError($"{name}: validation failed in {GetType().Name}. Component has been disabled.", this);
+        Debug.LogError($"{name}: проверка не пройдена в {GetType().Name}. Компонент отключён.", this);
         enabled = false;
     }
 
-    // Должен вернуть true, если компонент настроен корректно
+    /// <summary>
+    /// вернет true если компонент настроен правильно
+    /// </summary>
     protected abstract bool ValidateInternal();
 }

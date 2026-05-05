@@ -12,13 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d57c5fcaabdc164d94af131545286d6, type: 3}
   m_Name: HouseConfig
   m_EditorClassIdentifier: 
-  buildingId: house
-  displayName: House
-  description: "\u041F\u043E\u0437\u0432\u043E\u043B\u044F\u0435\u0442 \u043D\u0430\u043D\u0438\u043C\u0430\u0442\u044C
-    \u043D\u043E\u0432\u044B\u0445 \u0440\u0430\u0431\u043E\u0447\u0438\u0445"
-  icon: {fileID: 21300000, guid: cb445ff62c7c14026925f63218d44e2a, type: 3}
-  buildingPrefab: {fileID: 148874888745276253, guid: 1e7bc072a39947546a2925a4d9f3d556, type: 3}
-  woodCost: 0
-  goldCost: 0
-  maxHealth: 200
-  buildTime: 1
+  _buildingId: 4
+  _displayName: House
+  _description: "\u041F\u043E\u0437\u0432\u043E\u043B\u044F\u0435\u0442 \u043D\u0430\u043D\u0438\u043C\u0430\u0442\u044C
+    \u0440\u0430\u0431\u043E\u0447\u0438\u0445"
+  _icon: {fileID: 21300000, guid: cb445ff62c7c14026925f63218d44e2a, type: 3}
+  _buildingPrefab: {fileID: 148874888745276253, guid: 1e7bc072a39947546a2925a4d9f3d556, type: 3}
+  _woodCost: 10
+  _goldCost: 10
+  _maxHealth: 50
+  _buildTime: 5
+  _uniqueBuilding: 0

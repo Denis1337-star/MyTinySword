@@ -12,14 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d57c5fcaabdc164d94af131545286d6, type: 3}
   m_Name: MonasteryConfig
   m_EditorClassIdentifier: 
-  buildingId: monastery
-  displayName: Monastery
-  description: "\u041F\u043E\u0437\u0432\u043E\u043B\u044F\u0435\u0442 \u043D\u0430\u043D\u0438\u043C\u0430\u0442\u044C
-    \u0445\u0438\u043B\u043B\u0435\u0440\u043E\u0432"
-  icon: {fileID: 21300000, guid: d8438425f07ba4e019d15b79cb6ce389, type: 3}
-  buildingPrefab: {fileID: 4383023627181470350, guid: 477fa5a34ca11cc49b6541a7380fb203, type: 3}
-  woodCost: 10
-  goldCost: 5
-  maxHealth: 170
-  buildTime: 10
-  uniqueBuilding: 1
+  _buildingId: 5
+  _displayName: Monstery
+  _description: "\u041F\u043E\u0437\u0432\u043E\u043B\u044F\u0435\u0442 \u043D\u0430\u043D\u0438\u043C\u0430\u0442\u044C
+    \u0432\u043E\u0438\u043D\u043E\u0432 \u043A\u043E\u0442\u043E\u0440\u044B\u0435
+    \u043B\u0435\u0447\u0430\u0442"
+  _icon: {fileID: 21300000, guid: d8438425f07ba4e019d15b79cb6ce389, type: 3}
+  _buildingPrefab: {fileID: 4383023627181470350, guid: 477fa5a34ca11cc49b6541a7380fb203, type: 3}
+  _woodCost: 25
+  _goldCost: 25
+  _maxHealth: 150
+  _buildTime: 10
+  _uniqueBuilding: 1

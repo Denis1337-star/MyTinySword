@@ -1,21 +1,20 @@
 using System;
 using UnityEngine;
-using UnityEngine.Serialization;
 using Zenject;
 
 /// <summary>
-/// Базовая логика всех ресурсов
+/// Базовая логика ресурсной точки
+/// Отвечает за доступность, рабочий слот и регистрацию в ResourceRegistry
 /// </summary>
 public abstract class ResourceNodeBase : ValidatedMonoBehaviour, IResourceNode
 {
-    [FormerlySerializedAs("workSlot")]
     [SerializeField] private WorkSlot _workSlot;
 
     private ResourceRegistry _resourceRegistry;
 
-    protected bool available = true;
+    protected bool _available = true;
 
-    public bool IsAvailable => available;
+    public bool IsAvailable => _available;
 
     public abstract float Priority { get; }
 
@@ -29,7 +28,7 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour, IResourceNode
     {
         if (_resourceRegistry == null)
         {
-            Debug.LogWarning($"{name}: ResourceRegistry is missing.", this);
+            Debug.LogError($"{name}: ResourceRegistry не внедрён через Zenject.", this);
             return;
         }
 
@@ -45,7 +44,7 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour, IResourceNode
     {
         bool valid = true;
 
-        valid &= ValidationUtility.NotEmptyCollection(this, _workSlot, nameof(_workSlot));
+        valid &= ValidationUtility.IsAssigned(this, _workSlot, nameof(_workSlot));
 
         return valid;
     }
@@ -76,8 +75,9 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour, IResourceNode
         if (!CanStartWork(worker))
             return false;
 
-        available = false;
+        _available = false;
         StartWorkRoutine(onFinished);
+
         return true;
     }
 
@@ -105,7 +105,7 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour, IResourceNode
 
     private bool CanStartWork(Worker worker)
     {
-        if (!available)
+        if (!_available)
             return false;
 
         if (worker == null)

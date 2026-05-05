@@ -16,6 +16,7 @@ public class House : ValidatedMonoBehaviour
     [SerializeField] private Transform _spawnPoint;
     [SerializeField] private Transform _dropPoint;
 
+
     [Header("Idle Positions")]
     [SerializeField] private Transform _idlePointsRoot;
 
@@ -74,9 +75,9 @@ public class House : ValidatedMonoBehaviour
     {
         bool valid = true;
 
-        valid &= ValidationUtility.NotEmptyCollection(this, _config, nameof(_config));
-        valid &= ValidationUtility.NotEmptyCollection(this, _spawnPoint, nameof(_spawnPoint));
-        valid &= ValidationUtility.NotEmptyCollection(this, _workerPrefab, nameof(_workerPrefab));
+        valid &= ValidationUtility.IsAssigned(this, _config, nameof(_config));
+        valid &= ValidationUtility.IsAssigned(this, _spawnPoint, nameof(_spawnPoint));
+        valid &= ValidationUtility.IsAssigned(this, _workerPrefab, nameof(_workerPrefab));
 
         return valid;
     }
@@ -156,8 +157,6 @@ public class House : ValidatedMonoBehaviour
 
     public string GetHireBlockReason()
     {
-        if (_resourceStorage == null)
-            return "Хранилище ресурсов не найдено";
 
         if (CurrentWorkers >= MaxWorkers)
             return "Достигнут лимит рабочих";
@@ -246,5 +245,30 @@ public class House : ValidatedMonoBehaviour
             return;
 
         _occupiedIdlePoints.Remove(worker);
+    }
+    public Vector2 GetDropPosition(Worker worker)
+    {
+        if (_dropPoint == null)
+            return transform.position;
+
+        if (worker == null)
+            return _dropPoint.position;
+
+        int index = _workers.IndexOf(worker);
+        if (index < 0)
+            index = 0;
+
+        int workersPerRing = 8;
+        int ring = index / workersPerRing + 1;
+        int indexInRing = index % workersPerRing;
+
+        float angle = indexInRing * Mathf.PI * 2f / workersPerRing;
+        float radius = _dropRadius * ring;
+
+        Vector2 offset = new(
+            Mathf.Cos(angle) * radius,
+            Mathf.Sin(angle) * radius);
+
+        return (Vector2)_dropPoint.position + offset;
     }
 }

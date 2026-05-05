@@ -180,8 +180,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98e8c3a26f219604d84803629efd6c7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  workSlot: {fileID: 888455000610138045}
-  config: {fileID: 11400000, guid: b4359cc958472e94bb886c5a538d1447, type: 2}
+  _workSlot: {fileID: 888455000610138045}
+  _config: {fileID: 11400000, guid: b4359cc958472e94bb886c5a538d1447, type: 2}
 --- !u!95 &3892778098849339368
 Animator:
   serializedVersion: 5

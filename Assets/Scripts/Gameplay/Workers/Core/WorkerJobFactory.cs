@@ -1,5 +1,6 @@
 /// <summary>
-///  фабрика  логики работы worker по enum профессии
+/// Фабрика job-логики для worker'ов.
+/// Создаёт конкретную job по типу работы и передаёт ей ResourceSearchService.
 /// </summary>
 public sealed class WorkerJobFactory
 {

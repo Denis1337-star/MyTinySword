@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 0}
   m_Name: Sheep Resource Config
   m_EditorClassIdentifier: Assembly-CSharp::SheepResourceConfig
-  priority: 1
-  respawnTime: 60
-  workTime: 2
-  meatAmount: 2
+  _resourceType: 3
+  _priority: 1
+  _respawnTime: 60
+  _workTime: 3
+  _meatAmount: 3

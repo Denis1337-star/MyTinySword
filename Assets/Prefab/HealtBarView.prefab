@@ -200,4 +200,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94d5b135308aa7a4ebd9921b8f4e2913, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fillImage: {fileID: 619330183771991498}
+  _fillImage: {fileID: 619330183771991498}

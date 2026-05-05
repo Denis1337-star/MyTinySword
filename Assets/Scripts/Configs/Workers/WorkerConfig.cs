@@ -1,31 +1,30 @@
 using UnityEngine;
 
 /// <summary>
-/// Хранит параметры дистанции, которые управляют переходом
+/// Конфиг рабочего
 /// </summary>
 [CreateAssetMenu(menuName = "MyTinySword/Configs/Worker Config")]
-public class WorkerConfig : BaseConfig
+public sealed class WorkerConfig : BaseConfig
 {
-    [Header("Navigation")]
-    [SerializeField] private float reachResourceDistance = 0.3f;  //Дистанция что дошел до ресурса
-    [SerializeField] private float maxWorkDistance = 0.35f;  //На какой дистанции можно работать
+    [SerializeField, Min(0.05f)] private float _reachResourceDistance;
+    [SerializeField, Min(0.05f)] private float _maxWorkDistance;
 
-    public float ReachResourceDistance => reachResourceDistance;
-    public float MaxWorkDistance => maxWorkDistance;
+    public float ReachResourceDistance => _reachResourceDistance;
+    public float MaxWorkDistance => _maxWorkDistance;
 
     public override bool IsValid()
     {
-        return reachResourceDistance >= 0.05f &&
-               maxWorkDistance >= 0.05f &&
-               maxWorkDistance >= reachResourceDistance;
+        return _reachResourceDistance >= 0.05f &&
+               _maxWorkDistance >= 0.05f &&
+               _maxWorkDistance >= _reachResourceDistance;
     }
 
     private void OnValidate()
     {
-        reachResourceDistance = Mathf.Max(0.05f, reachResourceDistance);
-        maxWorkDistance = Mathf.Max(0.05f, maxWorkDistance);
+        _reachResourceDistance = Mathf.Max(0.05f, _reachResourceDistance);
+        _maxWorkDistance = Mathf.Max(0.05f, _maxWorkDistance);
 
-        if (maxWorkDistance < reachResourceDistance)
-            maxWorkDistance = reachResourceDistance;
+        if (_maxWorkDistance < _reachResourceDistance)
+            _maxWorkDistance = _reachResourceDistance;
     }
 }

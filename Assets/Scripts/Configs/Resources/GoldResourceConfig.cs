@@ -1,25 +1,25 @@
 using UnityEngine;
 
 /// <summary>
-/// Определяет  интервал роста размера ресурса
+/// Конфиг золота
 /// </summary>
 [CreateAssetMenu(menuName = "MyTinySword/Configs/Resources/Gold Config")]
-public class GoldResourceConfig : ResourceConfig
+public sealed class GoldResourceConfig : ResourceConfig
 {
-    [SerializeField] private float growInterval ;
+    [SerializeField, Min(0.1f)] private float _growInterval;
 
-    public float GrowInterval => growInterval;
+    public float GrowInterval => _growInterval;
 
     public override bool IsValid()
     {
-        return Priority >= 0f &&
-               RespawnTime >= 0.1f &&
-               growInterval >= 0.1f;
+        return base.IsValid() &&
+               _growInterval >= 0.1f;
     }
 
     protected override void OnValidate()
     {
         base.OnValidate();
-        growInterval = Mathf.Max(0.1f, growInterval);
+
+        _growInterval = Mathf.Max(0.1f, _growInterval);
     }
 }

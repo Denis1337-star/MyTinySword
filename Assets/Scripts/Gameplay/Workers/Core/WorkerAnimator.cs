@@ -1,12 +1,21 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
+/// <summary>
+/// Управляет animator-параметрами worker'а.
+/// Сам отслеживает движение через UnitMovement,
+/// а worker state-классы управляют работой, инструментом и переносимым грузом.
+/// </summary>
 public class WorkerAnimator : MonoBehaviour
 {
     private static readonly int IsMovingHash = Animator.StringToHash("IsMoving");
     private static readonly int IsWorkingHash = Animator.StringToHash("IsWorking");
     private static readonly int EquipmentHash = Animator.StringToHash("Equipment");
 
+    [FormerlySerializedAs("animator")]
     [SerializeField] private Animator _animator;
+
+    [FormerlySerializedAs("movement")]
     [SerializeField] private UnitMovement _movement;
 
     private bool _isWorking;
@@ -24,10 +33,14 @@ public class WorkerAnimator : MonoBehaviour
     }
 
     /// <summary>
-    /// Включает или выключает рабочую анимацию
+    /// Включает или выключает рабочую анимацию.
+    /// Пока worker работает, движение визуально выключается.
     /// </summary>
     public void SetWorking(bool value)
     {
+        if (_animator == null)
+            return;
+
         if (_isWorking == value)
             return;
 
@@ -42,10 +55,13 @@ public class WorkerAnimator : MonoBehaviour
     }
 
     /// <summary>
-    /// Меняет визуальный инструмент или переносимый груз рабочего
+    /// Меняет визуальный инструмент или переносимый груз worker'а.
     /// </summary>
     public void SetEquipment(EquipmentType equipment)
     {
+        if (_animator == null)
+            return;
+
         if (_currentEquipment == equipment)
             return;
 
@@ -76,6 +92,11 @@ public class WorkerAnimator : MonoBehaviour
 
         if (_movement == null)
             _movement = GetComponent<UnitMovement>();
+    }
+
+    private void OnValidate()
+    {
+        ResolveReferences();
     }
 }
 

@@ -5,12 +5,8 @@ using UnityEngine;
 /// </summary>
 public abstract class BaseConfig : ScriptableObject
 {
-    // Проверяет, что данные конфига настроены корректно
+    /// <summary>
+    /// Проверяет конфиг настроен корректно
+    /// </summary>
     public abstract bool IsValid();
-
-    // Для вывода ошибки  
-    protected void LogValidationError(string message)
-    {
-        Debug.LogError($"{name}: {message}", this);
-    }
 }

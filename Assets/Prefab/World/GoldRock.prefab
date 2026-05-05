@@ -211,8 +211,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d2ecd26fc1500c4ab524e272c97190d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  workSlot: {fileID: 4298725028402502053}
-  config: {fileID: 11400000, guid: 42058c89ed5b6fb41ad39d8bdbbafc92, type: 2}
+  _workSlot: {fileID: 4298725028402502053}
+  _config: {fileID: 11400000, guid: 42058c89ed5b6fb41ad39d8bdbbafc92, type: 2}
 --- !u!208 &4721321524432157419
 NavMeshObstacle:
   m_ObjectHideFlags: 0

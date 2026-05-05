@@ -1,10 +1,21 @@
-
 /// <summary>
-/// Контракт состояния worker
+/// Контракт состояния worker'а.
+/// Каждое состояние отвечает за отдельный этап поведения рабочего.
 /// </summary>
 public interface IWorkerState
 {
-    void Enter();  
-    void Update(); 
-    void Exit(); 
+    /// <summary>
+    /// Вызывается при входе в состояние.
+    /// </summary>
+    void Enter();
+
+    /// <summary>
+    /// Вызывается каждый кадр, пока состояние активно.
+    /// </summary>
+    void Update();
+
+    /// <summary>
+    /// Вызывается при выходе из состояния.
+    /// </summary>
+    void Exit();
 }

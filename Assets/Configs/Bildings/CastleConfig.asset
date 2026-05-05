@@ -12,12 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d57c5fcaabdc164d94af131545286d6, type: 3}
   m_Name: CastleConfig
   m_EditorClassIdentifier: 
-  buildingId: castle
-  displayName: Castle
-  description: 
-  icon: {fileID: 21300000, guid: d0349d8d3a04044f7a4810157b116b14, type: 3}
-  buildingPrefab: {fileID: 8598031701345330751, guid: 4cf1948938a3c3a4e8cd715039840a8d, type: 3}
-  woodCost: 0
-  goldCost: 0
-  maxHealth: 500
-  buildTime: 1
+  _buildingId: 3
+  _displayName: Castle
+  _description: "\u041E\u0441\u043D\u043E\u0432\u043D\u043E\u0435 \u0437\u0434\u0430\u043D\u0438\u0435"
+  _icon: {fileID: 21300000, guid: d0349d8d3a04044f7a4810157b116b14, type: 3}
+  _buildingPrefab: {fileID: 8598031701345330751, guid: 4cf1948938a3c3a4e8cd715039840a8d, type: 3}
+  _woodCost: 0
+  _goldCost: 0
+  _maxHealth: 200
+  _buildTime: 0.1
+  _uniqueBuilding: 1

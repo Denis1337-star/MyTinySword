@@ -1,114 +1,83 @@
 using UnityEngine;
 
 /// <summary>
-/// Хранит prefab, стоимость, боевые характеристики, данные лечения и UI-информацию
+/// Базовый конфиг боевого юнита
 /// </summary>
-[CreateAssetMenu(menuName = "MyTinySword/Configs/Unit Config")]
-public class UnitConfig : BaseConfig
+public abstract class UnitConfig : BaseConfig
 {
-    [Header("Info")]
-    [SerializeField] private string unitId;
-    [SerializeField] private string displayName;
+    [SerializeField] private string _unitId;
+    [SerializeField] private string _displayName;
 
     [TextArea]
-    [SerializeField] private string description;
+    [SerializeField] private string _description;
 
-    [SerializeField] private Sprite icon;
-    [SerializeField] private ArmyUnitType unitType;
+    [SerializeField] private Sprite _icon;
+    [SerializeField] private ArmyUnitType _unitType;
+    [SerializeField] private GameObject _prefab;
+    [SerializeField, Min(0)] private int _woodCost;
+    [SerializeField, Min(0)] private int _meatCost;
+    [SerializeField, Min(1)] private int _maxHealth;
+    [SerializeField, Min(0.1f)] private float _moveSpeed;
+    [SerializeField, Min(0.1f)] private float _visionRange;
+    [SerializeField, Min(0.1f)] private float _buildTime;
 
-    [Header("Prefab")]
-    [SerializeField] private GameObject prefab;
+    public string UnitId => _unitId;
+    public string DisplayName => _displayName;
+    public string Description => _description;
+    public Sprite Icon => _icon;
+    public ArmyUnitType UnitType => _unitType;
+    public GameObject Prefab => _prefab;
 
-    [Header("Cost")]
-    [SerializeField] private int woodCost;
-    [SerializeField] private int meatCost;
+    public int WoodCost => _woodCost;
+    public int MeatCost => _meatCost;
 
-    [Header("Stats")]
-    [SerializeField] private int maxHealth;
-    [SerializeField] private int damage;
-    [SerializeField] private float moveSpeed;
+    public int MaxHealth => _maxHealth;
+    public float MoveSpeed => _moveSpeed;
+    public float VisionRange => _visionRange;
 
-    [Header("Combat")]
-    [SerializeField] private float attackRange;
-    [SerializeField] private float attackCooldown;
-    [SerializeField] private float visionRange;
+    public float BuildTime => _buildTime;
 
-    [Header("Healing")]
-    [SerializeField] private int healAmount;
-    [SerializeField] private float healRange;
-    [SerializeField] private float healCooldown;
+    public virtual int Damage => 0;
+    public virtual float AttackRange => 0f;
+    public virtual float AttackCooldown => 0f;
 
-    [Header("Projectile")]
-    [SerializeField] private ProjectileArrow arrowPrefab;
-    [SerializeField] private float arrowSpeed;
+    public virtual int HealAmount => 0;
+    public virtual float HealRange => 0f;
+    public virtual float HealCooldown => 0f;
 
-    [Header("Production")]
-    [SerializeField] private float buildTime;
-
-    public string UnitId => unitId;
-    public string DisplayName => displayName;
-    public string Description => description;
-    public Sprite Icon => icon;
-    public ArmyUnitType UnitType => unitType;
-    public GameObject Prefab => prefab;
-    public int WoodCost => woodCost;
-    public int MeatCost => meatCost;
-    public int MaxHealth => maxHealth;
-    public int Damage => damage;
-    public float MoveSpeed => moveSpeed;
-    public float AttackRange => attackRange;
-    public float AttackCooldown => attackCooldown;
-    public float VisionRange => visionRange;
-    public int HealAmount => healAmount;
-    public float HealRange => healRange;
-    public float HealCooldown => healCooldown;
-    public ProjectileArrow ArrowPrefab => arrowPrefab;
-    public float ArrowSpeed => arrowSpeed;
-    public float BuildTime => buildTime;
+    public virtual ProjectileArrow ArrowPrefab => null;
+    public virtual float ArrowSpeed => 0f;
 
     public override bool IsValid()
     {
-        bool hasBasicInfo =
-            !string.IsNullOrWhiteSpace(unitId) &&
-            !string.IsNullOrWhiteSpace(displayName) &&
-            prefab != null;
-
-        bool hasBasicStats =
-            maxHealth >= 1 &&
-            damage >= 0 &&
-            moveSpeed > 0f &&
-            attackRange > 0f &&
-            attackCooldown > 0f &&
-            visionRange > 0f &&
-            buildTime >= 0.1f &&
-            arrowSpeed > 0f;
-
-        bool hasValidHealing =
-            healAmount >= 0 &&
-            healRange > 0f &&
-            healCooldown > 0f;
-
-        return hasBasicInfo && hasBasicStats && hasValidHealing;
+        return !string.IsNullOrWhiteSpace(_unitId) &&
+               !string.IsNullOrWhiteSpace(_displayName) &&
+               _prefab != null &&
+               _woodCost >= 0 &&
+               _meatCost >= 0 &&
+               _maxHealth >= 1 &&
+               _moveSpeed > 0f &&
+               _visionRange > 0f &&
+               _buildTime >= 0.1f;
     }
 
-    private void OnValidate()
+    public virtual string GetPreviewStatsText()
     {
-        woodCost = Mathf.Max(0, woodCost);
-        meatCost = Mathf.Max(0, meatCost);
+        return
+            $"HP: {_maxHealth}\n" +
+            $"Move Speed: {_moveSpeed}\n" +
+            $"Vision: {_visionRange}";
+    }
 
-        maxHealth = Mathf.Max(1, maxHealth);
-        damage = Mathf.Max(0, damage);
-        moveSpeed = Mathf.Max(0.1f, moveSpeed);
+    protected virtual void OnValidate()
+    {
+        _woodCost = Mathf.Max(0, _woodCost);
+        _meatCost = Mathf.Max(0, _meatCost);
 
-        attackRange = Mathf.Max(0.1f, attackRange);
-        attackCooldown = Mathf.Max(0.1f, attackCooldown);
-        visionRange = Mathf.Max(0.1f, visionRange);
+        _maxHealth = Mathf.Max(1, _maxHealth);
+        _moveSpeed = Mathf.Max(0.1f, _moveSpeed);
+        _visionRange = Mathf.Max(0.1f, _visionRange);
 
-        healAmount = Mathf.Max(0, healAmount);
-        healRange = Mathf.Max(0.1f, healRange);
-        healCooldown = Mathf.Max(0.1f, healCooldown);
-
-        arrowSpeed = Mathf.Max(0.1f, arrowSpeed);
-        buildTime = Mathf.Max(0.1f, buildTime);
+        _buildTime = Mathf.Max(0.1f, _buildTime);
     }
 }

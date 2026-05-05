@@ -1,33 +1,38 @@
 using TMPro;
-using UniRx;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
+using Zenject;
 
 /// <summary>
-/// Общая UI-панель производственных зданий
+/// Общая UI-панель производственных зданий.
 /// </summary>
-public class ProductionBuildingPanel : MonoBehaviour
+public sealed class ProductionBuildingPanel : MonoBehaviour
 {
     [Header("Root")]
-    [FormerlySerializedAs("root")]
     [SerializeField] private GameObject _root;
 
-    [Header("Text")]
-    [FormerlySerializedAs("titleText")]
-    [SerializeField] private TMP_Text _titleText;
-
-    [FormerlySerializedAs("costText")]
+    [Header("Texts")]
+    [SerializeField] private TMP_Text _unitNameText;
+    [SerializeField] private TMP_Text _descriptionText;
+    [SerializeField] private TMP_Text _statsText;
+    [SerializeField] private TMP_Text _queueText;
     [SerializeField] private TMP_Text _costText;
 
-    [FormerlySerializedAs("blockReasonText")]
-    [SerializeField] private TMP_Text _blockReasonText;
-
-    [Header("Button")]
-    [FormerlySerializedAs("hireButton")]
+    [Header("Controls")]
     [SerializeField] private Button _hireButton;
+    [SerializeField] private Image _iconImage;
 
     private ProductionBuildingBase _currentBuilding;
+    private ArmyUnitRegistry _armyUnitRegistry;
+
+    private bool _subscribedToBuilding;
+    private bool _subscribedToRegistry;
+
+    [Inject]
+    private void Construct(ArmyUnitRegistry armyUnitRegistry)
+    {
+        _armyUnitRegistry = armyUnitRegistry;
+    }
 
     private void Awake()
     {
@@ -36,14 +41,20 @@ public class ProductionBuildingPanel : MonoBehaviour
 
     private void OnEnable()
     {
-        if (_hireButton != null)
-            _hireButton.onClick.AddListener(HireUnit);
+        _hireButton?.onClick.AddListener(HireUnit);
+
+        SubscribeToBuilding();
+        SubscribeToRegistry();
+
+        Refresh();
     }
 
     private void OnDisable()
     {
-        if (_hireButton != null)
-            _hireButton.onClick.RemoveListener(HireUnit);
+        _hireButton?.onClick.RemoveListener(HireUnit);
+
+        UnsubscribeFromBuilding();
+        UnsubscribeFromRegistry();
     }
 
     public void Show(ProductionBuildingBase building)
@@ -54,17 +65,30 @@ public class ProductionBuildingPanel : MonoBehaviour
             return;
         }
 
+        if (_currentBuilding == building)
+        {
+            ShowRoot();
+            Refresh();
+            return;
+        }
+
+        UnsubscribeFromBuilding();
+
         _currentBuilding = building;
 
-        if (_root != null)
-            _root.SetActive(true);
+        SubscribeToBuilding();
 
+        ShowRoot();
         Refresh();
     }
 
     public void Hide()
     {
+        UnsubscribeFromBuilding();
+
         _currentBuilding = null;
+
+        ClearText();
 
         if (_root != null)
             _root.SetActive(false);
@@ -82,23 +106,131 @@ public class ProductionBuildingPanel : MonoBehaviour
     private void Refresh()
     {
         if (_currentBuilding == null)
+        {
+            ClearText();
             return;
+        }
 
-        if (_titleText != null)
-            _titleText.text = _currentBuilding.DisplayName;
+        UnitConfig config = _currentBuilding.UnitConfig;
+        if (config == null)
+        {
+            ClearText();
+            return;
+        }
+
+        if (_unitNameText != null)
+            _unitNameText.text = config.DisplayName;
+
+        if (_descriptionText != null)
+            _descriptionText.text = config.Description;
+
+        if (_statsText != null)
+            _statsText.text = config.GetPreviewStatsText();
+
+        if (_queueText != null)
+        {
+            string armyLimitText = _armyUnitRegistry != null
+                ? $"Армия: {_armyUnitRegistry.CommittedPlayerArmySlots}/{_armyUnitRegistry.MaxPlayerArmyUnits}"
+                : "Армия: -";
+
+            _queueText.text =
+                $"В очереди: {_currentBuilding.QueueCount}/{_currentBuilding.MaxQueue}\n" +
+                armyLimitText;
+        }
 
         if (_costText != null)
         {
+            string blockReason = _currentBuilding.GetHireBlockReason();
+
             _costText.text =
-               $"Wood: {_currentBuilding.WoodCost}  Meat: {_currentBuilding.MeatCost}";
+                $"Стоимость: Wood {config.WoodCost} / Meat {config.MeatCost}";
+
+            if (!string.IsNullOrEmpty(blockReason))
+                _costText.text += $"\n{blockReason}";
         }
 
-        string blockReason = _currentBuilding.GetHireBlockReason();
+        if (_hireButton != null)
+            _hireButton.interactable = _currentBuilding.CanEnqueue();
 
-        if (_blockReasonText != null)
-            _blockReasonText.text = blockReason;
+        if (_iconImage != null)
+            _iconImage.sprite = config.Icon;
+    }
+
+    private void ClearText()
+    {
+        if (_unitNameText != null)
+            _unitNameText.text = string.Empty;
+
+        if (_descriptionText != null)
+            _descriptionText.text = string.Empty;
+
+        if (_statsText != null)
+            _statsText.text = string.Empty;
+
+        if (_queueText != null)
+            _queueText.text = "В очереди: 0";
+
+        if (_costText != null)
+            _costText.text = "Стоимость: -";
 
         if (_hireButton != null)
-            _hireButton.interactable = string.IsNullOrEmpty(blockReason);
+            _hireButton.interactable = false;
+
+        if (_iconImage != null)
+            _iconImage.sprite = null;
+    }
+
+    private void SubscribeToBuilding()
+    {
+        if (_subscribedToBuilding)
+            return;
+
+        if (_currentBuilding == null)
+            return;
+
+        _currentBuilding.OnQueueChanged += Refresh;
+
+        _subscribedToBuilding = true;
+    }
+
+    private void UnsubscribeFromBuilding()
+    {
+        if (!_subscribedToBuilding)
+            return;
+
+        if (_currentBuilding != null)
+            _currentBuilding.OnQueueChanged -= Refresh;
+
+        _subscribedToBuilding = false;
+    }
+
+    private void SubscribeToRegistry()
+    {
+        if (_subscribedToRegistry)
+            return;
+
+        if (_armyUnitRegistry == null)
+            return;
+
+        _armyUnitRegistry.OnArmyChanged += Refresh;
+
+        _subscribedToRegistry = true;
+    }
+
+    private void UnsubscribeFromRegistry()
+    {
+        if (!_subscribedToRegistry)
+            return;
+
+        if (_armyUnitRegistry != null)
+            _armyUnitRegistry.OnArmyChanged -= Refresh;
+
+        _subscribedToRegistry = false;
+    }
+
+    private void ShowRoot()
+    {
+        if (_root != null)
+            _root.SetActive(true);
     }
 }

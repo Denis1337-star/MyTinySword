@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 0}
   m_Name: Tree Resource Config
   m_EditorClassIdentifier: Assembly-CSharp::TreeResourceConfig
-  priority: 1
-  respawnTime: 60
-  chopTime: 2
-  rewardAmount: 3
+  _resourceType: 1
+  _priority: 1
+  _respawnTime: 60
+  _workTime: 3
+  _rewardAmount: 2

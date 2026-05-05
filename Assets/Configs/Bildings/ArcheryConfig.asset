@@ -12,14 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d57c5fcaabdc164d94af131545286d6, type: 3}
   m_Name: ArcheryConfig
   m_EditorClassIdentifier: 
-  buildingId: archery
-  displayName: Acrhery
-  description: "\u041F\u043E\u0437\u0432\u043E\u043B\u044F\u0435\u0442 \u043D\u0430\u043D\u0438\u043C\u0430\u0442\u044C
-    \u043B\u0443\u0447\u043D\u0438\u043A\u043E\u0432"
-  icon: {fileID: 21300000, guid: 5bdc3e2b64c8049f4a66e1061f28dd70, type: 3}
-  buildingPrefab: {fileID: 3979921759978543857, guid: 972c344402871ec4b80cb2e8fbb2d1bf, type: 3}
-  woodCost: 10
-  goldCost: 5
-  maxHealth: 160
-  buildTime: 9
-  uniqueBuilding: 1
+  _buildingId: 1
+  _displayName: Archery
+  _description: "\u041F\u043E\u0437\u0432\u043E\u043B\u044F\u0435\u0442 \u043D\u0430\u043D\u0438\u043C\u0430\u0442\u044C
+    \u0432\u043E\u0438\u043D\u043E\u0432 \u0434\u0430\u043B\u044C\u043D\u0435\u0433\u043E
+    \u0431\u043E\u044F"
+  _icon: {fileID: 21300000, guid: 5bdc3e2b64c8049f4a66e1061f28dd70, type: 3}
+  _buildingPrefab: {fileID: 3979921759978543857, guid: 972c344402871ec4b80cb2e8fbb2d1bf, type: 3}
+  _woodCost: 20
+  _goldCost: 20
+  _maxHealth: 100
+  _buildTime: 10
+  _uniqueBuilding: 1

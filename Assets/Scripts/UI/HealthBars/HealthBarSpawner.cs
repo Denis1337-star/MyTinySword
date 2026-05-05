@@ -3,9 +3,10 @@ using UnityEngine.Serialization;
 using Zenject;
 
 /// <summary>
-/// Управляет появлением и обновлением HP bar над объектом
+/// Спавнит и обновляет HP bar над объектом.
+/// Работает для воинов, worker'ов, зданий и врагов.
 /// </summary>
-public class HealthBarSpawner : MonoBehaviour
+public sealed class HealthBarSpawner : MonoBehaviour
 {
     [Header("References")]
     [FormerlySerializedAs("health")]
@@ -24,9 +25,9 @@ public class HealthBarSpawner : MonoBehaviour
     [FormerlySerializedAs("healthBarPrefab")]
     [SerializeField] private HealthBarView _healthBarPrefab;
 
-    [Header("Type")]
-    [FormerlySerializedAs("isBuilding")]
-    [SerializeField] private bool _isBuilding;
+    [Header("Behaviour")]
+    [SerializeField] private bool _showWhenSelected = true;
+    [SerializeField] private bool _showWhenDamaged = true;
 
     [Header("Offset Fallback")]
     [FormerlySerializedAs("fallbackOffset")]
@@ -35,6 +36,7 @@ public class HealthBarSpawner : MonoBehaviour
     private HealthBarView _spawnedBar;
     private Canvas _screenCanvas;
     private Camera _mainCamera;
+
     private bool _damagedOnce;
 
     [Inject]
@@ -73,21 +75,19 @@ public class HealthBarSpawner : MonoBehaviour
 
     private void Update()
     {
-        if (!_isBuilding)
+        if (_health == null || _health.IsDead)
             return;
 
-        if (_selectable == null || _health == null || _health.IsDead)
-            return;
+        bool shouldShow = ShouldShowBar();
 
-        if (_selectable.IsSelected)
+        if (shouldShow)
         {
             ShowBar();
             RefreshBar();
             return;
         }
 
-        if (!WasDamaged())
-            HideBar();
+        HideBar();
     }
 
     private void OnHealthChanged(int current, int max)
@@ -96,9 +96,6 @@ public class HealthBarSpawner : MonoBehaviour
 
         ShowBar();
         RefreshBar();
-
-        if (!_isBuilding && current >= max)
-            HideBar();
     }
 
     private void OnDied()
@@ -106,27 +103,64 @@ public class HealthBarSpawner : MonoBehaviour
         HideBar();
     }
 
+    private bool ShouldShowBar()
+    {
+        bool selected = _showWhenSelected &&
+                        _selectable != null &&
+                        _selectable.IsSelected;
+
+        bool damaged = _showWhenDamaged &&
+                       _damagedOnce &&
+                       _health != null &&
+                       _health.CurrentHealth < _health.MaxHealth;
+
+        return selected || damaged;
+    }
+
     private void ShowBar()
     {
         if (_spawnedBar != null)
             return;
 
-        if (_healthBarPrefab == null || _screenCanvas == null || _mainCamera == null)
+        if (_healthBarPrefab == null)
             return;
+
+        if (_screenCanvas == null)
+            _screenCanvas = FindObjectOfType<Canvas>();
+
+        if (_mainCamera == null)
+            _mainCamera = Camera.main;
+
+        if (_screenCanvas == null || _mainCamera == null)
+        {
+            Debug.LogWarning($"{name}: HPBar не может появиться — нет Canvas или Camera.", this);
+            return;
+        }
 
         _spawnedBar = Instantiate(_healthBarPrefab, _screenCanvas.transform);
 
         Color color = GetBarColor();
 
-        Vector3 offset = _anchor != null
-            ? _anchor.transform.position - transform.position
-            : _fallbackOffset;
+        Transform targetTransform;
+        Vector3 offset;
 
-        Transform targetTransform = _anchor != null
-            ? _anchor.transform
-            : transform;
+        if (_anchor != null)
+        {
+            targetTransform = _anchor.transform;
+            offset = Vector3.zero;
+        }
+        else
+        {
+            targetTransform = transform;
+            offset = _fallbackOffset;
+        }
 
-        _spawnedBar.Initialize(targetTransform, _mainCamera, color, offset);
+        _spawnedBar.Initialize(
+            targetTransform,
+            _mainCamera,
+            _screenCanvas,
+            color,
+            offset);
     }
 
     private void RefreshBar()
@@ -154,13 +188,6 @@ public class HealthBarSpawner : MonoBehaviour
         _spawnedBar = null;
     }
 
-    private bool WasDamaged()
-    {
-        return _damagedOnce &&
-               _health != null &&
-               _health.CurrentHealth < _health.MaxHealth;
-    }
-
     private Color GetBarColor()
     {
         if (_factionMember == null)
@@ -176,11 +203,20 @@ public class HealthBarSpawner : MonoBehaviour
         if (_health == null)
             _health = GetComponent<Health>();
 
+        if (_health == null)
+            _health = GetComponentInParent<Health>();
+
         if (_factionMember == null)
             _factionMember = GetComponent<FactionMember>();
 
+        if (_factionMember == null)
+            _factionMember = GetComponentInParent<FactionMember>();
+
         if (_selectable == null)
             _selectable = GetComponent<UnitSelectable>();
+
+        if (_selectable == null)
+            _selectable = GetComponentInParent<UnitSelectable>();
 
         if (_anchor == null)
             _anchor = GetComponentInChildren<WorldHealthBarAnchor>();

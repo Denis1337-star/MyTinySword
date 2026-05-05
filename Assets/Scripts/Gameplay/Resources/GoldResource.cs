@@ -7,25 +7,25 @@ using UnityEngine;
 /// </summary>
 public class GoldResource : ResourceNodeBase
 {
-    [SerializeField] private GoldResourceConfig config;
+    private static readonly int SizeHash = Animator.StringToHash("Size");
 
-    private Animator animator;
-    private SpriteRenderer sprite;
-    private ResourceSize size = ResourceSize.Tiny;
-    private Coroutine growRoutine;
-    private Coroutine mineRoutine;
+    [SerializeField] private GoldResourceConfig _config;
 
-    public override float Priority => config != null ? config.Priority : 8f;
+    private Animator _animator;
+    private SpriteRenderer _spriteRenderer;
+
+    private ResourceSize _size = ResourceSize.Tiny;
+    private Coroutine _growRoutine;
+    private Coroutine _workRoutine;
+
+    public override float Priority => _config != null ? _config.Priority : 0f;
 
     protected override void Awake()
     {
-        sprite = GetComponent<SpriteRenderer>();
-        animator = GetComponent<Animator>();
+        _animator = GetComponent<Animator>();
+        _spriteRenderer = GetComponent<SpriteRenderer>();
 
         base.Awake();
-
-        if (!enabled)
-            return;
 
         UpdateVisual();
     }
@@ -33,10 +33,6 @@ public class GoldResource : ResourceNodeBase
     protected override void Start()
     {
         base.Start();
-
-        if (!enabled)
-            return;
-
         StartGrowRoutine();
     }
 
@@ -44,11 +40,11 @@ public class GoldResource : ResourceNodeBase
     {
         bool valid = base.ValidateInternal();
 
-        valid &= ValidationUtility.NotEmptyCollection(this, config, nameof(config));
+        valid &= ValidationUtility.IsAssigned(this, _config, nameof(_config));
 
-        if (config != null && !config.IsValid())
+        if (_config != null && !_config.IsValid())
         {
-            Debug.LogError($"{name}: GoldResourceConfig is invalid.", this);
+            Debug.LogError($"{name}: GoldResourceConfig некорректный.", this);
             valid = false;
         }
 
@@ -59,76 +55,92 @@ public class GoldResource : ResourceNodeBase
     {
         StopGrowRoutine();
 
-        if (mineRoutine != null)
-            StopCoroutine(mineRoutine);
+        if (_workRoutine != null)
+            StopCoroutine(_workRoutine);
 
-        mineRoutine = StartCoroutine(MineRoutine(onFinished));
+        _workRoutine = StartCoroutine(WorkRoutine(onFinished));
     }
 
-    private IEnumerator MineRoutine(Action<int> callback)
+    private IEnumerator WorkRoutine(Action<int> onFinished)
     {
-        yield return new WaitForSeconds(config.WorkTime);
+        yield return new WaitForSeconds(_config.WorkTime);
 
-        int amount = (int)size;
+        int amount = Mathf.Max(1, (int)_size);
 
-        if (sprite != null)
-            sprite.enabled = false;
+        SetVisible(false);
 
-        callback?.Invoke(amount);
+        onFinished?.Invoke(amount);
 
-        yield return new WaitForSeconds(config.RespawnTime);
+        yield return new WaitForSeconds(_config.RespawnTime);
 
         Respawn();
     }
 
     private IEnumerator GrowRoutine()
     {
-        while (available)
+        while (_available)
         {
-            yield return new WaitForSeconds(config.GrowInterval);
+            yield return new WaitForSeconds(_config.GrowInterval);
 
-            if (size >= ResourceSize.Giant)
+            if (_size >= ResourceSize.Giant)
                 continue;
 
-            size++;
+            _size++;
             UpdateVisual();
         }
     }
 
     private void Respawn()
     {
-        available = true;
-        size = ResourceSize.Tiny;
+        _available = true;
+        _size = ResourceSize.Tiny;
+        _workRoutine = null;
 
-        if (sprite != null)
-            sprite.enabled = true;
-
+        SetVisible(true);
         UpdateVisual();
         StartGrowRoutine();
-
-        mineRoutine = null;
     }
 
     private void StartGrowRoutine()
     {
         StopGrowRoutine();
-        growRoutine = StartCoroutine(GrowRoutine());
+
+        if (_config == null)
+            return;
+
+        _growRoutine = StartCoroutine(GrowRoutine());
     }
 
     private void StopGrowRoutine()
     {
-        if (growRoutine == null)
+        if (_growRoutine == null)
             return;
 
-        StopCoroutine(growRoutine);
-        growRoutine = null;
+        StopCoroutine(_growRoutine);
+        _growRoutine = null;
     }
 
     private void UpdateVisual()
     {
-        int index = Mathf.Max(0, (int)size - 1);
+        int sizeIndex = Mathf.Max(0, (int)_size - 1);
 
-        if (animator != null)
-            animator.SetInteger("Size", index);
+        if (_animator != null)
+            _animator.SetInteger(SizeHash, sizeIndex);
+    }
+
+    private void SetVisible(bool value)
+    {
+        if (_spriteRenderer != null)
+            _spriteRenderer.enabled = value;
+    }
+
+    protected override void OnDestroy()
+    {
+        StopGrowRoutine();
+
+        if (_workRoutine != null)
+            StopCoroutine(_workRoutine);
+
+        base.OnDestroy();
     }
 }

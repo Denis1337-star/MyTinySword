@@ -1,8 +1,7 @@
-using System;
-using UnityEngine;
 
 /// <summary>
-/// Состояние выполнения работы 
+/// Состояние работы с ресурсом.
+/// Запускает добычу и после завершения кладёт полученный ресурс в inventory worker'а.
 /// </summary>
 public class WorkerWorkState : IWorkerState
 {

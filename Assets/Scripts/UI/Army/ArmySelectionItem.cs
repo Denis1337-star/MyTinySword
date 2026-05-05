@@ -1,25 +1,23 @@
-
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Один элемент панели выбранной армии:
-/// показывает иконку класса юнита и количество.
+/// UI-элемент одного типа боевых юнитов в панели выбранной армии
 /// </summary>
 public class ArmySelectionItem : MonoBehaviour
 {
-    [SerializeField] private Image iconImage;
-    [SerializeField] private Text countText;
+    [Header("UI")]
+    [SerializeField] private Image _iconImage;
+    [SerializeField] private TMP_Text _countText;
 
-    /// <summary>
-    /// Заполняет UI-элемент данными.
-    /// </summary>
     public void Bind(Sprite icon, int count)
     {
-        if (iconImage != null)
-            iconImage.sprite = icon;
+        if (_iconImage != null)
+            _iconImage.sprite = icon;
 
-        if (countText != null)
-            countText.text = $"x{count}";
+        if (_countText != null)
+            _countText.text = count.ToString();
     }
 }
+

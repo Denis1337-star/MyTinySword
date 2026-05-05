@@ -2,9 +2,11 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// принимает решения о назначении и переключении работы worker
+/// Мозг worker'а.
+/// Отвечает за назначение работы, отложенную смену работы
+/// и применение job-логики через WorkerJobFactory.
 /// </summary>
- [RequireComponent(typeof(Worker))]
+[RequireComponent(typeof(Worker))]
 public sealed class WorkerBrain : MonoBehaviour
 {
     private Worker _worker;
@@ -22,7 +24,8 @@ public sealed class WorkerBrain : MonoBehaviour
     }
 
     /// <summary>
-    /// Назначает новую работу рабочему
+    /// Назначает новую работу worker'у.
+    /// Если worker занят, работа может попасть в PendingJob.
     /// </summary>
     public void AssignJob(WorkerJobType job)
     {
@@ -49,7 +52,8 @@ public sealed class WorkerBrain : MonoBehaviour
     }
 
     /// <summary>
-    /// Применяет отложенную работу, если она есть
+    /// Применяет отложенную работу, если она есть.
+    /// Обычно вызывается после доставки ресурса домой.
     /// </summary>
     public void ApplyPendingJobIfAny()
     {
@@ -66,12 +70,19 @@ public sealed class WorkerBrain : MonoBehaviour
     }
 
     /// <summary>
-    /// Сразу применяет работу
+    /// Немедленно применяет новую работу.
+    /// Сбрасывает текущее задание и запускает поиск ресурса.
     /// </summary>
     public void ApplyJobImmediately(WorkerJobType job)
     {
         if (_worker == null)
             return;
+
+        if (_workerJobFactory == null)
+        {
+            Debug.LogError($"{name}: WorkerJobFactory не внедрён через Zenject.", this);
+            return;
+        }
 
         IWorkerJob logic = _workerJobFactory.Create(job);
 

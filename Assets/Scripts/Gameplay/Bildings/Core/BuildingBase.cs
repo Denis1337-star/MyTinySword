@@ -29,6 +29,8 @@ public class BuildingBase : ValidatedMonoBehaviour
     protected override void Awake()
     {
         ResolveReferences();
+        ApplyConfig();
+
         base.Awake();
     }
 
@@ -48,10 +50,10 @@ public class BuildingBase : ValidatedMonoBehaviour
     {
         bool valid = true;
 
-        valid &= ValidationUtility.NotEmptyCollection(this, config, nameof(config));
-        valid &= ValidationUtility.NotEmptyCollection(this, factionMember, nameof(factionMember));
-        valid &= ValidationUtility.NotEmptyCollection(this, health, nameof(health));
-        valid &= ValidationUtility.NotEmptyCollection(this, selectable, nameof(selectable));
+        valid &= ValidationUtility.IsAssigned(this, config, nameof(config));
+        valid &= ValidationUtility.IsAssigned(this, factionMember, nameof(factionMember));
+        valid &= ValidationUtility.IsAssigned(this, health, nameof(health));
+        valid &= ValidationUtility.IsAssigned(this, selectable, nameof(selectable));
 
         if (config != null && !config.IsValid())
         {
@@ -77,5 +79,12 @@ public class BuildingBase : ValidatedMonoBehaviour
 
         if (selectable == null)
             selectable = GetComponent<UnitSelectable>();
+    }
+    private void ApplyConfig()
+    {
+        if (config == null || health == null)
+            return;
+
+        health.Initialize(config.MaxHealth);
     }
 }

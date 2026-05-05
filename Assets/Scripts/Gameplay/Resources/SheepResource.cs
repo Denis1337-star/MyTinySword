@@ -7,27 +7,24 @@ using UnityEngine;
 /// </summary>
 public class SheepResource : ResourceNodeBase
 {
-    [Header("Config")]
-    [SerializeField] private SheepResourceConfig config;
+    [SerializeField] private SheepResourceConfig _config;
+    [SerializeField] private SpriteRenderer _spriteRenderer;
+    [SerializeField] private Collider2D _collider;
 
-    [Header("Components")]
-    [SerializeField] private SpriteRenderer sprite;
-    [SerializeField] private Collider2D col;
+    private SheepAI _sheepAI;
+    private Coroutine _workRoutine;
 
-    private SheepAI sheepAI;
-    private Coroutine workRoutine;
-
-    public override float Priority => config != null ? config.Priority : 1f;
+    public override float Priority => _config != null ? _config.Priority : 0f;
 
     protected override void Awake()
     {
-        sheepAI = GetComponent<SheepAI>();
+        _sheepAI = GetComponent<SheepAI>();
 
-        if (sprite == null)
-            sprite = GetComponent<SpriteRenderer>();
+        if (_spriteRenderer == null)
+            _spriteRenderer = GetComponent<SpriteRenderer>();
 
-        if (col == null)
-            col = GetComponent<Collider2D>();
+        if (_collider == null)
+            _collider = GetComponent<Collider2D>();
 
         base.Awake();
     }
@@ -36,38 +33,17 @@ public class SheepResource : ResourceNodeBase
     {
         bool valid = base.ValidateInternal();
 
-        valid &= ValidationUtility.NotEmptyCollection(this, config, nameof(config));
-        valid &= ValidationUtility.NotEmptyCollection(this, sprite, nameof(sprite));
-        valid &= ValidationUtility.NotEmptyCollection(this, col, nameof(col));
+        valid &= ValidationUtility.IsAssigned(this, _config, nameof(_config));
+        valid &= ValidationUtility.IsAssigned(this, _spriteRenderer, nameof(_spriteRenderer));
+        valid &= ValidationUtility.IsAssigned(this, _collider, nameof(_collider));
 
-        if (config != null && !config.IsValid())
+        if (_config != null && !_config.IsValid())
         {
-            Debug.LogError($"{name}: SheepResourceConfig is invalid.", this);
+            Debug.LogError($"{name}: SheepResourceConfig некорректный.", this);
             valid = false;
         }
 
         return valid;
-    }
-
-    protected override void StartWorkRoutine(Action<int> onFinished)
-    {
-        if (workRoutine != null)
-            StopCoroutine(workRoutine);
-
-        workRoutine = StartCoroutine(WorkRoutine(onFinished));
-    }
-
-    private IEnumerator WorkRoutine(Action<int> callback)
-    {
-        yield return new WaitForSeconds(config.WorkTime);
-
-        callback?.Invoke(config.MeatAmount);
-
-        SetVisible(false);
-
-        yield return new WaitForSeconds(config.RespawnTime);
-
-        Respawn();
     }
 
     public override WorkSlot TryReserveSlot(Worker worker)
@@ -75,7 +51,7 @@ public class SheepResource : ResourceNodeBase
         WorkSlot slot = base.TryReserveSlot(worker);
 
         if (slot != null)
-            sheepAI?.SetFrozen(true);
+            _sheepAI?.SetFrozen(true);
 
         return slot;
     }
@@ -84,24 +60,54 @@ public class SheepResource : ResourceNodeBase
     {
         base.ReleaseSlot(worker);
 
-        if (available)
-            sheepAI?.SetFrozen(false);
+        if (_available)
+            _sheepAI?.SetFrozen(false);
+    }
+
+    protected override void StartWorkRoutine(Action<int> onFinished)
+    {
+        if (_workRoutine != null)
+            StopCoroutine(_workRoutine);
+
+        _workRoutine = StartCoroutine(WorkRoutine(onFinished));
+    }
+
+    private IEnumerator WorkRoutine(Action<int> onFinished)
+    {
+        yield return new WaitForSeconds(_config.WorkTime);
+
+        onFinished?.Invoke(_config.MeatAmount);
+
+        SetVisible(false);
+
+        yield return new WaitForSeconds(_config.RespawnTime);
+
+        Respawn();
     }
 
     private void Respawn()
     {
-        available = true;
+        _available = true;
+        _workRoutine = null;
+
         SetVisible(true);
-        sheepAI?.SetFrozen(false);
-        workRoutine = null;
+        _sheepAI?.SetFrozen(false);
     }
 
     private void SetVisible(bool value)
     {
-        if (sprite != null)
-            sprite.enabled = value;
+        if (_spriteRenderer != null)
+            _spriteRenderer.enabled = value;
 
-        if (col != null)
-            col.enabled = value;
+        if (_collider != null)
+            _collider.enabled = value;
+    }
+
+    protected override void OnDestroy()
+    {
+        if (_workRoutine != null)
+            StopCoroutine(_workRoutine);
+
+        base.OnDestroy();
     }
 }

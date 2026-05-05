@@ -1,7 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// работа шахтер
+/// Job-логика добычи золота.
+/// »щет GoldResource и говорит worker'у, что награда Ч Gold.
 /// </summary>
 public sealed class MineGoldJob : IWorkerJob
 {
@@ -17,6 +18,9 @@ public sealed class MineGoldJob : IWorkerJob
 
     public ResourceNodeBase FindResource(Vector2 from)
     {
+        if (_resourceSearchService == null)
+            return null;
+
         return _resourceSearchService.FindBest<GoldResource>(from);
     }
 }

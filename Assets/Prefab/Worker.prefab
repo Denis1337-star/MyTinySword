@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3763460469550588924}
   - component: {fileID: 5206605396348483662}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: SelectionVisual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -103,7 +103,7 @@ GameObject:
   - component: {fileID: 1263769579142275136}
   - component: {fileID: 4803159699397084767}
   - component: {fileID: 8964258087385836050}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Worker
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -225,6 +225,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5fc4b441ac128a3488c85ff1c3df44e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _speed: 3.5
+  _stoppingDistance: 0.2
+  _agentRadius: 0.25
+  _areaMask: -1
 --- !u!114 &8358571350735867512
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -237,7 +241,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 507f63778ea5555489bca8495389a9e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  selectionVisual: {fileID: 889229229748763050}
+  _selectionVisual: {fileID: 889229229748763050}
+  _canBeSelected: 1
 --- !u!114 &7444760020752943343
 MonoBehaviour:
   m_ObjectHideFlags: 0

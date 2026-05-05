@@ -1,88 +1,104 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
 using UniRx;
 
 /// <summary>
-/// Панель строительства
+/// UI-панель строительства
+/// Показывает список зданий, доступных для выбранного ConstructionSlot
 /// </summary>
 public class ConstructionPanel : MonoBehaviour
 {
-    [Header("Main Info")]
-    [SerializeField] private Text titleText;
-    [SerializeField] private Text descriptionText;
-    [SerializeField] private Text costText;
-    [SerializeField] private Text buildTimeText;
-    [SerializeField] private Image previewImage;
+    [Header("Root")]
+    [SerializeField] private GameObject _root;
+
+    [Header("Selected Building Info")]
+    [SerializeField] private TMP_Text _titleText;
+    [SerializeField] private TMP_Text _descriptionText;
+    [SerializeField] private TMP_Text _costText;
+    [SerializeField] private TMP_Text _bildTimeText;
+
+    [Header("Preview")]
+    [SerializeField] private Image _previewImage;
 
     [Header("Build Button")]
-    [SerializeField] private Button buildButton;
-    [SerializeField] private Text buildButtonText;
+    [SerializeField] private Button _buildButton;
 
     [Header("Options List")]
-    [SerializeField] private Transform contentRoot;
-    [SerializeField] private ConstructionOptionItem optionPrefab;
+    [SerializeField] private Transform _contentRoot;
+    [SerializeField] private ConstructionOptionItem _optionPrefab;
 
-    private readonly List<ConstructionOptionItem> optionItems = new();
+    private readonly List<ConstructionOptionItem> _optionItems = new();
 
-    private ConstructionSlot currentSlot;
-    private BuildingConfig selectedConfig;
-    private ResourceStorage resourceStorage;
+    private ResourceStorage _resourceStorage;
+    private ConstructionSlot _currentSlot;
+    private BuildingConfig _selectedConfig;
 
     [Inject]
     private void Construct(ResourceStorage resourceStorage)
     {
-        this.resourceStorage = resourceStorage;
+        _resourceStorage = resourceStorage;
     }
 
     private void Awake()
     {
-        if (buildButton != null)
-            buildButton.onClick.AddListener(OnBuildClicked);
-
-        gameObject.SetActive(false);
+        _buildButton?.onClick.AddListener(OnBuildClicked);
+        Hide();
     }
 
     private void Start()
     {
-        resourceStorage.ResourcesChanged
-            .Subscribe(_ => RefreshBuildButton())
+        _resourceStorage.ResourcesChanged
+            .Subscribe(_ => Refresh())
             .AddTo(this);
     }
 
     private void OnDestroy()
     {
-        if (buildButton != null)
-            buildButton.onClick.RemoveListener(OnBuildClicked);
+        _buildButton?.onClick.RemoveListener(OnBuildClicked);
     }
 
+    /// <summary>
+    /// Показывает панель для выбранного строительного слота
+    /// </summary>
     public void Show(ConstructionSlot slot)
     {
         if (slot == null)
+        {
+            Hide();
             return;
+        }
 
-        currentSlot = slot;
-        selectedConfig = null;
+        _currentSlot = slot;
+        _selectedConfig = null;
 
         BuildOptions(slot.AvailableBuildings);
 
         if (slot.AvailableBuildings != null && slot.AvailableBuildings.Count > 0)
             SelectConfig(slot.AvailableBuildings[0]);
         else
-            RefreshMainInfo();
+            Refresh();
 
-        gameObject.SetActive(true);
-        RefreshBuildButton();
+        ShowRoot();
     }
 
+    /// <summary>
+    /// Скрывает панель и очищает выбранный слот.
+    /// </summary>
     public void Hide()
     {
-        currentSlot = null;
-        selectedConfig = null;
+        _currentSlot = null;
+        _selectedConfig = null;
 
         ClearOptions();
-        gameObject.SetActive(false);
+        ClearInfo();
+
+        if (_root != null)
+            _root.SetActive(false);
+        else
+            gameObject.SetActive(false);
     }
 
     private void BuildOptions(IReadOnlyList<BuildingConfig> configs)
@@ -97,123 +113,143 @@ public class ConstructionPanel : MonoBehaviour
             if (config == null)
                 continue;
 
-            if (contentRoot == null || optionPrefab == null)
-                return;
+            ConstructionOptionItem item = CreateItem();
+            if (item == null)
+                continue;
 
-            ConstructionOptionItem item = Instantiate(optionPrefab, contentRoot);
             item.Bind(config, SelectConfig);
-            optionItems.Add(item);
+            _optionItems.Add(item);
         }
+    }
+
+    private ConstructionOptionItem CreateItem()
+    {
+        if (_contentRoot == null || _optionPrefab == null)
+            return null;
+
+        return Instantiate(_optionPrefab, _contentRoot);
     }
 
     private void SelectConfig(BuildingConfig config)
     {
-        selectedConfig = config;
+        _selectedConfig = config;
 
-        RefreshMainInfo();
+        Refresh();
+    }
+
+    private void Refresh()
+    {
+        RefreshSelectedInfo();
         RefreshSelectionVisual();
         RefreshBuildButton();
     }
 
-    private void RefreshMainInfo()
+    private void RefreshSelectedInfo()
     {
-        if (selectedConfig == null)
+        if (_selectedConfig == null)
         {
-            if (titleText != null)
-                titleText.text = "Нет здания";
-
-            if (descriptionText != null)
-                descriptionText.text = string.Empty;
-
-            if (costText != null)
-                costText.text = string.Empty;
-
-            if (buildTimeText != null)
-                buildTimeText.text = string.Empty;
-
-            if (previewImage != null)
-                previewImage.sprite = null;
-
+            ClearInfo();
             return;
         }
 
-        if (titleText != null)
-            titleText.text = selectedConfig.DisplayName;
+        if (_titleText != null)
+            _titleText.text = _selectedConfig.DisplayName;
 
-        if (descriptionText != null)
-            descriptionText.text = selectedConfig.Description;
+        if (_descriptionText != null)
+            _descriptionText.text = _selectedConfig.Description;
+        
+        if(_bildTimeText != null)
+            _bildTimeText.text = $"Строится: {_selectedConfig.BuildTime} секунд";
 
-        if (costText != null)
+        if (_costText != null)
         {
-            int currentWood = resourceStorage != null ? resourceStorage.Wood : 0;
-            int currentGold = resourceStorage != null ? resourceStorage.Gold : 0;
+            int currentWood = _resourceStorage != null ? _resourceStorage.Wood : 0;
+            int currentGold = _resourceStorage != null ? _resourceStorage.Gold : 0;
 
-            costText.text =
-                $"Стоимость строительства\n" +
-                $"Дерево: {currentWood} / {selectedConfig.WoodCost}\n" +
-                $"Золото: {currentGold} / {selectedConfig.GoldCost}";
+            _costText.text =
+                $"Стоимость\n" +
+                $"Wood: {currentWood}/{_selectedConfig.WoodCost}\n" +
+                $"Gold: {currentGold}/{_selectedConfig.GoldCost}";
         }
 
-        if (buildTimeText != null)
-            buildTimeText.text = $"Время строительства: {selectedConfig.BuildTime:0.#} сек.";
-
-        if (previewImage != null)
-            previewImage.sprite = selectedConfig.Icon;
-    }
-
-    private void RefreshSelectionVisual()
-    {
-        foreach (ConstructionOptionItem item in optionItems)
-        {
-            if (item == null)
-                continue;
-
-            item.SetSelected(item.Config == selectedConfig);
-        }
+        if (_previewImage != null)
+            _previewImage.sprite = _selectedConfig.Icon;
     }
 
     private void RefreshBuildButton()
     {
-        if (buildButton == null)
+        if (_buildButton == null)
             return;
 
-        string blockReason = currentSlot != null
-            ? currentSlot.GetBuildBlockReason(selectedConfig)
+        string blockReason = _currentSlot != null
+            ? _currentSlot.GetBuildBlockReason(_selectedConfig)
             : "Слот не выбран";
 
         bool canBuild = string.IsNullOrEmpty(blockReason);
 
-        buildButton.interactable = canBuild;
+        _buildButton.interactable = canBuild;
+    }
 
-        if (buildButtonText != null)
-            buildButtonText.text = canBuild ? "Построить" : blockReason;
+    private void RefreshSelectionVisual()
+    {
+        foreach (ConstructionOptionItem item in _optionItems)
+        {
+            if (item == null)
+                continue;
 
-        RefreshMainInfo();
+            item.SetSelected(item.Config == _selectedConfig);
+        }
     }
 
     private void OnBuildClicked()
     {
-        if (currentSlot == null || selectedConfig == null)
+        if (_currentSlot == null || _selectedConfig == null)
             return;
 
-        bool started = currentSlot.StartConstruction(selectedConfig);
+        bool started = _currentSlot.StartConstruction(_selectedConfig);
         if (!started)
         {
-            RefreshBuildButton();
+            Refresh();
             return;
         }
 
         Hide();
     }
 
+    private void ClearInfo()
+    {
+        if (_titleText != null)
+            _titleText.text = "Здание не выбрано";
+
+        if (_descriptionText != null)
+            _descriptionText.text = string.Empty;
+
+        if (_costText != null)
+            _costText.text = "Стоимость: -";
+
+        if (_previewImage != null)
+            _previewImage.sprite = null;
+
+        if (_buildButton != null)
+            _buildButton.interactable = false;
+    }
+
     private void ClearOptions()
     {
-        foreach (ConstructionOptionItem item in optionItems)
+        foreach (ConstructionOptionItem item in _optionItems)
         {
             if (item != null)
                 Destroy(item.gameObject);
         }
 
-        optionItems.Clear();
+        _optionItems.Clear();
+    }
+
+    private void ShowRoot()
+    {
+        if (_root != null)
+            _root.SetActive(true);
+        else
+            gameObject.SetActive(true);
     }
 }

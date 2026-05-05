@@ -7,20 +7,20 @@ using UnityEngine;
 /// </summary>
 public class TreeResource : ResourceNodeBase
 {
-    [SerializeField] private TreeResourceConfig config;
+    private static readonly int StumpHash = Animator.StringToHash("Stump");
 
-    private Animator animator;
-    private Coroutine workRoutine;
-    public override float Priority => config != null ? config.Priority : 10f;
+    [SerializeField] private TreeResourceConfig _config;
+
+    private Animator _animator;
+    private Coroutine _workRoutine;
+
+    public override float Priority => _config != null ? _config.Priority : 0f;
 
     protected override void Awake()
     {
-        animator = GetComponent<Animator>();
+        _animator = GetComponent<Animator>();
 
         base.Awake();
-
-        if (!enabled)
-            return;
 
         SetTreeVisual();
     }
@@ -29,11 +29,11 @@ public class TreeResource : ResourceNodeBase
     {
         bool valid = base.ValidateInternal();
 
-        valid &= ValidationUtility.NotEmptyCollection(this, config, nameof(config));
+        valid &= ValidationUtility.IsAssigned(this, _config, nameof(_config));
 
-        if (config != null && !config.IsValid())
+        if (_config != null && !_config.IsValid())
         {
-            Debug.LogError($"{name}: TreeResourceConfig is invalid.", this);
+            Debug.LogError($"{name}: TreeResourceConfig некорректный.", this);
             valid = false;
         }
 
@@ -42,41 +42,43 @@ public class TreeResource : ResourceNodeBase
 
     protected override void StartWorkRoutine(Action<int> onFinished)
     {
-        if (workRoutine != null)
-            StopCoroutine(workRoutine);
+        if (_workRoutine != null)
+            StopCoroutine(_workRoutine);
 
-        workRoutine = StartCoroutine(ChopRoutine(onFinished));
+        _workRoutine = StartCoroutine(WorkRoutine(onFinished));
     }
 
-    private IEnumerator ChopRoutine(Action<int> callback)
+    private IEnumerator WorkRoutine(Action<int> onFinished)
     {
-        yield return new WaitForSeconds(config.WorkTime);
+        yield return new WaitForSeconds(_config.WorkTime);
 
-        callback?.Invoke(config.RewardAmount);
+        onFinished?.Invoke(_config.RewardAmount);
+
         SetStumpVisual();
 
-        yield return new WaitForSeconds(config.RespawnTime);
+        yield return new WaitForSeconds(_config.RespawnTime);
 
         Respawn();
     }
 
     private void Respawn()
     {
-        available = true;
+        _available = true;
+        _workRoutine = null;
+
         SetTreeVisual();
-        workRoutine = null;
     }
 
     private void SetTreeVisual()
     {
-        if (animator != null)
-            animator.SetBool("Stump", false);
+        if (_animator != null)
+            _animator.SetBool(StumpHash, false);
     }
 
     private void SetStumpVisual()
     {
-        if (animator != null)
-            animator.SetBool("Stump", true);
+        if (_animator != null)
+            _animator.SetBool(StumpHash, true);
     }
 }
 

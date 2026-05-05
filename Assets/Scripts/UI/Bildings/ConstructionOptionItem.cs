@@ -3,54 +3,59 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Один элемент нижнего списка зданий.
-/// Показывает иконку и сообщает панели, какое здание выбрано.
+/// UI-элемент выбора здания в панели строительства
 /// </summary>
 public class ConstructionOptionItem : MonoBehaviour
 {
-    [SerializeField] private Image iconImage;
-    [SerializeField] private Button button;
-    [SerializeField] private GameObject selectedFrame;
+    [Header("UI")]
+    [SerializeField] private Image _iconImage;
+    [SerializeField] private Button _button;
+    [SerializeField] private GameObject _selectedFrame;
 
-    private BuildingConfig config;
-    private Action<BuildingConfig> onSelected;
+    private BuildingConfig _config;
+    private Action<BuildingConfig> _onSelected;
 
-    public BuildingConfig Config => config;
+    public BuildingConfig Config => _config;
+
+    private void OnEnable()
+    {
+        _button?.onClick.AddListener(HandleClick);
+    }
+
+    private void OnDisable()
+    {
+        _button?.onClick.RemoveListener(HandleClick);
+    }
 
     /// <summary>
-    /// Привязывает UI-элемент к конфигу здания.
+    /// Привязывает item к config здания
     /// </summary>
     public void Bind(BuildingConfig config, Action<BuildingConfig> onSelected)
     {
-        this.config = config;
-        this.onSelected = onSelected;
+        _config = config;
+        _onSelected = onSelected;
 
-        if (iconImage != null)
-            iconImage.sprite = config != null ? config.Icon : null;
-
-        if (button != null)
-        {
-            button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(HandleClick);
-        }
+        if (_iconImage != null)
+            _iconImage.sprite = _config != null ? _config.Icon : null;
 
         SetSelected(false);
     }
 
     /// <summary>
-    /// Включает или выключает рамку выбранного состояния.
+    /// Включает или выключает рамку выбранного здания
     /// </summary>
     public void SetSelected(bool value)
     {
-        if (selectedFrame != null)
-            selectedFrame.SetActive(value);
+        if (_selectedFrame != null)
+            _selectedFrame.SetActive(value);
     }
 
     private void HandleClick()
     {
-        if (config == null)
+        if (_config == null)
             return;
 
-        onSelected?.Invoke(config);
+        _onSelected?.Invoke(_config);
     }
+
 }

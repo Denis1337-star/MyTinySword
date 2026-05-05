@@ -1,229 +1,150 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Zenject;
 
 /// <summary>
-/// UI-панель списка worker текущего дома
+/// UI-панель списка рабочих выбранного дома
+/// Создаёт item для каждого рабочего и позволяет выбрать рабочего из списка
 /// </summary>
 public class WorkerListPanel : MonoBehaviour
 {
-    [SerializeField] private Transform contentRoot;
-    [SerializeField] private WorkerListItem itemPrefab;
-    [SerializeField] private SelectionSystem selectionSystem;
+    [Header("Root")]
+    [SerializeField] private GameObject _root;
 
-    // Дом, список worker'ов которого сейчас отображается
-    private House currentHouse;
+    [Header("Items")]
+    [SerializeField] private Transform _contentRoot;
+    [SerializeField] private WorkerListItem _itemPrefab;
 
-    // Связь между gameplay-worker'ом и его UI-элементом
-    private readonly Dictionary<Worker, WorkerListItem> itemsByWorker = new();
+    private readonly List<WorkerListItem> _items = new();
+
+    private SelectionSystem _selectionSystem;
+    private House _currentHouse;
+
+    [Inject]
+    private void Construct(SelectionSystem selectionSystem)
+    {
+        _selectionSystem = selectionSystem;
+    }
+
+    private void Awake()
+    {
+        Hide();
+    }
 
     /// <summary>
-    /// Привязывает панель к указанному дому.
+    /// Показывает список рабочих для выбранного дома
     /// </summary>
-    public void Bind(House house)
+    public void Show(House house)
     {
-        // Если дом тот же самый — просто обновляем содержимое
-        if (currentHouse == house)
+        if (house == null)
         {
-            Refresh();
+            Hide();
+            return;
+        }
+
+        if (_currentHouse == house)
+        {
+            ShowRoot();
+            Rebuild();
             return;
         }
 
         UnsubscribeFromHouse();
-        ClearAllItems();
 
-        currentHouse = house;
+        _currentHouse = house;
 
         SubscribeToHouse();
-        Refresh();
-    }
 
-    private void OnDisable()
-    {
-        UnsubscribeFromHouse();
-    }
-
-    private void OnDestroy()
-    {
-        UnsubscribeFromHouse();
-        ClearAllItems();
+        ShowRoot();
+        Rebuild();
     }
 
     /// <summary>
-    /// Полностью синхронизирует UI-список с текущим составом worker'ов дома.
+    /// Скрывает панель и очищает список
     /// </summary>
-    public void Refresh()
+    public void Hide()
     {
-        if (contentRoot == null || itemPrefab == null)
+        UnsubscribeFromHouse();
+
+        _currentHouse = null;
+
+        ClearItems();
+
+        if (_root != null)
+            _root.SetActive(false);
+    }
+
+    private void Rebuild()
+    {
+        ClearItems();
+
+        if (_currentHouse == null)
             return;
 
-        if (currentHouse == null)
+        IReadOnlyList<Worker> workers = _currentHouse.Workers;
+        if (workers == null || workers.Count == 0)
+            return;
+
+        foreach (Worker worker in workers)
         {
-            ClearAllItems();
-            return;
-        }
+            if (worker == null)
+                continue;
 
-        RemoveMissingWorkers();
-        AddMissingWorkers();
-        CleanupNullEntries();
+            WorkerListItem item = CreateItem();
+            if (item == null)
+                continue;
+
+            item.Bind(worker, SelectWorker);
+            _items.Add(item);
+        }
     }
 
-    /// <summary>
-    /// Подписывается на события текущего дома.
-    /// </summary>
+    private WorkerListItem CreateItem()
+    {
+        if (_itemPrefab == null || _contentRoot == null)
+            return null;
+
+        return Instantiate(_itemPrefab, _contentRoot);
+    }
+
+    private void SelectWorker(Worker worker)
+    {
+        if (worker == null || _selectionSystem == null)
+            return;
+
+        _selectionSystem.SelectWorkerFromUI(worker);
+    }
+
     private void SubscribeToHouse()
     {
-        if (currentHouse == null)
+        if (_currentHouse == null)
             return;
 
-        currentHouse.OnWorkerAdded += OnWorkerAdded;
-        currentHouse.OnWorkerRemoved += OnWorkerRemoved;
-        currentHouse.OnWorkersChanged += OnWorkersChanged;
+        _currentHouse.OnWorkersChanged += Rebuild;
     }
 
-    /// <summary>
-    /// Снимает подписки с текущего дома.
-    /// </summary>
     private void UnsubscribeFromHouse()
     {
-        if (currentHouse == null)
+        if (_currentHouse == null)
             return;
 
-        currentHouse.OnWorkerAdded -= OnWorkerAdded;
-        currentHouse.OnWorkerRemoved -= OnWorkerRemoved;
-        currentHouse.OnWorkersChanged -= OnWorkersChanged;
+        _currentHouse.OnWorkersChanged -= Rebuild;
     }
 
-    private void OnWorkerAdded(Worker worker)
+    private void ClearItems()
     {
-        if (worker == null)
-            return;
-
-        AddWorkerItem(worker);
-    }
-
-    private void OnWorkerRemoved(Worker worker)
-    {
-        if (worker == null)
-            return;
-
-        RemoveItem(worker);
-    }
-
-    private void OnWorkersChanged()
-    {
-        Refresh();
-    }
-
-    /// <summary>
-    /// Удаляет UI-элементы для worker'ов, которые больше не принадлежат текущему дому.
-    /// </summary>
-    private void RemoveMissingWorkers()
-    {
-        List<Worker> toRemove = new();
-
-        foreach (var pair in itemsByWorker)
+        foreach (WorkerListItem item in _items)
         {
-            Worker worker = pair.Key;
-
-            if (worker == null || currentHouse.Workers == null || !ContainsWorker(currentHouse.Workers, worker))
-                toRemove.Add(worker);
+            if (item != null)
+                Destroy(item.gameObject);
         }
 
-        foreach (Worker worker in toRemove)
-            RemoveItem(worker);
+        _items.Clear();
     }
 
-    /// <summary>
-    /// Добавляет недостающие UI-элементы для всех worker'ов текущего дома.
-    /// </summary>
-    private void AddMissingWorkers()
+    private void ShowRoot()
     {
-        if (currentHouse.Workers == null)
-            return;
-
-        foreach (Worker worker in currentHouse.Workers)
-            AddWorkerItem(worker);
-    }
-
-    /// <summary>
-    /// Создаёт UI-элемент для worker'а, если его ещё нет в списке.
-    /// </summary>
-    private void AddWorkerItem(Worker worker)
-    {
-        if (worker == null || itemPrefab == null || contentRoot == null)
-            return;
-
-        if (itemsByWorker.ContainsKey(worker))
-            return;
-
-        WorkerListItem item = Instantiate(itemPrefab, contentRoot);
-        item.Bind(worker, selectionSystem);
-
-        itemsByWorker.Add(worker, item);
-    }
-
-    /// <summary>
-    /// Удаляет UI-элемент указанного worker'а.
-    /// </summary>
-    private void RemoveItem(Worker worker)
-    {
-        if (worker == null)
-            return;
-
-        if (!itemsByWorker.TryGetValue(worker, out WorkerListItem item))
-            return;
-
-        if (item != null)
-            Destroy(item.gameObject);
-
-        itemsByWorker.Remove(worker);
-    }
-
-    /// <summary>
-    /// Очищает битые записи, если worker или item уже были уничтожены.
-    /// </summary>
-    private void CleanupNullEntries()
-    {
-        List<Worker> invalidWorkers = new();
-
-        foreach (var pair in itemsByWorker)
-        {
-            if (pair.Key == null || pair.Value == null)
-                invalidWorkers.Add(pair.Key);
-        }
-
-        foreach (Worker worker in invalidWorkers)
-            RemoveItem(worker);
-    }
-
-    /// <summary>
-    /// Полностью удаляет все UI-элементы списка.
-    /// </summary>
-    private void ClearAllItems()
-    {
-        foreach (var pair in itemsByWorker)
-        {
-            if (pair.Value != null)
-                Destroy(pair.Value.gameObject);
-        }
-
-        itemsByWorker.Clear();
-    }
-
-    /// <summary>
-    /// Проверяет, содержится ли worker в списке worker'ов дома.
-    /// </summary>
-    private bool ContainsWorker(IReadOnlyList<Worker> workers, Worker target)
-    {
-        if (workers == null || target == null)
-            return false;
-
-        for (int i = 0; i < workers.Count; i++)
-        {
-            if (workers[i] == target)
-                return true;
-        }
-
-        return false;
+        if (_root != null)
+            _root.SetActive(true);
     }
 }

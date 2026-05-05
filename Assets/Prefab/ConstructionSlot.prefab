@@ -248,4 +248,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 507f63778ea5555489bca8495389a9e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  selectionVisual: {fileID: 2724133571628193532}
+  _selectionVisual: {fileID: 2724133571628193532}
+  _canBeSelected: 1

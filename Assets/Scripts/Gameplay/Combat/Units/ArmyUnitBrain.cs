@@ -6,6 +6,7 @@ using UnityEngine.Serialization;
 /// </summary>
 public class ArmyUnitBrain : MonoBehaviour
 {
+    private Collider2D _bodyCollider;
     [Header("Components")]
     [FormerlySerializedAs("unit")]
     [SerializeField] private ArmyUnit _unit;
@@ -149,11 +150,11 @@ public class ArmyUnitBrain : MonoBehaviour
             return;
         }
 
-        float distance = Vector3.Distance(transform.position, targetTransform.position);
+        float distance = GetDistanceToTarget(_currentTarget);
 
         if (distance > Config.AttackRange)
         {
-            _movement?.MoveTo(targetTransform.position);
+            _movement?.MoveTo(GetApproachPosition(_currentTarget));
             return;
         }
 
@@ -396,6 +397,10 @@ public class ArmyUnitBrain : MonoBehaviour
 
         if (_animatorBridge == null)
             _animatorBridge = GetComponent<UnitAnimatorBridge>();
+
+        if (_bodyCollider == null)
+            _bodyCollider = GetComponent<Collider2D>();
+
     }
 
     private static IDamageable TryGetDamageableTarget(Collider2D hit)
@@ -464,5 +469,42 @@ public class ArmyUnitBrain : MonoBehaviour
 
         Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(transform.position, _unit.Config.HealRange);
+    }
+    private float GetDistanceToTarget(IDamageable target)
+    {
+        if (target == null)
+            return float.MaxValue;
+
+        MonoBehaviour targetBehaviour = target as MonoBehaviour;
+        if (targetBehaviour == null)
+            return float.MaxValue;
+
+        Collider2D targetCollider = targetBehaviour.GetComponent<Collider2D>();
+        if (targetCollider == null)
+            targetCollider = targetBehaviour.GetComponentInParent<Collider2D>();
+
+        if (_bodyCollider != null && targetCollider != null)
+        {
+            ColliderDistance2D distance = _bodyCollider.Distance(targetCollider);
+            return Mathf.Max(0f, distance.distance);
+        }
+
+        return Vector2.Distance(transform.position, targetBehaviour.transform.position);
+    }
+
+    private Vector2 GetApproachPosition(IDamageable target)
+    {
+        MonoBehaviour targetBehaviour = target as MonoBehaviour;
+        if (targetBehaviour == null)
+            return transform.position;
+
+        Collider2D targetCollider = targetBehaviour.GetComponent<Collider2D>();
+        if (targetCollider == null)
+            targetCollider = targetBehaviour.GetComponentInParent<Collider2D>();
+
+        if (targetCollider == null)
+            return targetBehaviour.transform.position;
+
+        return targetCollider.ClosestPoint(transform.position);
     }
 }

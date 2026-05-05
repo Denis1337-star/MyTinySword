@@ -5,6 +5,12 @@ using UnityEngine.AI;
 [RequireComponent(typeof(NavMeshAgent))]
 public class UnitMovement : MonoBehaviour
 {
+    [Header("Agent Settings")]
+    [SerializeField] private float _speed = 3.5f;
+    [SerializeField] private float _stoppingDistance = 0.2f;
+    [SerializeField] private float _agentRadius = 0.25f;
+    [SerializeField] private int _areaMask = UnityEngine.AI.NavMesh.AllAreas;
+
     private const float DefaultStoppingDistance = 0.2f;
     private const float InitialNavMeshSearchRadius = 5f;
     private const float TargetNavMeshSearchRadius = 3f;
@@ -63,15 +69,15 @@ public class UnitMovement : MonoBehaviour
     /// <summary>
     /// Отправляет юнита к ближайшей валидной точке NavMesh рядом с указанной позицией
     /// </summary>
-    public void MoveTo(Vector2 position)
+    public bool MoveTo(Vector2 position)
     {
         if (!EnsureAgentOnNavMesh())
-            return;
+            return false;
 
-        if (!NavMesh.SamplePosition(position, out NavMeshHit hit, TargetNavMeshSearchRadius, NavMesh.AllAreas))
-            return;
+        if (!NavMesh.SamplePosition(position, out NavMeshHit hit, TargetNavMeshSearchRadius, _areaMask))
+            return false;
 
-        _agent.SetDestination(hit.position);
+        return _agent.SetDestination(hit.position);
     }
 
     /// <summary>
@@ -89,7 +95,13 @@ public class UnitMovement : MonoBehaviour
     {
         _agent.updateRotation = false;
         _agent.updateUpAxis = false;
-        _agent.stoppingDistance = DefaultStoppingDistance;
+
+        _agent.speed = _speed;
+        _agent.stoppingDistance = _stoppingDistance;
+        _agent.radius = _agentRadius;
+
+        _agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
+        _agent.avoidancePriority = UnityEngine.Random.Range(30, 70);
     }
 
     private bool EnsureAgentOnNavMesh()
@@ -116,5 +128,32 @@ public class UnitMovement : MonoBehaviour
     private bool CanUseAgent()
     {
         return _agent != null && _agent.isOnNavMesh;
+    }
+
+    public void SetSpeed(float speed)
+    {
+        _speed = Mathf.Max(0.1f, speed);
+
+        if (_agent != null)
+            _agent.speed = _speed;
+    }
+
+    public void SetStoppingDistance(float stoppingDistance)
+    {
+        _stoppingDistance = Mathf.Max(0f, stoppingDistance);
+
+        if (_agent != null)
+            _agent.stoppingDistance = _stoppingDistance;
+    }
+
+    public bool TrySamplePosition(Vector2 position, float radius, out Vector3 result)
+    {
+        result = position;
+
+        if (!NavMesh.SamplePosition(position, out NavMeshHit hit, radius, _areaMask))
+            return false;
+
+        result = hit.position;
+        return true;
     }
 }

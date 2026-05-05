@@ -8,6 +8,7 @@ public class ConstructionPresenter : MonoBehaviour
 {
     private SelectionSystem _selectionSystem;
     private ConstructionPanel _panel;
+    private bool _isSubscribed;
 
     [Inject]
     private void Construct(
@@ -18,22 +19,47 @@ public class ConstructionPresenter : MonoBehaviour
         _panel = panel;
     }
 
+    private void Start()
+    {
+        Subscribe();
+    }
+
     private void OnEnable()
     {
+        Subscribe();
+    }
+
+    private void OnDisable()
+    {
+        Unsubscribe();
+    }
+
+    private void Subscribe()
+    {
+        if (_isSubscribed)
+            return;
+
         if (_selectionSystem == null)
             return;
 
         _selectionSystem.SelectionChanged += OnSelectionChanged;
         _selectionSystem.SelectionCleared += OnSelectionCleared;
+
+        _isSubscribed = true;
     }
 
-    private void OnDisable()
+    private void Unsubscribe()
     {
-        if (_selectionSystem == null)
+        if (!_isSubscribed)
             return;
 
-        _selectionSystem.SelectionChanged -= OnSelectionChanged;
-        _selectionSystem.SelectionCleared -= OnSelectionCleared;
+        if (_selectionSystem != null)
+        {
+            _selectionSystem.SelectionChanged -= OnSelectionChanged;
+            _selectionSystem.SelectionCleared -= OnSelectionCleared;
+        }
+
+        _isSubscribed = false;
     }
 
     private void OnSelectionChanged(UnitSelectable selectable)

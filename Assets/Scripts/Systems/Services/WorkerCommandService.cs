@@ -1,12 +1,11 @@
-
 /// <summary>
-/// Сервис команд для worker
+/// Сервис команд для worker.
+/// Отвечает только за назначение новой работы.
+/// Не перезапускает текущую работу повторным нажатием,
+/// потому что кнопка текущей работы должна быть disabled в UI.
 /// </summary>
-public class WorkerCommandService 
+public sealed class WorkerCommandService
 {
-    /// <summary>
-    ///назначает worker новую работу
-    /// </summary>
     public bool TryAssignJob(Worker worker, WorkerJobType job)
     {
         if (worker == null)

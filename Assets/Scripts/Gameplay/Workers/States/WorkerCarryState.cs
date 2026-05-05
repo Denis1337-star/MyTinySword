@@ -1,7 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// Состояние переноса добытого ресурса к дому
+/// Состояние переноски груза.
+/// Worker несёт добытый ресурс домой и сдаёт его в хранилище.
 /// </summary>
 public class WorkerCarryState : IWorkerState
 {
@@ -24,7 +25,7 @@ public class WorkerCarryState : IWorkerState
             return;
         }
 
-        _worker.Movement?.MoveTo(_worker.Home.DropPoint);
+        _worker.Movement?.MoveTo(_worker.Home.GetDropPosition(_worker));
     }
 
     public void Update()
@@ -34,7 +35,7 @@ public class WorkerCarryState : IWorkerState
 
         float distance = Vector2.Distance(
             _worker.transform.position,
-            _worker.Home.DropPoint);
+    _worker.Home.GetDropPosition(_worker));
 
         if (distance > _worker.GetReachResourceDistance())
             return;
@@ -57,10 +58,10 @@ public class WorkerCarryState : IWorkerState
 
     private EquipmentType GetCargoEquipment()
     {
-        if (_worker.CurrentJobLogic == null)
+        if (_worker.Inventory == null)
             return EquipmentType.None;
 
-        return _worker.CurrentJobLogic.RewardType switch
+        return _worker.Inventory.CarriedResourceType switch
         {
             ResourceType.Wood => EquipmentType.Wood,
             ResourceType.Gold => EquipmentType.Gold,

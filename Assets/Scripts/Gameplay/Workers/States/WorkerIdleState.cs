@@ -1,7 +1,9 @@
 using UnityEngine;
 
 /// <summary>
-/// —осто€ние ожидани€ worker
+/// —осто€ние ожидани€ worker'а.
+/// –абочий стоит около дома и периодически провер€ет,
+/// есть ли текуща€ или отложенна€ работа.
 /// </summary>
 public class WorkerIdleState : IWorkerState
 {

@@ -3,10 +3,16 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Система пользовательских команд
+/// Система команд для выбранной армии
 /// </summary>
-public class CommandSystem : MonoBehaviour
+public sealed class CommandSystem : MonoBehaviour
 {
+    private const int MaxTargetHits = 32;
+
+    [SerializeField] private LayerMask _targetLayerMask = ~0;
+
+    private readonly Collider2D[] _targetHits = new Collider2D[MaxTargetHits];
+
     private SelectionSystem _selectionSystem;
     private Camera _mainCamera;
 
@@ -19,115 +25,217 @@ public class CommandSystem : MonoBehaviour
         _mainCamera = mainCamera;
     }
 
-    private void Update()
+    /// <summary>
+    /// отдаtn команду выбранной армии в экранную точку
+    /// </summary>
+    public bool TryCommandSelectedArmyAtScreenPosition(Vector2 screenPosition)
     {
-        HandleInput();
+        IReadOnlyList<UnitSelectable> selectedUnits = _selectionSystem.SelectedUnits;
+
+        if (!HasPlayerArmyUnits(selectedUnits))
+            return false;
+
+        Vector2 worldPosition = TouchUtility.ScreenToWorld(_mainCamera, screenPosition);
+
+        FactionMember selectedArmyFaction = FindFirstSelectedPlayerFaction(selectedUnits);
+        if (selectedArmyFaction == null)
+            return false;
+
+        IDamageable target = FindEnemyDamageableAt(worldPosition, selectedArmyFaction);
+
+        if (target != null)
+            return IssueAttackCommand(selectedUnits, target);
+
+        return IssueMoveCommand(selectedUnits, worldPosition);
     }
 
-    private void HandleInput()
+    private bool IssueAttackCommand(
+        IReadOnlyList<UnitSelectable> selectedUnits,
+        IDamageable target)
     {
-        if (!TouchUtility.TryGetEndedTap(out var touch))
-            return;
+        if (target == null)
+            return false;
 
-        if (TouchUtility.IsPointerOverUI(touch))
-            return;
+        bool commandIssued = false;
 
-        if (_selectionSystem == null || _mainCamera == null)
-            return;
-
-        IReadOnlyList<UnitSelectable> selected = _selectionSystem.GetSelectedUnits();
-        if (selected == null || selected.Count == 0)
-            return;
-
-        Vector3 worldPosition = TouchUtility.ScreenToWorld(_mainCamera, touch.screenPosition);
-
-        if (!ContainsPlayerArmyUnits(selected))
-            return;
-
-        IDamageable target = FindEnemyDamageableAt(worldPosition, selected);
-
-        foreach (UnitSelectable selectable in selected)
+        for (int i = 0; i < selectedUnits.Count; i++)
         {
-            if (selectable == null)
+            if (!TryGetPlayerArmyBrain(selectedUnits[i], out ArmyUnitBrain brain))
                 continue;
 
-            ArmyUnitBrain brain = selectable.GetComponent<ArmyUnitBrain>();
-            if (brain == null)
-                brain = selectable.GetComponentInParent<ArmyUnitBrain>();
-
-            if (brain == null)
-                continue;
-
-            if (target != null)
-                brain.Attack(target);
-            else
-                brain.MoveTo(worldPosition);
+            brain.Attack(target);
+            commandIssued = true;
         }
+
+        return commandIssued;
     }
 
-    private bool ContainsPlayerArmyUnits(IReadOnlyList<UnitSelectable> selected)
+    private bool IssueMoveCommand(
+        IReadOnlyList<UnitSelectable> selectedUnits,
+        Vector2 worldPosition)
     {
-        foreach (UnitSelectable selectable in selected)
+        bool commandIssued = false;
+
+        for (int i = 0; i < selectedUnits.Count; i++)
         {
-            if (selectable == null)
+            if (!TryGetPlayerArmyBrain(selectedUnits[i], out ArmyUnitBrain brain))
                 continue;
 
-            ArmyUnit armyUnit = selectable.GetComponent<ArmyUnit>();
-            if (armyUnit == null)
-                armyUnit = selectable.GetComponentInParent<ArmyUnit>();
+            brain.MoveTo(worldPosition);
+            commandIssued = true;
+        }
 
-            if (armyUnit != null && armyUnit.IsPlayerUnit())
+        return commandIssued;
+    }
+
+    private IDamageable FindEnemyDamageableAt(
+        Vector2 worldPosition,
+        FactionMember selectedArmyFaction)
+    {
+        int hitCount = Physics2D.OverlapPointNonAlloc(
+            worldPosition,
+            _targetHits,
+            _targetLayerMask);
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            Collider2D hit = _targetHits[i];
+            if (hit == null)
+                continue;
+
+            IDamageable damageable = FindDamageable(hit);
+            if (damageable == null)
+                continue;
+
+            if (!IsValidEnemyTarget(damageable, selectedArmyFaction))
+                continue;
+
+            return damageable;
+        }
+
+        return null;
+    }
+
+    private IDamageable FindDamageable(Collider2D hit)
+    {
+        IDamageable damageable = hit.GetComponent<IDamageable>();
+        if (damageable != null)
+            return damageable;
+
+        damageable = hit.GetComponentInParent<IDamageable>();
+        if (damageable != null)
+            return damageable;
+
+        return hit.GetComponentInChildren<IDamageable>();
+    }
+
+    private bool IsValidEnemyTarget(
+        IDamageable damageable,
+        FactionMember selectedArmyFaction)
+    {
+        if (damageable == null || damageable.IsDead)
+            return false;
+
+        if (selectedArmyFaction == null)
+            return false;
+
+        FactionMember targetFaction = FindFactionMember(damageable);
+        if (targetFaction == null)
+            return false;
+
+        return selectedArmyFaction.IsEnemy(targetFaction);
+    }
+
+    private FactionMember FindFactionMember(IDamageable damageable)
+    {
+        MonoBehaviour targetBehaviour = damageable as MonoBehaviour;
+        if (targetBehaviour == null)
+            return null;
+
+        FactionMember factionMember = targetBehaviour.GetComponent<FactionMember>();
+        if (factionMember != null)
+            return factionMember;
+
+        factionMember = targetBehaviour.GetComponentInParent<FactionMember>();
+        if (factionMember != null)
+            return factionMember;
+
+        return targetBehaviour.GetComponentInChildren<FactionMember>();
+    }
+
+    private bool HasPlayerArmyUnits(IReadOnlyList<UnitSelectable> selectedUnits)
+    {
+        if (selectedUnits == null || selectedUnits.Count == 0)
+            return false;
+
+        for (int i = 0; i < selectedUnits.Count; i++)
+        {
+            if (TryGetPlayerArmyUnit(selectedUnits[i], out ArmyUnit _))
                 return true;
         }
 
         return false;
     }
 
-    private IDamageable FindEnemyDamageableAt(
-        Vector3 worldPosition,
-        IReadOnlyList<UnitSelectable> selected)
+    private FactionMember FindFirstSelectedPlayerFaction(IReadOnlyList<UnitSelectable> selectedUnits)
     {
-        Collider2D hit = Physics2D.OverlapPoint(worldPosition);
-        if (hit == null)
+        if (selectedUnits == null)
             return null;
 
-        IDamageable damageable = hit.GetComponent<IDamageable>();
-        if (damageable == null)
-            damageable = hit.GetComponentInParent<IDamageable>();
-
-        if (damageable == null || damageable.IsDead)
-            return null;
-
-        MonoBehaviour targetBehaviour = damageable as MonoBehaviour;
-        if (targetBehaviour == null)
-            return null;
-
-        FactionMember targetFaction = targetBehaviour.GetComponent<FactionMember>();
-        if (targetFaction == null)
-            targetFaction = targetBehaviour.GetComponentInParent<FactionMember>();
-
-        if (targetFaction == null)
-            return null;
-
-        foreach (UnitSelectable selectable in selected)
+        for (int i = 0; i < selectedUnits.Count; i++)
         {
-            if (selectable == null)
+            if (!TryGetPlayerArmyUnit(selectedUnits[i], out ArmyUnit armyUnit))
                 continue;
 
-            ArmyUnit armyUnit = selectable.GetComponent<ArmyUnit>();
-            if (armyUnit == null)
-                armyUnit = selectable.GetComponentInParent<ArmyUnit>();
-
-            if (armyUnit == null || !armyUnit.IsPlayerUnit())
-                continue;
-
-            FactionMember unitFaction = armyUnit.FactionMember;
-            if (unitFaction == null)
-                continue;
-
-            return unitFaction.IsEnemy(targetFaction) ? damageable : null;
+            if (armyUnit.FactionMember != null)
+                return armyUnit.FactionMember;
         }
 
         return null;
+    }
+
+    private bool TryGetPlayerArmyBrain(
+        UnitSelectable selectable,
+        out ArmyUnitBrain brain)
+    {
+        brain = null;
+
+        if (!TryGetPlayerArmyUnit(selectable, out ArmyUnit armyUnit))
+            return false;
+
+        brain = armyUnit.Brain;
+
+        if (brain == null)
+            brain = armyUnit.GetComponent<ArmyUnitBrain>();
+
+        if (brain == null)
+            brain = armyUnit.GetComponentInChildren<ArmyUnitBrain>();
+
+        return brain != null;
+    }
+
+    private bool TryGetPlayerArmyUnit(
+        UnitSelectable selectable,
+        out ArmyUnit armyUnit)
+    {
+        armyUnit = null;
+
+        if (selectable == null)
+            return false;
+
+        armyUnit = selectable.GetComponent<ArmyUnit>();
+        if (armyUnit == null)
+            armyUnit = selectable.GetComponentInParent<ArmyUnit>();
+
+        if (armyUnit == null)
+            return false;
+
+        if (!armyUnit.IsPlayerUnit())
+            return false;
+
+        if (armyUnit.IsDead)
+            return false;
+
+        return true;
     }
 }

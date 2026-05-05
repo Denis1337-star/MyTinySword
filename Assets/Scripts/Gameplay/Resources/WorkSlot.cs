@@ -1,50 +1,53 @@
 using UnityEngine;
 
 /// <summary>
-/// –абочий слот у ресурса
+/// –абочий слот у ресурсной точки.
+/// ѕозвол€ет одному worker'у зарезервировать конкретную позицию работы.
 /// </summary>
 public class WorkSlot : MonoBehaviour
 {
-    private Worker reservedBy;
+    private Worker _reservedBy;
 
-    public bool IsFree => reservedBy == null;
-
+    public bool IsFree => _reservedBy == null;
     public Vector2 Position => transform.position;
 
     /// <summary>
-    /// ѕытаетс€ зарезервировать слот за worker
+    /// ѕытаетс€ зарезервировать слот за worker'ом.
+    /// ≈сли слот уже зан€т этим же worker'ом, возвращает true.
     /// </summary>
     public bool TryReserve(Worker worker)
     {
         if (worker == null)
             return false;
 
-        if (reservedBy == null)
+        if (_reservedBy == null)
         {
-            reservedBy = worker;
+            _reservedBy = worker;
             return true;
         }
 
-        return reservedBy == worker;
+        return _reservedBy == worker;
     }
 
     /// <summary>
-    /// ѕровер€ет, принадлежит ли слот конкретному worker
+    /// ѕровер€ет, зарезервирован ли слот конкретным worker
     /// </summary>
     public bool IsReservedBy(Worker worker)
     {
-        return worker != null && reservedBy == worker;
+        return worker != null && _reservedBy == worker;
     }
 
     /// <summary>
-    /// ќсвобождает слот
+    /// ќсвобождает слот, если он был зарезервирован этим worker
     /// </summary>
     public void Release(Worker worker)
     {
         if (worker == null)
             return;
 
-        if (reservedBy == worker)
-            reservedBy = null;
+        if (_reservedBy != worker)
+            return;
+
+        _reservedBy = null;
     }
 }

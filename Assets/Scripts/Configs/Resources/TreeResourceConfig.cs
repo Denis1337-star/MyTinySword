@@ -1,24 +1,25 @@
 using UnityEngine;
 
 /// <summary>
-/// Определяет награду
+/// Конфиг дерева
 /// </summary>
 [CreateAssetMenu(menuName = "MyTinySword/Configs/Resources/Tree Config")]
-public class TreeResourceConfig : ResourceConfig
+public sealed class TreeResourceConfig : ResourceConfig
 {
-    [SerializeField] private int rewardAmount;
-    public int RewardAmount => rewardAmount;
+    [SerializeField, Min(1)] private int _rewardAmount;
+
+    public int RewardAmount => _rewardAmount;
 
     public override bool IsValid()
     {
-        return Priority >= 0f &&
-               RespawnTime >= 0.1f &&
-               rewardAmount >= 1;
+        return base.IsValid() &&
+               _rewardAmount >= 1;
     }
 
     protected override void OnValidate()
     {
         base.OnValidate();
-        rewardAmount = Mathf.Max(1, rewardAmount);
+
+        _rewardAmount = Mathf.Max(1, _rewardAmount);
     }
 }

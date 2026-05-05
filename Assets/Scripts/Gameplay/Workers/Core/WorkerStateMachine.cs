@@ -1,6 +1,7 @@
 
 /// <summary>
-///машина состо€ний worker
+/// State machine worker'а.
+/// ’ранит текущее состо€ние и отвечает за корректный переход между состо€ни€ми.
 /// </summary>
 public class WorkerStateMachine 
 {
@@ -10,6 +11,10 @@ public class WorkerStateMachine
         ? _currentState.GetType().Name
         : "None";
 
+    /// <summary>
+    /// ћен€ет текущее состо€ние worker'а.
+    /// ¬озвращает true, если состо€ние действительно изменилось.
+    /// </summary>
     public bool ChangeState(IWorkerState newState)
     {
         if (newState == null)
@@ -27,6 +32,9 @@ public class WorkerStateMachine
         return true;
     }
 
+    /// <summary>
+    /// ќбновл€ет текущее состо€ние.
+    /// </summary>
     public void Update()
     {
         _currentState?.Update();

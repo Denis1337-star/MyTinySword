@@ -1,39 +1,57 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
-///  компонент здоровья
+/// Компонент здоровья.
+/// Не уничтожает объект сам — смерть обрабатывают владельцы: ArmyUnit, BuildingBase и т.д.
 /// </summary>
-public class Health : ValidatedMonoBehaviour, IDamageable
+public sealed class Health : ValidatedMonoBehaviour, IDamageable
 {
     [Header("Health")]
-    [SerializeField] private int maxHealth;
+    [FormerlySerializedAs("maxHealth")]
+    [SerializeField] private int _maxHealth = 1;
 
-    private int currentHealth;
-    private bool died;
+    private int _currentHealth;
+    private bool _died;
 
-    public int MaxHealth => maxHealth;
-    public int CurrentHealth => currentHealth;
-    public bool IsDead => died || currentHealth <= 0;
+    public int MaxHealth => _maxHealth;
+    public int CurrentHealth => _currentHealth;
+    public bool IsDead => _died || _currentHealth <= 0;
 
     public event Action<int, int> OnHealthChanged;
     public event Action OnDied;
 
     protected override void Awake()
     {
-        currentHealth = Mathf.Max(1, maxHealth);
-        died = false;
-
+        Initialize(_maxHealth);
         base.Awake();
     }
 
     protected override bool ValidateInternal()
     {
-        if (maxHealth >= 1)
+        if (_maxHealth >= 1)
             return true;
 
-        Debug.LogError($"{name}: maxHealth must be at least 1.", this);
+        Debug.LogError($"{name}: MaxHealth должен быть минимум 1.", this);
         return false;
+    }
+
+    public void Initialize(int maxHealth, bool resetCurrentHealth = true)
+    {
+        this._maxHealth = Mathf.Max(1, maxHealth);
+
+        if (resetCurrentHealth)
+        {
+            _currentHealth = this._maxHealth;
+            _died = false;
+        }
+        else
+        {
+            _currentHealth = Mathf.Clamp(_currentHealth, 0, this._maxHealth);
+        }
+
+        OnHealthChanged?.Invoke(_currentHealth, this._maxHealth);
     }
 
     public void TakeDamage(int amount)
@@ -44,10 +62,10 @@ public class Health : ValidatedMonoBehaviour, IDamageable
         if (IsDead)
             return;
 
-        currentHealth = Mathf.Max(0, currentHealth - amount);
-        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+        _currentHealth = Mathf.Max(0, _currentHealth - amount);
+        OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
 
-        if (currentHealth <= 0)
+        if (_currentHealth <= 0)
             Die();
     }
 
@@ -59,26 +77,27 @@ public class Health : ValidatedMonoBehaviour, IDamageable
         if (IsDead)
             return;
 
-        currentHealth = Mathf.Min(maxHealth, currentHealth + amount);
-        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+        _currentHealth = Mathf.Min(_maxHealth, _currentHealth + amount);
+        OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
     }
 
     public void ResetHealth()
     {
-        currentHealth = maxHealth;
-        died = false;
+        _currentHealth = _maxHealth;
+        _died = false;
 
-        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+        OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
     }
 
     private void Die()
     {
-        if (died)
+        if (_died)
             return;
 
-        died = true;
-        currentHealth = 0;
+        _died = true;
+        _currentHealth = 0;
 
+        OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
         OnDied?.Invoke();
     }
 }

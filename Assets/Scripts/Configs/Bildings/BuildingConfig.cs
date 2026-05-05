@@ -1,60 +1,62 @@
 using UnityEngine;
 
 /// <summary>
-/// Хранит общие параметры стоимости, здоровья, времени постройки и UI-данные
+/// Конфиг здания
 /// </summary>
 [CreateAssetMenu(menuName = "MyTinySword/Configs/Building Config")]
-public class BuildingConfig : BaseConfig
+public sealed class BuildingConfig : BaseConfig
 {
-    [Header("Info")]
-    [SerializeField] private string buildingId;
-    [SerializeField] private string displayName;
+    [SerializeField] private string _buildingId;
+    [SerializeField] private string _displayName;
 
     [TextArea]
-    [SerializeField] private string description;
-    [SerializeField] private Sprite icon;
+    [SerializeField] private string _description;
 
-    [Header("Prefab")]
-    [SerializeField] private GameObject buildingPrefab;
+    [SerializeField] private Sprite _icon;
+    [SerializeField] private GameObject _buildingPrefab;
+    [SerializeField, Min(0)] private int _woodCost;
+    [SerializeField, Min(0)] private int _goldCost;
+    [SerializeField, Min(1)] private int _maxHealth;
+    [SerializeField, Min(0.1f)] private float _buildTime;
+    [SerializeField] private bool _uniqueBuilding;
 
-    [Header("Cost")]
-    [SerializeField] private int woodCost;
-    [SerializeField] private int goldCost;
+    public string BuildingId => _buildingId;
+    public string DisplayName => _displayName;
+    public string Description => _description;
+    public Sprite Icon => _icon;
+    public GameObject BuildingPrefab => _buildingPrefab;
 
-    [Header("Stats")]
-    [SerializeField] private int maxHealth;
+    public int WoodCost => _woodCost;
+    public int GoldCost => _goldCost;
 
-    [Header("Construction")]
-    [SerializeField] private float buildTime;
-    [SerializeField] private bool uniqueBuilding;
-
-    public string BuildingId => buildingId;
-    public string DisplayName => displayName;
-    public string Description => description;
-    public Sprite Icon => icon;
-    public GameObject BuildingPrefab => buildingPrefab;
-    public int WoodCost => woodCost;
-    public int GoldCost => goldCost;
-    public int MaxHealth => maxHealth;
-    public float BuildTime => buildTime;
-    public bool UniqueBuilding => uniqueBuilding;
+    public int MaxHealth => _maxHealth;
+    public float BuildTime => _buildTime;
+    public bool UniqueBuilding => _uniqueBuilding;
 
     public override bool IsValid()
     {
-        return !string.IsNullOrWhiteSpace(buildingId) &&
-               !string.IsNullOrWhiteSpace(displayName) &&
-               buildingPrefab != null &&
-               woodCost >= 0 &&
-               goldCost >= 0 &&
-               maxHealth >= 1 &&
-               buildTime >= 0.1f;
+        bool hasInfo =
+            !string.IsNullOrWhiteSpace(_buildingId) &&
+            !string.IsNullOrWhiteSpace(_displayName);
+
+        bool hasPrefab = _buildingPrefab != null;
+
+        bool hasValidNumbers =
+            _woodCost >= 0 &&
+            _goldCost >= 0 &&
+            _maxHealth >= 1 &&
+            _buildTime >= 0.1f;
+
+        return hasInfo &&
+               hasPrefab &&
+               hasValidNumbers;
     }
 
     private void OnValidate()
     {
-        woodCost = Mathf.Max(0, woodCost);
-        goldCost = Mathf.Max(0, goldCost);
-        maxHealth = Mathf.Max(1, maxHealth);
-        buildTime = Mathf.Max(0.1f, buildTime);
+        _woodCost = Mathf.Max(0, _woodCost);
+        _goldCost = Mathf.Max(0, _goldCost);
+        _maxHealth = Mathf.Max(1, _maxHealth);
+        _buildTime = Mathf.Max(0.1f, _buildTime);
     }
 }

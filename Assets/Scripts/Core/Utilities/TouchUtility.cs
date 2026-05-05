@@ -1,25 +1,28 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 /// <summary>
-/// Единая утилита для touch-ввода
-/// Используется gameplay-системами для обработки tap-действий
+/// утилита для touch input
 /// </summary>
 public static class TouchUtility
 {
-
     private const float MaxTapMovement = 20f;
 
     /// <summary>
-    /// Пытается получить завершённый tap
+    /// Пытается получить завершённый короткий touch tap
     /// </summary>
     public static bool TryGetEndedTap(out Touch touch)
     {
         touch = default;
 
-        foreach (Touch activeTouch in Touch.activeTouches)
+        var activeTouches = Touch.activeTouches;
+
+        for (int i = 0; i < activeTouches.Count; i++)
         {
+            Touch activeTouch = activeTouches[i];
+
             if (activeTouch.phase != UnityEngine.InputSystem.TouchPhase.Ended)
                 continue;
 
@@ -49,7 +52,7 @@ public static class TouchUtility
     }
 
     /// <summary>
-    /// Переводит экранную позицию в позицию мира
+    /// Переводит экранную позицию touch в позицию мира
     /// </summary>
     public static Vector2 ScreenToWorld(Camera camera, Vector2 screenPosition)
     {
