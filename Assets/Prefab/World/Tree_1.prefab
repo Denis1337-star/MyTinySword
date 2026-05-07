@@ -182,6 +182,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _workSlot: {fileID: 888455000610138045}
   _config: {fileID: 11400000, guid: b4359cc958472e94bb886c5a538d1447, type: 2}
+  _animator: {fileID: 3892778098849339368}
 --- !u!95 &3892778098849339368
 Animator:
   serializedVersion: 5

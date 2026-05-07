@@ -1,25 +1,21 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 using Zenject;
 
 /// <summary>
-/// Базовый класс здания найма.
-/// Хранит очередь производства, списывает ресурсы и создаёт боевого юнита.
+/// Базовый класс производственного здания
 /// </summary>
-public class ProductionBuildingBase : BuildingBase
+public abstract class ProductionBuildingBase : BuildingBase
 {
-    [Header("Production")]
+    private const float GoldenAngleDegrees = 137.508f;
+
     [SerializeField] private UnitConfig _unitConfig;
     [SerializeField] private Transform _spawnPoint;
     [SerializeField] private int _maxQueue = 1;
-
-    [Header("Spawn Spread")]
     [SerializeField] private float _spawnRadius = 0.8f;
     [SerializeField] private float _spawnNavMeshSearchRadius = 1.5f;
-
-    private readonly Queue<UnitConfig> _productionQueue = new();
 
     private ResourceStorage _resourceStorage;
     private ArmyUnitRegistry _armyUnitRegistry;
@@ -27,10 +23,11 @@ public class ProductionBuildingBase : BuildingBase
 
     private bool _isProducing;
     private Coroutine _productionRoutine;
+    private int _queueCount;
     private int _spawnedUnitsCount;
 
     public UnitConfig UnitConfig => _unitConfig;
-    public int QueueCount => _productionQueue.Count;
+    public int QueueCount => _queueCount;
     public int MaxQueue => _maxQueue;
     public bool IsProducing => _isProducing;
 
@@ -54,6 +51,22 @@ public class ProductionBuildingBase : BuildingBase
         _spawnNavMeshSearchRadius = Mathf.Max(0.1f, _spawnNavMeshSearchRadius);
     }
 
+    protected override bool ValidateInternal()
+    {
+        bool valid = base.ValidateInternal();
+
+        valid &= ValidationUtility.IsAssigned(this, _unitConfig, nameof(_unitConfig));
+        valid &= ValidationUtility.IsAssigned(this, _spawnPoint, nameof(_spawnPoint));
+
+        if (_unitConfig != null && !_unitConfig.IsValid())
+        {
+            Debug.LogError($"{name}: UnitConfig настроен некорректно.", this);
+            valid = false;
+        }
+
+        return valid;
+    }
+
     public bool CanEnqueue()
     {
         return string.IsNullOrEmpty(GetHireBlockReason());
@@ -61,28 +74,13 @@ public class ProductionBuildingBase : BuildingBase
 
     public string GetHireBlockReason()
     {
-        if (_unitConfig == null)
-            return "Юнит не назначен";
-
-        if (_unitConfig.Prefab == null)
-            return "Prefab юнита не назначен";
-
-        if (_spawnPoint == null)
-            return "Точка спавна не назначена";
-
-        if (_productionQueue.Count >= _maxQueue)
+        if (_queueCount >= _maxQueue)
             return "Очередь заполнена";
-
-        if (_resourceStorage == null)
-            return "Хранилище ресурсов не найдено";
-
-        if (_armyUnitRegistry == null)
-            return "Реестр армии не найден";
 
         if (!_armyUnitRegistry.HasFreePlayerSlot())
             return "Достигнут лимит армии";
 
-        if (!_resourceStorage.HasUnitResources(_unitConfig.WoodCost, _unitConfig.MeatCost))
+        if (!_resourceStorage.HasResources(_unitConfig.WoodCost, 0, _unitConfig.MeatCost))
             return "Не хватает ресурсов";
 
         return string.Empty;
@@ -101,8 +99,9 @@ public class ProductionBuildingBase : BuildingBase
         if (!_armyUnitRegistry.TryReservePlayerSlot())
             return false;
 
-        bool spent = _resourceStorage.TrySpendUnitResources(
+        bool spent = _resourceStorage.TrySpendResources(
             _unitConfig.WoodCost,
+            0,
             _unitConfig.MeatCost);
 
         if (!spent)
@@ -111,7 +110,7 @@ public class ProductionBuildingBase : BuildingBase
             return false;
         }
 
-        _productionQueue.Enqueue(_unitConfig);
+        _queueCount++;
         OnQueueChanged?.Invoke();
 
         if (!_isProducing)
@@ -124,28 +123,16 @@ public class ProductionBuildingBase : BuildingBase
     {
         _isProducing = true;
 
-        while (_productionQueue.Count > 0)
+        while (_queueCount > 0)
         {
-            UnitConfig unitConfig = _productionQueue.Peek();
+            yield return new WaitForSeconds(_unitConfig.BuildTime);
 
-            if (unitConfig == null)
-            {
-                _productionQueue.Dequeue();
-
-                _armyUnitRegistry?.ReleasePlayerSlotReservation();
-
-                OnQueueChanged?.Invoke();
-                continue;
-            }
-
-            yield return new WaitForSeconds(unitConfig.BuildTime);
-
-            bool spawned = SpawnUnit(unitConfig);
+            bool spawned = SpawnUnit(_unitConfig);
 
             if (!spawned)
-                _armyUnitRegistry?.ReleasePlayerSlotReservation();
+                _armyUnitRegistry.ReleasePlayerSlotReservation();
 
-            _productionQueue.Dequeue();
+            _queueCount--;
             OnQueueChanged?.Invoke();
         }
 
@@ -160,12 +147,6 @@ public class ProductionBuildingBase : BuildingBase
         if (unitConfig == null || unitConfig.Prefab == null)
             return false;
 
-        if (_armyUnitFactory == null)
-        {
-            Debug.LogError($"{name}: ArmyUnitFactory не внедрён через Zenject.", this);
-            return false;
-        }
-
         Vector3 spawnPosition = GetNextSpawnPosition();
 
         GameObject spawnedObject = _armyUnitFactory.Create(
@@ -177,12 +158,14 @@ public class ProductionBuildingBase : BuildingBase
             return false;
 
         ArmyUnit armyUnit = spawnedObject.GetComponent<ArmyUnit>();
+
         if (armyUnit == null)
             armyUnit = spawnedObject.GetComponentInChildren<ArmyUnit>();
 
         if (armyUnit == null)
         {
             Debug.LogError($"{name}: созданный prefab не содержит ArmyUnit.", spawnedObject);
+            Destroy(spawnedObject);
             return false;
         }
 
@@ -192,6 +175,7 @@ public class ProductionBuildingBase : BuildingBase
                 $"{name}: здание производства создало юнита не с Player-фракцией. Проверь FactionMember на prefab.",
                 spawnedObject);
 
+            Destroy(spawnedObject);
             return false;
         }
 
@@ -200,15 +184,11 @@ public class ProductionBuildingBase : BuildingBase
 
     private Vector3 GetNextSpawnPosition()
     {
-        Vector3 center = _spawnPoint != null
-            ? _spawnPoint.position
-            : transform.position;
-
-        const float goldenAngle = 137.508f;
+        Vector3 center = _spawnPoint.position;
 
         int index = _spawnedUnitsCount++;
 
-        float angle = index * goldenAngle * Mathf.Deg2Rad;
+        float angle = index * GoldenAngleDegrees * Mathf.Deg2Rad;
         float radius = _spawnRadius * Mathf.Sqrt(index + 1f) * 0.5f;
 
         Vector3 candidate = center + new Vector3(
@@ -216,11 +196,11 @@ public class ProductionBuildingBase : BuildingBase
             Mathf.Sin(angle),
             0f) * radius;
 
-        if (UnityEngine.AI.NavMesh.SamplePosition(
+        if (NavMesh.SamplePosition(
                 candidate,
-                out UnityEngine.AI.NavMeshHit hit,
+                out NavMeshHit hit,
                 _spawnNavMeshSearchRadius,
-                UnityEngine.AI.NavMesh.AllAreas))
+                NavMesh.AllAreas))
         {
             return hit.position;
         }
@@ -233,11 +213,9 @@ public class ProductionBuildingBase : BuildingBase
         if (_productionRoutine != null)
             StopCoroutine(_productionRoutine);
 
-        int reservedSlotsToRelease = _productionQueue.Count;
+        _armyUnitRegistry.ReleasePlayerSlotReservations(_queueCount);
 
-        _productionQueue.Clear();
-
-        _armyUnitRegistry?.ReleasePlayerSlotReservations(reservedSlotsToRelease);
+        _queueCount = 0;
 
         OnQueueChanged?.Invoke();
     }

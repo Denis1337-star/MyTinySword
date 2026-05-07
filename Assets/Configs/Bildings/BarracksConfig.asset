@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d57c5fcaabdc164d94af131545286d6, type: 3}
   m_Name: BarracksConfig
   m_EditorClassIdentifier: 
-  _buildingId: 2
-  _displayName: Barack
+  _buildingId: barrack
+  _displayName: "\u041A\u0430\u0437\u0430\u0440\u043C\u0430"
   _description: "\u041F\u043E\u0437\u0432\u043E\u043B\u044F\u0435\u0442 \u043D\u0430\u043D\u0438\u043C\u0430\u0442\u044C
     \u0432\u043E\u0438\u043D\u043E\u0432 \u0431\u043B\u0438\u0436\u043D\u0435\u0433\u043E
     \u0431\u043E\u044F"

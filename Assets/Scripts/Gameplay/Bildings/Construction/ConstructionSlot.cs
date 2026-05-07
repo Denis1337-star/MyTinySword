@@ -1,19 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
 using Zenject;
 
 /// <summary>
-/// место  на котором можно построить здание
+/// Место где  можно  строить здания
 /// </summary>
-public class ConstructionSlot : MonoBehaviour
+public sealed class ConstructionSlot : ValidatedMonoBehaviour
 {
-    [Header("Available Buildings")]
-    [FormerlySerializedAs("availableBuildings")]
     [SerializeField] private List<BuildingConfig> _availableBuildings = new();
-
-    [Header("Construction")]
-    [FormerlySerializedAs("constructionPrefab")]
     [SerializeField] private ConstructionSite _constructionPrefab;
 
     private ConstructionSite _currentConstruction;
@@ -35,18 +29,20 @@ public class ConstructionSlot : MonoBehaviour
         _buildingFactory = buildingFactory;
     }
 
+    protected override bool ValidateInternal()
+    {
+        bool valid = true;
+
+        valid &= ValidationUtility.NotEmptyList(this, _availableBuildings, nameof(_availableBuildings));
+        valid &= ValidationUtility.IsAssigned(this, _constructionPrefab, nameof(_constructionPrefab));
+
+        return valid;
+    }
+
     public bool CanBuild(BuildingConfig config = null)
     {
         if (config == null)
-        {
-            if (_currentConstruction != null)
-                return false;
-
-            if (_constructionPrefab == null)
-                return false;
-
-            return true;
-        }
+            return _currentConstruction == null;
 
         return string.IsNullOrEmpty(GetBuildBlockReason(config));
     }
@@ -59,23 +55,10 @@ public class ConstructionSlot : MonoBehaviour
         if (_currentConstruction != null)
             return "Уже строится";
 
-        if (_constructionPrefab == null)
-            return "Prefab стройки не назначен";
-
-        if (!_availableBuildings.Contains(config))
-            return "Это здание нельзя построить здесь";
-
-        if (config.UniqueBuilding &&
-            _buildingRegistry != null &&
-            _buildingRegistry.IsBuiltOrConstructing(config))
-        {
+        if (config.UniqueBuilding && _buildingRegistry.IsBuiltOrConstructing(config))
             return "Лимит достигнут";
-        }
 
-        if (_resourceStorage == null)
-            return "Хранилище ресурсов не найдено";
-
-        if (!_resourceStorage.HasResources(config.WoodCost, config.GoldCost))
+        if (!_resourceStorage.HasResources(config.WoodCost, config.GoldCost, 0))
             return "Не хватает ресурсов";
 
         return string.Empty;
@@ -92,19 +75,6 @@ public class ConstructionSlot : MonoBehaviour
         if (!CanBuild(config))
             return false;
 
-        if (_resourceStorage == null)
-            return false;
-
-        if (_buildingFactory == null)
-        {
-            Debug.LogError($"{name}: BuildingFactory не внедрён через Zenject.", this);
-            return false;
-        }
-
-        bool spent = _resourceStorage.TrySpendResources(config.WoodCost, config.GoldCost);
-        if (!spent)
-            return false;
-
         ConstructionSite site = _buildingFactory.CreateConstructionSite(
             _constructionPrefab,
             transform.position,
@@ -113,9 +83,20 @@ public class ConstructionSlot : MonoBehaviour
         if (site == null)
             return false;
 
+        bool spent = _resourceStorage.TrySpendResources(
+            config.WoodCost,
+            config.GoldCost,
+            0);
+
+        if (!spent)
+        {
+            Destroy(site.gameObject);
+            return false;
+        }
+
         _currentConstruction = site;
 
-        _buildingRegistry?.RegisterConstruction(config);
+        _buildingRegistry.RegisterConstruction(config);
 
         site.Initialize(this, config, _buildingRegistry, _buildingFactory);
 

@@ -3,9 +3,9 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-///  реализация дерева 
+/// Ресурсная точка дерева
 /// </summary>
-public class TreeResource : ResourceNodeBase
+public sealed class TreeResource : ResourceNodeBase
 {
     private static readonly int StumpHash = Animator.StringToHash("Stump");
 
@@ -14,15 +14,20 @@ public class TreeResource : ResourceNodeBase
     private Animator _animator;
     private Coroutine _workRoutine;
 
-    public override float Priority => _config != null ? _config.Priority : 0f;
-
     protected override void Awake()
     {
-        _animator = GetComponent<Animator>();
+        ResolveReferences();
 
         base.Awake();
 
         SetTreeVisual();
+    }
+
+    protected override void OnDestroy()
+    {
+        StopWorkRoutine();
+
+        base.OnDestroy();
     }
 
     protected override bool ValidateInternal()
@@ -30,6 +35,7 @@ public class TreeResource : ResourceNodeBase
         bool valid = base.ValidateInternal();
 
         valid &= ValidationUtility.IsAssigned(this, _config, nameof(_config));
+        valid &= ValidationUtility.IsAssigned(this, _animator, nameof(_animator));
 
         if (_config != null && !_config.IsValid())
         {
@@ -42,8 +48,14 @@ public class TreeResource : ResourceNodeBase
 
     protected override void StartWorkRoutine(Action<int> onFinished)
     {
-        if (_workRoutine != null)
-            StopCoroutine(_workRoutine);
+        StopWorkRoutine();
+
+        if (_config == null || !_config.IsValid())
+        {
+            SetAvailable(true);
+            onFinished?.Invoke(0);
+            return;
+        }
 
         _workRoutine = StartCoroutine(WorkRoutine(onFinished));
     }
@@ -63,7 +75,7 @@ public class TreeResource : ResourceNodeBase
 
     private void Respawn()
     {
-        _available = true;
+        SetAvailable(true);
         _workRoutine = null;
 
         SetTreeVisual();
@@ -71,14 +83,31 @@ public class TreeResource : ResourceNodeBase
 
     private void SetTreeVisual()
     {
-        if (_animator != null)
-            _animator.SetBool(StumpHash, false);
+        _animator.SetBool(StumpHash, false);
     }
 
     private void SetStumpVisual()
     {
-        if (_animator != null)
-            _animator.SetBool(StumpHash, true);
+        _animator.SetBool(StumpHash, true);
+    }
+
+    private void StopWorkRoutine()
+    {
+        if (_workRoutine == null)
+            return;
+
+        StopCoroutine(_workRoutine);
+        _workRoutine = null;
+    }
+
+    private void ResolveReferences()
+    {
+        if (_animator == null)
+            _animator = GetComponent<Animator>();
+    }
+
+    private void OnValidate()
+    {
+        ResolveReferences();
     }
 }
-

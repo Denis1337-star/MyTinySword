@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d57c5fcaabdc164d94af131545286d6, type: 3}
   m_Name: HouseConfig
   m_EditorClassIdentifier: 
-  _buildingId: 4
-  _displayName: House
+  _buildingId: house
+  _displayName: "\u0414\u043E\u043C"
   _description: "\u041F\u043E\u0437\u0432\u043E\u043B\u044F\u0435\u0442 \u043D\u0430\u043D\u0438\u043C\u0430\u0442\u044C
     \u0440\u0430\u0431\u043E\u0447\u0438\u0445"
   _icon: {fileID: 21300000, guid: cb445ff62c7c14026925f63218d44e2a, type: 3}

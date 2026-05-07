@@ -3,11 +3,10 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// UI-элемент выбора здани€ в панели строительства
+/// UI элемент выбора здани€ в панели строительства
 /// </summary>
-public class ConstructionOptionItem : MonoBehaviour
+public sealed class ConstructionOptionItem : MonoBehaviour
 {
-    [Header("UI")]
     [SerializeField] private Image _iconImage;
     [SerializeField] private Button _button;
     [SerializeField] private GameObject _selectedFrame;
@@ -16,6 +15,12 @@ public class ConstructionOptionItem : MonoBehaviour
     private Action<BuildingConfig> _onSelected;
 
     public BuildingConfig Config => _config;
+
+    private void Awake()
+    {
+        if (_button == null)
+            _button = GetComponent<Button>();
+    }
 
     private void OnEnable()
     {
@@ -38,12 +43,12 @@ public class ConstructionOptionItem : MonoBehaviour
         if (_iconImage != null)
             _iconImage.sprite = _config != null ? _config.Icon : null;
 
+        if (_button != null)
+            _button.interactable = _config != null;
+
         SetSelected(false);
     }
 
-    /// <summary>
-    /// ¬ключает или выключает рамку выбранного здани€
-    /// </summary>
     public void SetSelected(bool value)
     {
         if (_selectedFrame != null)
@@ -57,5 +62,4 @@ public class ConstructionOptionItem : MonoBehaviour
 
         _onSelected?.Invoke(_config);
     }
-
 }

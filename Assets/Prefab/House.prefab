@@ -170,7 +170,7 @@ MonoBehaviour:
   _dropPoint: {fileID: 1924322427756946528}
   _idlePointsRoot: {fileID: 9043028756338710659}
   _workerPrefab: {fileID: 4596641850069108570, guid: f508677d4c21cf44da86baaf33f36fb8, type: 3}
-  _dropRadius: 0.6
+  _dropRadius: 1
 --- !u!114 &1435012739113869488
 MonoBehaviour:
   m_ObjectHideFlags: 0

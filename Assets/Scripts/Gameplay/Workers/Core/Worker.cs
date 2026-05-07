@@ -20,8 +20,9 @@ public class Worker : ValidatedMonoBehaviour
     private WorkerWorkState _workState;
     private WorkerCarryState _carryState;
 
-    private ResourceDepositService _resourceDepositService;
     private WorkerRegistry _workerRegistry;
+
+    private ResourceStorage _resourceStorage;
 
     public WorkerStateMachine StateMachine { get; private set; }
     public UnitMovement Movement { get; private set; }
@@ -39,6 +40,7 @@ public class Worker : ValidatedMonoBehaviour
     public WorkSlot TargetSlot { get; set; }
 
     public WorkerConfig Config => _config;
+    public ResourceStorage ResourceStorage => _resourceStorage;
 
     public event Action OnJobChanged;
     public event Action OnActivityChanged;
@@ -50,13 +52,12 @@ public class Worker : ValidatedMonoBehaviour
     public bool HasCargo => Inventory != null && Inventory.HasCargo;
     public bool HasPendingJob => PendingJob != WorkerJobType.None;
 
+
     [Inject]
-    private void Construct(
-        ResourceDepositService resourceDepositService,
-        WorkerRegistry workerRegistry)
+    private void Construct( WorkerRegistry workerRegistry, ResourceStorage resourceStorage)
     {
-        _resourceDepositService = resourceDepositService;
         _workerRegistry = workerRegistry;
+        _resourceStorage = resourceStorage;
     }
 
     protected override void Awake()
@@ -218,14 +219,9 @@ public class Worker : ValidatedMonoBehaviour
         if (Inventory == null || !Inventory.HasCargo)
             return;
 
-        if (_resourceDepositService == null)
-        {
-            Debug.LogError($"{name}: ResourceDepositService не внедрён через Zenject.", this);
-            return;
-        }
 
         int amount = Inventory.TakeCargo(out ResourceType resourceType);
-        _resourceDepositService.Deposit(resourceType, amount);
+        _resourceStorage.AddResource(resourceType, amount);
     }
 
     public void StartFindingResource()

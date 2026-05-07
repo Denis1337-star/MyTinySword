@@ -26,10 +26,40 @@ public sealed class CommandSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// отдаtn команду выбранной армии в экранную точку
+    /// Пытается отдать выбранной армии команду атаки по enemy 
     /// </summary>
-    public bool TryCommandSelectedArmyAtScreenPosition(Vector2 screenPosition)
+    public bool TryAttackSelectedArmyAtScreenPosition(Vector2 screenPosition)
     {
+        if (_selectionSystem == null || _mainCamera == null)
+            return false;
+
+        IReadOnlyList<UnitSelectable> selectedUnits = _selectionSystem.SelectedUnits;
+
+        if (!HasPlayerArmyUnits(selectedUnits))
+            return false;
+
+        FactionMember selectedArmyFaction = FindFirstSelectedPlayerFaction(selectedUnits);
+        if (selectedArmyFaction == null)
+            return false;
+
+        Vector2 worldPosition = TouchUtility.ScreenToWorld(_mainCamera, screenPosition);
+
+        IDamageable target = FindEnemyDamageableAt(worldPosition, selectedArmyFaction);
+
+        if (target == null)
+            return false;
+
+        return IssueAttackCommand(selectedUnits, target);
+    }
+
+    /// <summary>
+    /// Пытается отдать выбранной армии команду движения в screenPosition
+    /// </summary>
+    public bool TryMoveSelectedArmyAtScreenPosition(Vector2 screenPosition)
+    {
+        if (_selectionSystem == null || _mainCamera == null)
+            return false;
+
         IReadOnlyList<UnitSelectable> selectedUnits = _selectionSystem.SelectedUnits;
 
         if (!HasPlayerArmyUnits(selectedUnits))
@@ -37,23 +67,26 @@ public sealed class CommandSystem : MonoBehaviour
 
         Vector2 worldPosition = TouchUtility.ScreenToWorld(_mainCamera, screenPosition);
 
-        FactionMember selectedArmyFaction = FindFirstSelectedPlayerFaction(selectedUnits);
-        if (selectedArmyFaction == null)
-            return false;
-
-        IDamageable target = FindEnemyDamageableAt(worldPosition, selectedArmyFaction);
-
-        if (target != null)
-            return IssueAttackCommand(selectedUnits, target);
-
         return IssueMoveCommand(selectedUnits, worldPosition);
+    }
+
+    /// <summary>
+    /// Старый общий метод оставляем для совместимости.
+    /// Сначала пытается атаковать врага, если врага нет — двигает армию.
+    /// </summary>
+    public bool TryCommandSelectedArmyAtScreenPosition(Vector2 screenPosition)
+    {
+        if (TryAttackSelectedArmyAtScreenPosition(screenPosition))
+            return true;
+
+        return TryMoveSelectedArmyAtScreenPosition(screenPosition);
     }
 
     private bool IssueAttackCommand(
         IReadOnlyList<UnitSelectable> selectedUnits,
         IDamageable target)
     {
-        if (target == null)
+        if (selectedUnits == null || target == null)
             return false;
 
         bool commandIssued = false;
@@ -74,6 +107,9 @@ public sealed class CommandSystem : MonoBehaviour
         IReadOnlyList<UnitSelectable> selectedUnits,
         Vector2 worldPosition)
     {
+        if (selectedUnits == null)
+            return false;
+
         bool commandIssued = false;
 
         for (int i = 0; i < selectedUnits.Count; i++)
@@ -92,6 +128,9 @@ public sealed class CommandSystem : MonoBehaviour
         Vector2 worldPosition,
         FactionMember selectedArmyFaction)
     {
+        if (selectedArmyFaction == null)
+            return null;
+
         int hitCount = Physics2D.OverlapPointNonAlloc(
             worldPosition,
             _targetHits,
@@ -100,10 +139,12 @@ public sealed class CommandSystem : MonoBehaviour
         for (int i = 0; i < hitCount; i++)
         {
             Collider2D hit = _targetHits[i];
+
             if (hit == null)
                 continue;
 
             IDamageable damageable = FindDamageable(hit);
+
             if (damageable == null)
                 continue;
 
@@ -118,11 +159,16 @@ public sealed class CommandSystem : MonoBehaviour
 
     private IDamageable FindDamageable(Collider2D hit)
     {
+        if (hit == null)
+            return null;
+
         IDamageable damageable = hit.GetComponent<IDamageable>();
+
         if (damageable != null)
             return damageable;
 
         damageable = hit.GetComponentInParent<IDamageable>();
+
         if (damageable != null)
             return damageable;
 
@@ -140,6 +186,7 @@ public sealed class CommandSystem : MonoBehaviour
             return false;
 
         FactionMember targetFaction = FindFactionMember(damageable);
+
         if (targetFaction == null)
             return false;
 
@@ -149,14 +196,17 @@ public sealed class CommandSystem : MonoBehaviour
     private FactionMember FindFactionMember(IDamageable damageable)
     {
         MonoBehaviour targetBehaviour = damageable as MonoBehaviour;
+
         if (targetBehaviour == null)
             return null;
 
         FactionMember factionMember = targetBehaviour.GetComponent<FactionMember>();
+
         if (factionMember != null)
             return factionMember;
 
         factionMember = targetBehaviour.GetComponentInParent<FactionMember>();
+
         if (factionMember != null)
             return factionMember;
 
@@ -209,6 +259,9 @@ public sealed class CommandSystem : MonoBehaviour
             brain = armyUnit.GetComponent<ArmyUnitBrain>();
 
         if (brain == null)
+            brain = armyUnit.GetComponentInParent<ArmyUnitBrain>();
+
+        if (brain == null)
             brain = armyUnit.GetComponentInChildren<ArmyUnitBrain>();
 
         return brain != null;
@@ -224,8 +277,12 @@ public sealed class CommandSystem : MonoBehaviour
             return false;
 
         armyUnit = selectable.GetComponent<ArmyUnit>();
+
         if (armyUnit == null)
             armyUnit = selectable.GetComponentInParent<ArmyUnit>();
+
+        if (armyUnit == null)
+            armyUnit = selectable.GetComponentInChildren<ArmyUnit>();
 
         if (armyUnit == null)
             return false;

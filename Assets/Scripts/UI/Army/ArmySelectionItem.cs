@@ -3,11 +3,10 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// UI-элемент одного типа боевых юнитов в панели выбранной армии
+/// UI элемент одного типа боевых юнитов в панели выбранной армии
 /// </summary>
-public class ArmySelectionItem : MonoBehaviour
+public sealed class ArmySelectionItem : MonoBehaviour
 {
-    [Header("UI")]
     [SerializeField] private Image _iconImage;
     [SerializeField] private TMP_Text _countText;
 
@@ -20,4 +19,3 @@ public class ArmySelectionItem : MonoBehaviour
             _countText.text = count.ToString();
     }
 }
-

@@ -6,11 +6,11 @@ using UnityEngine;
 /// </summary>
 public sealed class MineGoldJob : IWorkerJob
 {
-    private readonly ResourceSearchService _resourceSearchService;
+    private readonly ResourceRegistry _resourceRegistry;
 
-    public MineGoldJob(ResourceSearchService resourceSearchService)
+    public MineGoldJob(ResourceRegistry resourceRegistry)
     {
-        _resourceSearchService = resourceSearchService;
+        _resourceRegistry = resourceRegistry;
     }
 
     public WorkerJobType JobType => WorkerJobType.MineGold;
@@ -18,9 +18,9 @@ public sealed class MineGoldJob : IWorkerJob
 
     public ResourceNodeBase FindResource(Vector2 from)
     {
-        if (_resourceSearchService == null)
+        if (_resourceRegistry == null)
             return null;
 
-        return _resourceSearchService.FindBest<GoldResource>(from);
+        return _resourceRegistry.FindBest<GoldResource>(from);
     }
 }

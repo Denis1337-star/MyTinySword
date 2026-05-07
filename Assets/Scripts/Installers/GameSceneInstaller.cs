@@ -8,7 +8,6 @@ public class GameSceneInstaller : MonoInstaller
 {
     [Header("Core Scene Services")]
     [SerializeField] private ResourceStorage _resourceStorage;
-    [SerializeField] private ResourceDepositService _resourceDepositService;
 
     [Header("Registries")]
     [SerializeField] private WorkerRegistry _workerRegistry;
@@ -20,7 +19,6 @@ public class GameSceneInstaller : MonoInstaller
     [SerializeField] private SelectionSystem _selectionSystem;
     [SerializeField] private Camera _mainCamera;
     [SerializeField] private CameraFocusController _cameraFocusController;
-    [SerializeField] private SelectionFocusPresenter _selectionFocusPresenter;
 
     [Header("Input / Commands")]
     [SerializeField] private GameplayInputController _gameplayInputController;
@@ -65,11 +63,6 @@ public class GameSceneInstaller : MonoInstaller
             .FromInstance(_resourceStorage)
             .AsSingle()
             .NonLazy();
-
-        Container.Bind<ResourceDepositService>()
-            .FromInstance(_resourceDepositService)
-            .AsSingle()
-            .NonLazy();
     }
 
     private void BindRegistries()
@@ -111,11 +104,6 @@ public class GameSceneInstaller : MonoInstaller
             .FromInstance(_cameraFocusController)
             .AsSingle()
             .NonLazy();
-
-        Container.Bind<SelectionFocusPresenter>()
-        .FromInstance(_selectionFocusPresenter)
-        .AsSingle()
-        .NonLazy();
     }
 
     private void BindUi()
@@ -163,10 +151,6 @@ public class GameSceneInstaller : MonoInstaller
 
     private void BindGameplayServices()
     {
-        Container.Bind<ResourceSearchService>()
-            .AsSingle()
-            .NonLazy();
-
         Container.Bind<WorkerJobFactory>()
             .AsSingle()
             .NonLazy();

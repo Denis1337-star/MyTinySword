@@ -1,22 +1,29 @@
+using UniRx;
 using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// ѕоказывает или скрывает панель строительства
+/// ”правл€ет отображением панели строительства дл€  ConstructionSlot
 /// </summary>
-public class ConstructionPresenter : MonoBehaviour
+public sealed class ConstructionPresenter : MonoBehaviour
 {
+    [SerializeField] private ConstructionPanel _constructionPanel;
+
     private SelectionSystem _selectionSystem;
-    private ConstructionPanel _panel;
-    private bool _isSubscribed;
+    private CompositeDisposable _disposables;
 
     [Inject]
     private void Construct(
         SelectionSystem selectionSystem,
-        ConstructionPanel panel)
+        ConstructionPanel constructionPanel)
     {
         _selectionSystem = selectionSystem;
-        _panel = panel;
+        _constructionPanel = constructionPanel;
+    }
+
+    private void Awake()
+    {
+        _constructionPanel?.Hide();
     }
 
     private void Start()
@@ -31,66 +38,97 @@ public class ConstructionPresenter : MonoBehaviour
 
     private void OnDisable()
     {
-        Unsubscribe();
+        DisposeSubscriptions();
+    }
+
+    private void HandleSelectionChanged(UnitSelectable selectable)
+    {
+        if (_constructionPanel == null)
+            return;
+
+        if (selectable == null)
+        {
+            _constructionPanel.Hide();
+            return;
+        }
+
+        ConstructionSlot slot = FindComponentNearSelectable<ConstructionSlot>(selectable);
+
+        if (slot == null)
+        {
+            _constructionPanel.Hide();
+            return;
+        }
+
+        _constructionPanel.Show(slot);
+    }
+
+    private void HandleSelectionCleared(Unit _)
+    {
+        _constructionPanel?.Hide();
     }
 
     private void Subscribe()
     {
-        if (_isSubscribed)
-            return;
-
         if (_selectionSystem == null)
             return;
 
-        _selectionSystem.SelectionChanged += OnSelectionChanged;
-        _selectionSystem.SelectionCleared += OnSelectionCleared;
-
-        _isSubscribed = true;
-    }
-
-    private void Unsubscribe()
-    {
-        if (!_isSubscribed)
+        if (_disposables != null)
             return;
 
-        if (_selectionSystem != null)
-        {
-            _selectionSystem.SelectionChanged -= OnSelectionChanged;
-            _selectionSystem.SelectionCleared -= OnSelectionCleared;
-        }
+        _disposables = new CompositeDisposable();
 
-        _isSubscribed = false;
+        _selectionSystem.SelectionChanged
+            .Subscribe(HandleSelectionChanged)
+            .AddTo(_disposables);
+
+        _selectionSystem.SelectionCleared
+            .Subscribe(HandleSelectionCleared)
+            .AddTo(_disposables);
+
+        RefreshFromCurrentSelection();
     }
 
-    private void OnSelectionChanged(UnitSelectable selectable)
+    private void DisposeSubscriptions()
+    {
+        _disposables?.Dispose();
+        _disposables = null;
+    }
+
+    private void RefreshFromCurrentSelection()
+    {
+        if (_selectionSystem == null)
+        {
+            _constructionPanel?.Hide();
+            return;
+        }
+
+        UnitSelectable currentSelection = _selectionSystem.CurrentSelection;
+
+        if (currentSelection == null)
+        {
+            HandleSelectionCleared(Unit.Default);
+            return;
+        }
+
+        HandleSelectionChanged(currentSelection);
+    }
+
+    private T FindComponentNearSelectable<T>(UnitSelectable selectable) where T : Component
     {
         if (selectable == null)
-        {
-            _panel?.Hide();
-            return;
-        }
+            return null;
 
-        ConstructionSlot slot = selectable.GetComponent<ConstructionSlot>();
-        if (slot == null)
-            slot = selectable.GetComponentInParent<ConstructionSlot>();
+        T component = selectable.GetComponent<T>();
 
-        if (slot == null)
-        {
-            _panel?.Hide();
-            return;
-        }
+        if (component != null)
+            return component;
 
-        if (!slot.HasConstruction)
-        {
-            _panel?.Show(slot);
-            return;
-        }
+        component = selectable.GetComponentInParent<T>();
 
-        _panel?.Hide();
-    }
+        if (component != null)
+            return component;
 
-    private void OnSelectionCleared()
-    {
-        _panel?.Hide();
+        return selectable.GetComponentInChildren<T>();
     }
 }

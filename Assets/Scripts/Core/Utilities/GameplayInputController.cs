@@ -49,20 +49,28 @@ public sealed class GameplayInputController : MonoBehaviour
 
     private void HandleGameplayTap(Vector2 screenPosition)
     {
-        bool hasSelectable = _selectionSystem.TryGetSelectableAtScreenPosition(screenPosition,
-            out UnitSelectable selectable);
-
-        if (hasSelectable && selectable != null && selectable.CanBeSelected)
+        // Если выбрана армия и игрок тапнул по врагу — это команда атаки
+        if (_commandSystem != null &&
+            _commandSystem.TryAttackSelectedArmyAtScreenPosition(screenPosition))
         {
-            _selectionSystem.Select(selectable);
             return;
         }
 
-        bool commandWasIssued = _commandSystem.TryCommandSelectedArmyAtScreenPosition(screenPosition);
-
-        if (commandWasIssued)
+        // Если под tap есть selectable объект — выбираем его
+        if (_selectionSystem != null &&
+            _selectionSystem.TrySelectAtScreenPosition(screenPosition))
+        {
             return;
+        }
 
-        _selectionSystem.ClearSelection();
+        // Если selectable объекта нет но выбрана армия — двигаем армию в точку
+        if (_commandSystem != null &&
+            _commandSystem.TryMoveSelectedArmyAtScreenPosition(screenPosition))
+        {
+            return;
+        }
+
+        // Если это не UI не враг не selectable и не команда армии — очищаем выбор
+        _selectionSystem?.ClearSelection();
     }
 }

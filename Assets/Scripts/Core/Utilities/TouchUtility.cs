@@ -4,11 +4,12 @@ using UnityEngine.EventSystems;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 /// <summary>
-/// утилита для touch input
+/// Утилита для touch input
 /// </summary>
 public static class TouchUtility
 {
-    private const float MaxTapMovement = 20f;
+    private const float MaxTapMovement = 25f;
+    private const float MaxTapMovementSqr = MaxTapMovement * MaxTapMovement;
 
     /// <summary>
     /// Пытается получить завершённый короткий touch tap
@@ -26,11 +27,9 @@ public static class TouchUtility
             if (activeTouch.phase != UnityEngine.InputSystem.TouchPhase.Ended)
                 continue;
 
-            float movedDistance = Vector2.Distance(
-                activeTouch.startScreenPosition,
-                activeTouch.screenPosition);
+            Vector2 movement = activeTouch.screenPosition - activeTouch.startScreenPosition;
 
-            if (movedDistance > MaxTapMovement)
+            if (movement.sqrMagnitude > MaxTapMovementSqr)
                 continue;
 
             touch = activeTouch;

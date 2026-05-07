@@ -1,26 +1,17 @@
-using System;
 using System.Collections.Generic;
-using UniRx;
 using UnityEngine;
 
 /// <summary>
-/// ќбщий реестр всех ресурсов на сцене
+/// –еестр всех  ресурсных точек на сцене
 /// </summary>
-public class ResourceRegistry : MonoBehaviour
+public sealed class ResourceRegistry : MonoBehaviour
 {
-    private readonly List<IResourceNode> _nodes = new();
+    private readonly List<ResourceNodeBase> _nodes = new();
 
-    private readonly Subject<IResourceNode> _nodeAdded = new();
-    private readonly Subject<IResourceNode> _nodeRemoved = new();
-
-    public IReadOnlyList<IResourceNode> Nodes => _nodes;
-
-    public IObservable<IResourceNode> NodeAdded => _nodeAdded;
-    public IObservable<IResourceNode> NodeRemoved => _nodeRemoved;
-
+    public IReadOnlyList<ResourceNodeBase> Nodes => _nodes;
     public int Count => _nodes.Count;
 
-    public void Register(IResourceNode node)
+    public void Register(ResourceNodeBase node)
     {
         if (node == null)
             return;
@@ -29,33 +20,55 @@ public class ResourceRegistry : MonoBehaviour
             return;
 
         _nodes.Add(node);
-        _nodeAdded.OnNext(node);
     }
 
-    public void Unregister(IResourceNode node)
+    public void Unregister(ResourceNodeBase node)
     {
         if (node == null)
             return;
 
-        if (!_nodes.Remove(node))
-            return;
-
-        _nodeRemoved.OnNext(node);
+        _nodes.Remove(node);
     }
 
-    public bool Contains(IResourceNode node)
+    /// <summary>
+    /// »щет ближайший доступный ресурс конкретного типа
+    /// </summary>
+    public T FindBest<T>(Vector2 from) where T : ResourceNodeBase
     {
-        return node != null && _nodes.Contains(node);
+        T bestResource = null;
+        float bestSqrDistance = float.MaxValue;
+
+        for (int i = 0; i < _nodes.Count; i++)
+        {
+            ResourceNodeBase node = _nodes[i];
+
+            if (node == null)
+                continue;
+
+            if (node is not T resource)
+                continue;
+
+            if (!resource.IsAvailable)
+                continue;
+
+            if (!resource.HasFreeSlot())
+                continue;
+
+            float sqrDistance = GetSqrDistanceToResource(resource, from);
+
+            if (sqrDistance >= bestSqrDistance)
+                continue;
+
+            bestSqrDistance = sqrDistance;
+            bestResource = resource;
+        }
+
+        return bestResource;
     }
 
-    private void OnDestroy()
+    private static float GetSqrDistanceToResource(ResourceNodeBase resource, Vector2 from)
     {
-        _nodeAdded.OnCompleted();
-        _nodeRemoved.OnCompleted();
-
-        _nodeAdded.Dispose();
-        _nodeRemoved.Dispose();
-
-        _nodes.Clear();
+        Vector2 workPosition = resource.GetWorkPosition(null);
+        return (workPosition - from).sqrMagnitude;
     }
 }

@@ -4,20 +4,20 @@
 /// </summary>
 public sealed class WorkerJobFactory
 {
-    private readonly ResourceSearchService _resourceSearchService;
+    private readonly ResourceRegistry _resourceRegistry;
 
-    public WorkerJobFactory(ResourceSearchService resourceSearchService)
+    public WorkerJobFactory(ResourceRegistry resourceRegistry)
     {
-        _resourceSearchService = resourceSearchService;
+        _resourceRegistry = resourceRegistry;
     }
 
     public IWorkerJob Create(WorkerJobType type)
     {
         return type switch
         {
-            WorkerJobType.ChopWood => new ChopWoodJob(_resourceSearchService),
-            WorkerJobType.MineGold => new MineGoldJob(_resourceSearchService),
-            WorkerJobType.HuntMeat => new HuntMeatJob(_resourceSearchService),
+            WorkerJobType.ChopWood => new ChopWoodJob(_resourceRegistry),
+            WorkerJobType.MineGold => new MineGoldJob(_resourceRegistry),
+            WorkerJobType.HuntMeat => new HuntMeatJob(_resourceRegistry),
             _ => null
         };
     }

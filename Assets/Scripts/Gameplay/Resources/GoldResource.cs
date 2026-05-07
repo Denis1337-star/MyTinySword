@@ -3,9 +3,9 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-///  реализация золота
+/// Ресурсная точка золота
 /// </summary>
-public class GoldResource : ResourceNodeBase
+public sealed class GoldResource : ResourceNodeBase
 {
     private static readonly int SizeHash = Animator.StringToHash("Size");
 
@@ -18,12 +18,10 @@ public class GoldResource : ResourceNodeBase
     private Coroutine _growRoutine;
     private Coroutine _workRoutine;
 
-    public override float Priority => _config != null ? _config.Priority : 0f;
 
     protected override void Awake()
     {
-        _animator = GetComponent<Animator>();
-        _spriteRenderer = GetComponent<SpriteRenderer>();
+        ResolveReferences();
 
         base.Awake();
 
@@ -33,7 +31,16 @@ public class GoldResource : ResourceNodeBase
     protected override void Start()
     {
         base.Start();
+
         StartGrowRoutine();
+    }
+
+    protected override void OnDestroy()
+    {
+        StopGrowRoutine();
+        StopWorkRoutine();
+
+        base.OnDestroy();
     }
 
     protected override bool ValidateInternal()
@@ -41,6 +48,8 @@ public class GoldResource : ResourceNodeBase
         bool valid = base.ValidateInternal();
 
         valid &= ValidationUtility.IsAssigned(this, _config, nameof(_config));
+        valid &= ValidationUtility.IsAssigned(this, _animator, nameof(_animator));
+        valid &= ValidationUtility.IsAssigned(this, _spriteRenderer, nameof(_spriteRenderer));
 
         if (_config != null && !_config.IsValid())
         {
@@ -54,9 +63,14 @@ public class GoldResource : ResourceNodeBase
     protected override void StartWorkRoutine(Action<int> onFinished)
     {
         StopGrowRoutine();
+        StopWorkRoutine();
 
-        if (_workRoutine != null)
-            StopCoroutine(_workRoutine);
+        if (_config == null || !_config.IsValid())
+        {
+            SetAvailable(true);
+            onFinished?.Invoke(0);
+            return;
+        }
 
         _workRoutine = StartCoroutine(WorkRoutine(onFinished));
     }
@@ -78,7 +92,7 @@ public class GoldResource : ResourceNodeBase
 
     private IEnumerator GrowRoutine()
     {
-        while (_available)
+        while (IsAvailable)
         {
             yield return new WaitForSeconds(_config.GrowInterval);
 
@@ -88,11 +102,14 @@ public class GoldResource : ResourceNodeBase
             _size++;
             UpdateVisual();
         }
+
+        _growRoutine = null;
     }
 
     private void Respawn()
     {
-        _available = true;
+        SetAvailable(true);
+
         _size = ResourceSize.Tiny;
         _workRoutine = null;
 
@@ -105,7 +122,10 @@ public class GoldResource : ResourceNodeBase
     {
         StopGrowRoutine();
 
-        if (_config == null)
+        if (_config == null || !_config.IsValid())
+            return;
+
+        if (!IsAvailable)
             return;
 
         _growRoutine = StartCoroutine(GrowRoutine());
@@ -120,27 +140,38 @@ public class GoldResource : ResourceNodeBase
         _growRoutine = null;
     }
 
+    private void StopWorkRoutine()
+    {
+        if (_workRoutine == null)
+            return;
+
+        StopCoroutine(_workRoutine);
+        _workRoutine = null;
+    }
+
     private void UpdateVisual()
     {
         int sizeIndex = Mathf.Max(0, (int)_size - 1);
 
-        if (_animator != null)
             _animator.SetInteger(SizeHash, sizeIndex);
     }
 
     private void SetVisible(bool value)
     {
-        if (_spriteRenderer != null)
             _spriteRenderer.enabled = value;
     }
 
-    protected override void OnDestroy()
+    private void ResolveReferences()
     {
-        StopGrowRoutine();
+        if (_animator == null)
+            _animator = GetComponent<Animator>();
 
-        if (_workRoutine != null)
-            StopCoroutine(_workRoutine);
+        if (_spriteRenderer == null)
+            _spriteRenderer = GetComponent<SpriteRenderer>();
+    }
 
-        base.OnDestroy();
+    private void OnValidate()
+    {
+        ResolveReferences();
     }
 }

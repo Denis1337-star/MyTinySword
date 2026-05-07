@@ -1,31 +1,26 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 using Zenject;
 
 /// <summary>
-/// Показывает состав выделенной группы по типам юнитов
-/// и кнопку "Выбрать всех"
+/// Показывает состав выделенной группы боевых юнитов по типам
+/// и кнопку Выбрать всех
 /// </summary>
-public class ArmySelectionPanel : MonoBehaviour
+public sealed class ArmySelectionPanel : MonoBehaviour
 {
-    [Header("Items")]
-    [FormerlySerializedAs("contentRoot")]
     [SerializeField] private Transform _contentRoot;
-
-    [FormerlySerializedAs("itemPrefab")]
     [SerializeField] private ArmySelectionItem _itemPrefab;
-
-    [Header("Buttons")]
-    [FormerlySerializedAs("selectAllButton")]
     [SerializeField] private Button _selectAllButton;
 
     private readonly List<ArmySelectionItem> _items = new();
+    private readonly Dictionary<ArmyUnitType, GroupInfo> _groups = new();
 
     private SelectionSystem _selectionSystem;
     private ArmyUnitRegistry _armyUnitRegistry;
+
     private bool _isSubscribedToRegistry;
+    private bool _isApplyingShow;
 
     [Inject]
     private void Construct(
@@ -38,7 +33,7 @@ public class ArmySelectionPanel : MonoBehaviour
 
     private void Awake()
     {
-        gameObject.SetActive(false);
+        SetPanelActive(false);
     }
 
     private void OnEnable()
@@ -47,7 +42,10 @@ public class ArmySelectionPanel : MonoBehaviour
             _selectAllButton.onClick.AddListener(SelectAllPlayerUnits);
 
         SubscribeToRegistry();
-        RefreshFromCurrentSelection();
+
+        // Если панель включили не через Show() синхронизируемся с текущим выбором
+        if (!_isApplyingShow)
+            RefreshFromCurrentSelection();
     }
 
     private void OnDisable()
@@ -63,23 +61,19 @@ public class ArmySelectionPanel : MonoBehaviour
     /// </summary>
     public void Show(IReadOnlyList<UnitSelectable> selectedUnits)
     {
+        _isApplyingShow = true;
+
         ClearItems();
+        BuildGroups(selectedUnits);
 
-        if (selectedUnits == null || selectedUnits.Count == 0)
+        if (_groups.Count == 0)
         {
-            gameObject.SetActive(false);
+            SetPanelActive(false);
+            _isApplyingShow = false;
             return;
         }
 
-        Dictionary<ArmyUnitType, GroupInfo> groups = BuildGroups(selectedUnits);
-
-        if (groups.Count == 0)
-        {
-            gameObject.SetActive(false);
-            return;
-        }
-
-        foreach (KeyValuePair<ArmyUnitType, GroupInfo> pair in groups)
+        foreach (KeyValuePair<ArmyUnitType, GroupInfo> pair in _groups)
         {
             GroupInfo group = pair.Value;
 
@@ -87,6 +81,7 @@ public class ArmySelectionPanel : MonoBehaviour
                 continue;
 
             ArmySelectionItem item = CreateItem();
+
             if (item == null)
                 continue;
 
@@ -94,16 +89,17 @@ public class ArmySelectionPanel : MonoBehaviour
             _items.Add(item);
         }
 
-        gameObject.SetActive(true);
+        SetPanelActive(true);
+
+        _isApplyingShow = false;
     }
 
-    /// <summary>
-    /// Скрывает панель и очищает созданные UI-элементы
-    /// </summary>
     public void Hide()
     {
         ClearItems();
-        gameObject.SetActive(false);
+        _groups.Clear();
+
+        SetPanelActive(false);
     }
 
     private ArmySelectionItem CreateItem()
@@ -114,56 +110,76 @@ public class ArmySelectionPanel : MonoBehaviour
         return Instantiate(_itemPrefab, _contentRoot);
     }
 
-    private Dictionary<ArmyUnitType, GroupInfo> BuildGroups(IReadOnlyList<UnitSelectable> selectedUnits)
+    private void BuildGroups(IReadOnlyList<UnitSelectable> selectedUnits)
     {
-        Dictionary<ArmyUnitType, GroupInfo> result = new();
+        _groups.Clear();
 
-        foreach (UnitSelectable selectable in selectedUnits)
+        if (selectedUnits == null || selectedUnits.Count == 0)
+            return;
+
+        for (int i = 0; i < selectedUnits.Count; i++)
         {
+            UnitSelectable selectable = selectedUnits[i];
+
             if (selectable == null)
                 continue;
 
-            ArmyUnit armyUnit = selectable.GetComponent<ArmyUnit>();
-            if (armyUnit == null)
-                armyUnit = selectable.GetComponentInParent<ArmyUnit>();
-
-            if (armyUnit == null)
-                armyUnit = selectable.GetComponentInChildren<ArmyUnit>();
+            ArmyUnit armyUnit = FindArmyUnitNearSelectable(selectable);
 
             if (armyUnit == null || !armyUnit.IsPlayerUnit())
                 continue;
 
             UnitConfig config = armyUnit.Config;
+
             if (config == null)
             {
-                Debug.LogWarning($"{armyUnit.name}: ArmyUnit не имеет UnitConfig, поэтому не будет показан в ArmySelectionPanel.", armyUnit);
+                Debug.LogWarning(
+                    $"{armyUnit.name}: ArmyUnit не имеет UnitConfig, поэтому не будет показан в ArmySelectionPanel.",
+                    armyUnit);
+
                 continue;
             }
 
             ArmyUnitType type = config.UnitType;
 
-            if (!result.TryGetValue(type, out GroupInfo group))
+            if (!_groups.TryGetValue(type, out GroupInfo group))
             {
                 group = new GroupInfo
                 {
                     Icon = config.Icon,
                     Count = 0
                 };
-
-                result.Add(type, group);
             }
 
             group.Count++;
-            result[type] = group;
+            _groups[type] = group;
         }
+    }
 
-        return result;
+    private ArmyUnit FindArmyUnitNearSelectable(UnitSelectable selectable)
+    {
+        if (selectable == null)
+            return null;
+
+        ArmyUnit armyUnit = selectable.GetComponent<ArmyUnit>();
+
+        if (armyUnit != null)
+            return armyUnit;
+
+        armyUnit = selectable.GetComponentInParent<ArmyUnit>();
+
+        if (armyUnit != null)
+            return armyUnit;
+
+        return selectable.GetComponentInChildren<ArmyUnit>();
     }
 
     private void ClearItems()
     {
-        foreach (ArmySelectionItem item in _items)
+        for (int i = 0; i < _items.Count; i++)
         {
+            ArmySelectionItem item = _items[i];
+
             if (item != null)
                 Destroy(item.gameObject);
         }
@@ -181,11 +197,6 @@ public class ArmySelectionPanel : MonoBehaviour
         _selectionSystem.SelectArmyUnits(units);
     }
 
-    private struct GroupInfo
-    {
-        public Sprite Icon;
-        public int Count;
-    }
     private void SubscribeToRegistry()
     {
         if (_isSubscribedToRegistry)
@@ -215,5 +226,19 @@ public class ArmySelectionPanel : MonoBehaviour
             return;
 
         Show(_selectionSystem.SelectedUnits);
+    }
+
+    private void SetPanelActive(bool isActive)
+    {
+        if (gameObject.activeSelf == isActive)
+            return;
+
+        gameObject.SetActive(isActive);
+    }
+
+    private struct GroupInfo
+    {
+        public Sprite Icon;
+        public int Count;
     }
 }

@@ -7,11 +7,11 @@ using UnityEngine;
 /// </summary>
 public sealed class HuntMeatJob : IWorkerJob
 {
-    private readonly ResourceSearchService _resourceSearchService;
+    private readonly ResourceRegistry _resourceRegistry;
 
-    public HuntMeatJob(ResourceSearchService resourceSearchService)
+    public HuntMeatJob(ResourceRegistry resourceRegistry)
     {
-        _resourceSearchService = resourceSearchService;
+        _resourceRegistry = resourceRegistry;
     }
 
     public WorkerJobType JobType => WorkerJobType.HuntMeat;
@@ -19,9 +19,9 @@ public sealed class HuntMeatJob : IWorkerJob
 
     public ResourceNodeBase FindResource(Vector2 from)
     {
-        if (_resourceSearchService == null)
+        if (_resourceRegistry == null)
             return null;
 
-        return _resourceSearchService.FindBest<SheepResource>(from);
+        return _resourceRegistry.FindBest<SheepResource>(from);
     }
 }

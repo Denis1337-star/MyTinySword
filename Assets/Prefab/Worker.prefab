@@ -320,7 +320,7 @@ NavMeshAgent:
   m_StoppingDistance: 0.2
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 0
-  m_AutoRepath: 0
+  m_AutoRepath: 1
   m_Height: 1.2
   m_BaseOffset: 0.6
   m_WalkableMask: 1

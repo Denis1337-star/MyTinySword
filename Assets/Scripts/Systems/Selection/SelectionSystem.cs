@@ -1,29 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
+using UniRx;
 using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Система выбора игровых объектов
+/// Центральная система выбора объектов игроком
 /// </summary>
 public sealed class SelectionSystem : MonoBehaviour
 {
     private const int MaxSelectionHits = 32;
-    [SerializeField] private LayerMask _ignoreRaycastLayer;
-    private readonly List<UnitSelectable> _selectedUnits = new();
+
+    [SerializeField] private LayerMask _selectionLayerMask = ~0;
+
     private readonly Collider2D[] _selectionHits = new Collider2D[MaxSelectionHits];
+    private readonly List<UnitSelectable> _selectedUnits = new();
+
+    private readonly Subject<UnitSelectable> _selectionChanged = new();
+    private readonly Subject<Unit> _selectionCleared = new();
 
     private Camera _mainCamera;
-    private UnitSelectable _currentSelection;
 
-    public event Action<UnitSelectable> SelectionChanged;
-    public event Action SelectionCleared;
+    public IObservable<UnitSelectable> SelectionChanged => _selectionChanged;
+    public IObservable<Unit> SelectionCleared => _selectionCleared;
 
-    public UnitSelectable CurrentSelection => _currentSelection;
+    public UnitSelectable CurrentSelection { get; private set; }
     public IReadOnlyList<UnitSelectable> SelectedUnits => _selectedUnits;
-
-    public bool HasSelection => _currentSelection != null || _selectedUnits.Count > 0;
-    public bool HasPlayerArmySelection => ContainsPlayerArmyUnits(_selectedUnits);
 
     [Inject]
     private void Construct(Camera mainCamera)
@@ -31,23 +33,34 @@ public sealed class SelectionSystem : MonoBehaviour
         _mainCamera = mainCamera;
     }
 
-    /// <summary>
-    /// Ищет selectable объект под экранной позицией
-    /// </summary>
-    public bool TryGetSelectableAtScreenPosition(
-        Vector2 screenPosition,
-        out UnitSelectable selectable)
+    private void OnDestroy()
+    {
+        _selectionChanged.Dispose();
+        _selectionCleared.Dispose();
+    }
+
+    public bool TrySelectAtScreenPosition(Vector2 screenPosition)
+    {
+        if (!TryGetSelectableAtScreenPosition(screenPosition, out UnitSelectable selectable))
+            return false;
+
+        Select(selectable);
+        return true;
+    }
+
+    public bool TryGetSelectableAtScreenPosition(Vector2 screenPosition, out UnitSelectable selectable)
     {
         selectable = null;
 
-        Vector2 worldPosition = TouchUtility.ScreenToWorld(_mainCamera, screenPosition);
+        if (_mainCamera == null)
+            return false;
 
-        int layerMask = ~_ignoreRaycastLayer.value;
+        Vector2 worldPosition = TouchUtility.ScreenToWorld(_mainCamera, screenPosition);
 
         int hitCount = Physics2D.OverlapPointNonAlloc(
             worldPosition,
             _selectionHits,
-            layerMask);
+            _selectionLayerMask);
 
         for (int i = 0; i < hitCount; i++)
         {
@@ -55,7 +68,8 @@ public sealed class SelectionSystem : MonoBehaviour
             if (hit == null)
                 continue;
 
-            UnitSelectable foundSelectable = hit.GetComponentInParent<UnitSelectable>();
+            UnitSelectable foundSelectable = FindSelectableFromHit(hit);
+
             if (foundSelectable == null)
                 continue;
 
@@ -69,178 +83,161 @@ public sealed class SelectionSystem : MonoBehaviour
         return false;
     }
 
-    /// <summary>
-    /// Выбирает worker из UI-списка
-    /// </summary>
-    public void SelectWorkerFromUI(Worker worker)
-    {
-        if (worker == null)
-            return;
-
-        UnitSelectable selectable = worker.GetComponentInParent<UnitSelectable>();
-        if (selectable == null)
-            return;
-
-        if (!selectable.CanBeSelected)
-            return;
-
-        ClearSelectionInternal(notify: false);
-        AddSingleSelection(selectable);
-
-        SelectionChanged?.Invoke(_currentSelection);
-    }
-
-    /// <summary>
-    /// Выбирает  selectable объект
-    /// </summary>
     public void Select(UnitSelectable selectable)
     {
         if (selectable == null)
+        {
+            ClearSelection();
             return;
+        }
 
         if (!selectable.CanBeSelected)
             return;
 
-        if (IsPlayerArmyUnit(selectable))
+        if (CurrentSelection == selectable && _selectedUnits.Count <= 1)
         {
-            AddArmySelection(selectable);
-            SelectionChanged?.Invoke(_currentSelection);
+            selectable.Select();
+
+            // Повторный tap по уже выбранному объекту должен обновить UI
+            _selectionChanged.OnNext(selectable);
             return;
         }
 
-        ClearSelectionInternal(notify: false);
-        AddSingleSelection(selectable);
+        ClearSelectionInternal();
 
-        SelectionChanged?.Invoke(_currentSelection);
+        CurrentSelection = selectable;
+        CurrentSelection.Select();
+
+        _selectedUnits.Add(selectable);
+
+        _selectionChanged.OnNext(selectable);
     }
 
-    /// <summary>
-    /// Выбирает список army units
-    /// </summary>
-    public void SelectArmyUnits(IReadOnlyList<ArmyUnit> units)
+    public void SelectArmyUnits(IReadOnlyList<UnitSelectable> armyUnits)
     {
-        if (units == null || units.Count == 0)
-            return;
-
-        ClearSelectionInternal(notify: false);
-
-        for (int i = 0; i < units.Count; i++)
+        if (armyUnits == null || armyUnits.Count == 0)
         {
-            ArmyUnit unit = units[i];
-            if (unit == null)
-                continue;
-
-            if (!unit.IsPlayerUnit())
-                continue;
-
-            UnitSelectable selectable = unit.GetComponentInParent<UnitSelectable>();
-            if (selectable == null)
-                continue;
-
-            if (!selectable.CanBeSelected)
-                continue;
-
-            AddArmySelection(selectable);
+            ClearSelection();
+            return;
         }
 
-        SelectionChanged?.Invoke(_currentSelection);
+        ClearSelectionInternal();
+
+        for (int i = 0; i < armyUnits.Count; i++)
+        {
+            UnitSelectable selectable = armyUnits[i];
+
+            if (selectable == null || !selectable.CanBeSelected)
+                continue;
+
+            selectable.Select();
+            _selectedUnits.Add(selectable);
+        }
+
+        CurrentSelection = _selectedUnits.Count > 0 ? _selectedUnits[0] : null;
+
+        if (CurrentSelection != null)
+            _selectionChanged.OnNext(CurrentSelection);
+        else
+            _selectionCleared.OnNext(Unit.Default);
     }
 
-    /// <summary>
-    /// Полностью очищает текущий выбор
-    /// </summary>
+    public void SelectArmyUnits(IReadOnlyList<ArmyUnit> armyUnits)
+    {
+        if (armyUnits == null || armyUnits.Count == 0)
+        {
+            ClearSelection();
+            return;
+        }
+
+        ClearSelectionInternal();
+
+        for (int i = 0; i < armyUnits.Count; i++)
+        {
+            ArmyUnit armyUnit = armyUnits[i];
+            if (armyUnit == null)
+                continue;
+
+            UnitSelectable selectable = FindSelectableFromComponent(armyUnit);
+
+            if (selectable == null || !selectable.CanBeSelected)
+                continue;
+
+            selectable.Select();
+            _selectedUnits.Add(selectable);
+        }
+
+        CurrentSelection = _selectedUnits.Count > 0 ? _selectedUnits[0] : null;
+
+        if (CurrentSelection != null)
+            _selectionChanged.OnNext(CurrentSelection);
+        else
+            _selectionCleared.OnNext(Unit.Default);
+    }
+
+    public void SelectWorkerFromUI(Worker worker)
+    {
+        if (worker == null)
+        {
+            ClearSelection();
+            return;
+        }
+
+        UnitSelectable selectable = FindSelectableFromComponent(worker);
+
+        Select(selectable);
+    }
+
     public void ClearSelection()
     {
-        if (!HasSelection)
-            return;
-
-        ClearSelectionInternal(notify: true);
+        ClearSelectionInternal();
+        _selectionCleared.OnNext(Unit.Default);
     }
 
-    private void AddArmySelection(UnitSelectable selectable)
-    {
-        if (_selectedUnits.Contains(selectable))
-        {
-            _currentSelection = selectable;
-            return;
-        }
-
-        if (ContainsNonArmySelection())
-            ClearSelectionInternal(notify: false);
-
-        _selectedUnits.Add(selectable);
-        selectable.Select();
-
-        _currentSelection = selectable;
-    }
-
-    private void AddSingleSelection(UnitSelectable selectable)
-    {
-        ClearSelectionInternal(notify: false);
-
-        _selectedUnits.Add(selectable);
-        selectable.Select();
-
-        _currentSelection = selectable;
-    }
-
-    private bool ContainsNonArmySelection()
+    private void ClearSelectionInternal()
     {
         for (int i = 0; i < _selectedUnits.Count; i++)
         {
-            UnitSelectable selectable = _selectedUnits[i];
-            if (selectable == null)
+            UnitSelectable selectedUnit = _selectedUnits[i];
+
+            if (selectedUnit == null)
                 continue;
 
-            if (!IsPlayerArmyUnit(selectable))
-                return true;
-        }
-
-        return false;
-    }
-
-    private bool ContainsPlayerArmyUnits(IReadOnlyList<UnitSelectable> selectedUnits)
-    {
-        if (selectedUnits == null)
-            return false;
-
-        for (int i = 0; i < selectedUnits.Count; i++)
-        {
-            UnitSelectable selectable = selectedUnits[i];
-            if (selectable == null)
-                continue;
-
-            if (IsPlayerArmyUnit(selectable))
-                return true;
-        }
-
-        return false;
-    }
-
-    private bool IsPlayerArmyUnit(UnitSelectable selectable)
-    {
-        if (selectable == null)
-            return false;
-
-        ArmyUnit armyUnit = selectable.GetComponent<ArmyUnit>();
-
-        return armyUnit != null && armyUnit.IsPlayerUnit();
-    }
-
-    private void ClearSelectionInternal(bool notify)
-    {
-        for (int i = 0; i < _selectedUnits.Count; i++)
-        {
-            UnitSelectable selectable = _selectedUnits[i];
-
-            if (selectable != null)
-                selectable.Deselect();
+            selectedUnit.Deselect();
         }
 
         _selectedUnits.Clear();
-        _currentSelection = null;
+        CurrentSelection = null;
+    }
 
-        if (notify)
-            SelectionCleared?.Invoke();
+    private UnitSelectable FindSelectableFromHit(Collider2D hit)
+    {
+        if (hit == null)
+            return null;
+
+        UnitSelectable selectable = hit.GetComponentInParent<UnitSelectable>();
+
+        if (selectable != null)
+            return selectable;
+
+        return hit.GetComponentInChildren<UnitSelectable>();
+    }
+
+    private UnitSelectable FindSelectableFromComponent(Component component)
+    {
+        if (component == null)
+            return null;
+
+        UnitSelectable selectable = component.GetComponent<UnitSelectable>();
+
+        if (selectable != null)
+            return selectable;
+
+        selectable = component.GetComponentInParent<UnitSelectable>();
+
+        if (selectable != null)
+            return selectable;
+
+        return component.GetComponentInChildren<UnitSelectable>();
     }
 }

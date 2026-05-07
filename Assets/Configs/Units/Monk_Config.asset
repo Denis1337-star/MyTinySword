@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 126931534b0fe5c4398f475fbe009e2f, type: 3}
   m_Name: Monk_Config
   m_EditorClassIdentifier: 
-  _unitId: 3
-  _displayName: "\u0425\u0438\u043B\u043B\u0435\u0440"
+  _unitId: healer
+  _displayName: "\u041C\u043E\u043D\u0430\u0445"
   _description: "\u0412\u043E\u0438\u043D \u0441\u043F\u043E\u0441\u043E\u0431\u043D\u044B\u0439
     \u043B\u0435\u0447\u0438\u0442\u044C \u0441\u043E\u044E\u0437\u043D\u0438\u043A\u043E\u0432,
     \u043D\u043E \u043D\u0435 \u043D\u0430\u043D\u043E\u0441\u0438\u0442 \u0443\u0440\u043E\u043D
@@ -24,9 +24,9 @@ MonoBehaviour:
   _woodCost: 10
   _meatCost: 10
   _maxHealth: 100
-  _moveSpeed: 5
-  _visionRange: 7
+  _moveSpeed: 2
+  _visionRange: 5
   _buildTime: 5
   _healAmount: 10
-  _healRange: 5
+  _healRange: 3
   _healCooldown: 1

@@ -4,9 +4,8 @@ using Zenject;
 
 /// <summary>
 /// Базовая логика ресурсной точки
-/// Отвечает за доступность, рабочий слот и регистрацию в ResourceRegistry
 /// </summary>
-public abstract class ResourceNodeBase : ValidatedMonoBehaviour, IResourceNode
+public abstract class ResourceNodeBase : ValidatedMonoBehaviour
 {
     [SerializeField] private WorkSlot _workSlot;
 
@@ -16,7 +15,6 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour, IResourceNode
 
     public bool IsAvailable => _available;
 
-    public abstract float Priority { get; }
 
     [Inject]
     private void Construct(ResourceRegistry resourceRegistry)
@@ -26,12 +24,6 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour, IResourceNode
 
     protected virtual void Start()
     {
-        if (_resourceRegistry == null)
-        {
-            Debug.LogError($"{name}: ResourceRegistry не внедрён через Zenject.", this);
-            return;
-        }
-
         _resourceRegistry.Register(this);
     }
 
@@ -99,6 +91,11 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour, IResourceNode
     public virtual void CancelWork(Worker worker)
     {
         ReleaseSlot(worker);
+    }
+
+    protected void SetAvailable(bool available)
+    {
+        _available = available;
     }
 
     protected abstract void StartWorkRoutine(Action<int> onFinished);

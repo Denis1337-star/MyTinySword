@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37446ddd7a6baee4c828e8255e99fc26, type: 3}
   m_Name: Warrior_Config
   m_EditorClassIdentifier: 
-  _unitId: 1
+  _unitId: warrior
   _displayName: "\u0412\u043E\u0438\u043D"
   _description: "\u0412\u043E\u0438\u043D \u0431\u043B\u0438\u0436\u043D\u0435\u0433\u043E
     \u0431\u043E\u044F \u0441 \u0431\u043E\u043B\u044C\u0448\u0438\u043C \u0437\u0430\u043F\u0430\u0441\u043E\u043C
@@ -28,5 +28,5 @@ MonoBehaviour:
   _visionRange: 5
   _buildTime: 5
   _damage: 25
-  _attackRange: 1
+  _attackRange: 0.5
   _attackCooldown: 1

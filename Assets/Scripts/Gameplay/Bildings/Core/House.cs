@@ -1,39 +1,30 @@
 using System;
 using System.Collections.Generic;
-using UniRx;
 using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Дом — владелец группы worker
+/// Дом  владелец группы рабочих
 /// </summary>
-public class House : ValidatedMonoBehaviour
+public sealed class House : ValidatedMonoBehaviour
 {
-    [Header("Config")]
-    [SerializeField] private HouseConfig _config;
+    private const int WorkersPerDropRing = 8;
+    private const float FullCircleRadians = Mathf.PI * 2f;
 
-    [Header("Spawn & Drop")]
+    [SerializeField] private HouseConfig _config;
     [SerializeField] private Transform _spawnPoint;
     [SerializeField] private Transform _dropPoint;
-
-
-    [Header("Idle Positions")]
     [SerializeField] private Transform _idlePointsRoot;
-
-    [Header("Workers")]
     [SerializeField] private Worker _workerPrefab;
-
-    [Header("Drop")]
     [SerializeField] private float _dropRadius = 0.6f;
 
     private readonly List<Transform> _idlePoints = new();
-    private readonly Dictionary<Worker, Transform> _occupiedIdlePoints = new();
     private readonly List<Worker> _workers = new();
-
-    private bool _isHiringInProgress;
 
     private WorkerFactory _workerFactory;
     private ResourceStorage _resourceStorage;
+
+    private bool _isHiringInProgress;
 
     public Vector2 DropPoint => _dropPoint.position;
 
@@ -45,16 +36,6 @@ public class House : ValidatedMonoBehaviour
     public int CurrentGoldCost => _config.BaseGoldCost + CurrentWorkers * _config.GoldIncreasePerWorker;
 
     public event Action OnWorkersChanged;
-    public event Action<Worker> OnWorkerAdded;
-    public event Action<Worker> OnWorkerRemoved;
-
-    private readonly Subject<Unit> _workersChanged = new();
-    private readonly Subject<Worker> _workerAdded = new();
-    private readonly Subject<Worker> _workerRemoved = new();
-
-    public IObservable<Unit> WorkersChanged => _workersChanged;
-    public IObservable<Worker> WorkerAdded => _workerAdded;
-    public IObservable<Worker> WorkerRemoved => _workerRemoved;
 
     [Inject]
     private void Construct(
@@ -68,6 +49,7 @@ public class House : ValidatedMonoBehaviour
     protected override void Awake()
     {
         CacheIdlePoints();
+
         base.Awake();
     }
 
@@ -77,7 +59,14 @@ public class House : ValidatedMonoBehaviour
 
         valid &= ValidationUtility.IsAssigned(this, _config, nameof(_config));
         valid &= ValidationUtility.IsAssigned(this, _spawnPoint, nameof(_spawnPoint));
+        valid &= ValidationUtility.IsAssigned(this, _dropPoint, nameof(_dropPoint));
         valid &= ValidationUtility.IsAssigned(this, _workerPrefab, nameof(_workerPrefab));
+
+        if (_config != null && !_config.IsValid())
+        {
+            Debug.LogError($"{name}: HouseConfig настроен некорректно.", this);
+            valid = false;
+        }
 
         return valid;
     }
@@ -103,7 +92,6 @@ public class House : ValidatedMonoBehaviour
         }
 
         OnWorkersChanged?.Invoke();
-        _workersChanged.OnNext(Unit.Default);
     }
 
     private void CacheIdlePoints()
@@ -113,8 +101,10 @@ public class House : ValidatedMonoBehaviour
         if (_idlePointsRoot == null)
             return;
 
-        foreach (Transform child in _idlePointsRoot)
+        for (int i = 0; i < _idlePointsRoot.childCount; i++)
         {
+            Transform child = _idlePointsRoot.GetChild(i);
+
             if (child != null)
                 _idlePoints.Add(child);
         }
@@ -122,10 +112,8 @@ public class House : ValidatedMonoBehaviour
 
     private Worker SpawnWorker()
     {
-        if (!enabled)
-            return null;
-
         Worker worker = CreateWorker();
+
         if (worker == null)
             return null;
 
@@ -135,7 +123,6 @@ public class House : ValidatedMonoBehaviour
         Vector2 idlePosition = GetIdlePosition(worker);
         worker.transform.position = idlePosition;
 
-        OnWorkerAdded?.Invoke(worker);
         OnWorkersChanged?.Invoke();
 
         return worker;
@@ -143,7 +130,6 @@ public class House : ValidatedMonoBehaviour
 
     private Worker CreateWorker()
     {
-
         return _workerFactory.Create(
             _workerPrefab,
             _spawnPoint.position,
@@ -157,21 +143,11 @@ public class House : ValidatedMonoBehaviour
 
     public string GetHireBlockReason()
     {
-
         if (CurrentWorkers >= MaxWorkers)
             return "Достигнут лимит рабочих";
 
-        bool enoughWood = _resourceStorage.Wood >= CurrentWoodCost;
-        bool enoughGold = _resourceStorage.Gold >= CurrentGoldCost;
-
-        if (!enoughWood && !enoughGold)
-            return "Не хватает дерева и золота";
-
-        if (!enoughWood)
-            return "Не хватает дерева";
-
-        if (!enoughGold)
-            return "Не хватает золота";
+        if (!_resourceStorage.HasResources(CurrentWoodCost, CurrentGoldCost, 0))
+            return "Не хватает ресурсов";
 
         return string.Empty;
     }
@@ -188,11 +164,16 @@ public class House : ValidatedMonoBehaviour
 
         try
         {
-            bool spent = _resourceStorage.TrySpendResources(CurrentWoodCost, CurrentGoldCost);
+            bool spent = _resourceStorage.TrySpendResources(
+                CurrentWoodCost,
+                CurrentGoldCost,
+                0);
+
             if (!spent)
                 return;
 
             Worker worker = SpawnWorker();
+
             if (worker == null)
                 Debug.LogError($"{name}: не удалось создать рабочего после списания ресурсов.", this);
         }
@@ -210,59 +191,34 @@ public class House : ValidatedMonoBehaviour
         if (!_workers.Remove(worker))
             return;
 
-        ReleaseIdlePosition(worker);
-
-        OnWorkerRemoved?.Invoke(worker);
         OnWorkersChanged?.Invoke();
     }
 
     public Vector2 GetIdlePosition(Worker worker)
     {
-        if (worker == null)
+        int index = GetWorkerIndex(worker);
+
+        if (index < 0 || index >= _idlePoints.Count)
             return _spawnPoint.position;
 
-        if (_occupiedIdlePoints.TryGetValue(worker, out Transform existing) && existing != null)
-            return existing.position;
+        Transform idlePoint = _idlePoints[index];
 
-        foreach (Transform point in _idlePoints)
-        {
-            if (point == null)
-                continue;
-
-            if (_occupiedIdlePoints.ContainsValue(point))
-                continue;
-
-            _occupiedIdlePoints[worker] = point;
-            return point.position;
-        }
-
-        return _spawnPoint.position;
+        return idlePoint != null
+            ? idlePoint.position
+            : _spawnPoint.position;
     }
 
-    public void ReleaseIdlePosition(Worker worker)
-    {
-        if (worker == null)
-            return;
-
-        _occupiedIdlePoints.Remove(worker);
-    }
     public Vector2 GetDropPosition(Worker worker)
     {
-        if (_dropPoint == null)
-            return transform.position;
+        int index = GetWorkerIndex(worker);
 
-        if (worker == null)
-            return _dropPoint.position;
-
-        int index = _workers.IndexOf(worker);
         if (index < 0)
             index = 0;
 
-        int workersPerRing = 8;
-        int ring = index / workersPerRing + 1;
-        int indexInRing = index % workersPerRing;
+        int ring = index / WorkersPerDropRing + 1;
+        int indexInRing = index % WorkersPerDropRing;
 
-        float angle = indexInRing * Mathf.PI * 2f / workersPerRing;
+        float angle = indexInRing * FullCircleRadians / WorkersPerDropRing;
         float radius = _dropRadius * ring;
 
         Vector2 offset = new(
@@ -270,5 +226,13 @@ public class House : ValidatedMonoBehaviour
             Mathf.Sin(angle) * radius);
 
         return (Vector2)_dropPoint.position + offset;
+    }
+
+    private int GetWorkerIndex(Worker worker)
+    {
+        if (worker == null)
+            return -1;
+
+        return _workers.IndexOf(worker);
     }
 }

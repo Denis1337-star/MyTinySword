@@ -18,13 +18,13 @@ public sealed class UnitSelectable : MonoBehaviour
 
     private void OnValidate()
     {
-        if (_selectionVisual == null)
-        {
-            Transform selectionTransform = transform.Find("Selection");
+        if (_selectionVisual != null)
+            return;
 
-            if (selectionTransform != null)
-                _selectionVisual = selectionTransform.gameObject;
-        }
+        Transform selectionTransform = transform.Find("Selection");
+
+        if (selectionTransform != null)
+            _selectionVisual = selectionTransform.gameObject;
     }
 
     public void Select()
@@ -48,9 +48,7 @@ public sealed class UnitSelectable : MonoBehaviour
         ApplySelectionVisual(false);
     }
 
-    /// <summary>
-    /// Позволяет включить или выключить возможность выбора во время игры
-    /// </summary>
+
     public void SetCanBeSelected(bool canBeSelected)
     {
         _canBeSelected = canBeSelected;

@@ -1,19 +1,16 @@
 using TMPro;
-using UniRx;
 using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// UI-отображение ресурсов игрока
+/// UI отображение ресурсов 
 /// </summary>
-public class ResourceStorageView : MonoBehaviour
+public sealed class ResourceStorageView : ValidatedMonoBehaviour
 {
     [Header("Text")]
     [SerializeField] private TMP_Text _woodText;
     [SerializeField] private TMP_Text _goldText;
     [SerializeField] private TMP_Text _meatText;
-
-    private readonly CompositeDisposable _disposables = new();
 
     private ResourceStorage _resourceStorage;
 
@@ -23,38 +20,32 @@ public class ResourceStorageView : MonoBehaviour
         _resourceStorage = resourceStorage;
     }
 
-    private void Start()
+    protected override bool ValidateInternal()
     {
-        if (_resourceStorage == null)
-        {
-            Debug.LogError($"{name}: ResourceStorage не внедрён через Zenject.", this);
-            return;
-        }
+        bool valid = true;
 
-        _resourceStorage.ResourcesChanged
-            .Subscribe(_ => Refresh())
-            .AddTo(_disposables);
+        valid &= ValidationUtility.IsAssigned(this, _woodText, nameof(_woodText));
+        valid &= ValidationUtility.IsAssigned(this, _goldText, nameof(_goldText));
+        valid &= ValidationUtility.IsAssigned(this, _meatText, nameof(_meatText));
 
-        Refresh();
+        return valid;
     }
 
-    private void Refresh()
+    private void Start()
     {
-        if (_resourceStorage == null)
-            return;
-
-        if (_woodText != null)
-            _woodText.text = _resourceStorage.Wood.ToString();
-
-        if (_goldText != null)
-            _goldText.text = _resourceStorage.Gold.ToString();
-
-        if (_meatText != null)
-            _meatText.text = _resourceStorage.Meat.ToString();
+        _resourceStorage.ResourcesChanged += Refresh;
+        Refresh();
     }
 
     private void OnDestroy()
     {
-        _disposables.Dispose();
+        _resourceStorage.ResourcesChanged -= Refresh;
+    }
+
+    private void Refresh()
+    {
+        _woodText.text = _resourceStorage.Wood.ToString();
+        _goldText.text = _resourceStorage.Gold.ToString();
+        _meatText.text = _resourceStorage.Meat.ToString();
     }
 }
