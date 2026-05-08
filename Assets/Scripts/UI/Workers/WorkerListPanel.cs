@@ -3,10 +3,9 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// UI-панель списка рабочих выбранного дома
-/// Создаёт item для каждого рабочего и позволяет выбрать рабочего из списка
+/// UI панель списка рабочих выбранного дома
 /// </summary>
-public class WorkerListPanel : MonoBehaviour
+public sealed class WorkerListPanel : ValidatedMonoBehaviour
 {
     [Header("Root")]
     [SerializeField] private GameObject _root;
@@ -19,6 +18,7 @@ public class WorkerListPanel : MonoBehaviour
 
     private SelectionSystem _selectionSystem;
     private House _currentHouse;
+    private House _subscribedHouse;
 
     [Inject]
     private void Construct(SelectionSystem selectionSystem)
@@ -26,14 +26,27 @@ public class WorkerListPanel : MonoBehaviour
         _selectionSystem = selectionSystem;
     }
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
+
+        if (!enabled)
+            return;
+
         Hide();
     }
 
-    /// <summary>
-    /// Показывает список рабочих для выбранного дома
-    /// </summary>
+    protected override bool ValidateInternal()
+    {
+        bool valid = true;
+
+        valid &= ValidationUtility.IsAssigned(this, _root, nameof(_root));
+        valid &= ValidationUtility.IsAssigned(this, _contentRoot, nameof(_contentRoot));
+        valid &= ValidationUtility.IsAssigned(this, _itemPrefab, nameof(_itemPrefab));
+
+        return valid;
+    }
+
     public void Show(House house)
     {
         if (house == null)
@@ -59,9 +72,6 @@ public class WorkerListPanel : MonoBehaviour
         Rebuild();
     }
 
-    /// <summary>
-    /// Скрывает панель и очищает список
-    /// </summary>
     public void Hide()
     {
         UnsubscribeFromHouse();
@@ -69,9 +79,7 @@ public class WorkerListPanel : MonoBehaviour
         _currentHouse = null;
 
         ClearItems();
-
-        if (_root != null)
-            _root.SetActive(false);
+        _root.SetActive(false);
     }
 
     private void Rebuild()
@@ -82,15 +90,19 @@ public class WorkerListPanel : MonoBehaviour
             return;
 
         IReadOnlyList<Worker> workers = _currentHouse.Workers;
+
         if (workers == null || workers.Count == 0)
             return;
 
-        foreach (Worker worker in workers)
+        for (int i = 0; i < workers.Count; i++)
         {
+            Worker worker = workers[i];
+
             if (worker == null)
                 continue;
 
             WorkerListItem item = CreateItem();
+
             if (item == null)
                 continue;
 
@@ -109,7 +121,7 @@ public class WorkerListPanel : MonoBehaviour
 
     private void SelectWorker(Worker worker)
     {
-        if (worker == null || _selectionSystem == null)
+        if (worker == null)
             return;
 
         _selectionSystem.SelectWorkerFromUI(worker);
@@ -120,21 +132,28 @@ public class WorkerListPanel : MonoBehaviour
         if (_currentHouse == null)
             return;
 
+        if (_subscribedHouse == _currentHouse)
+            return;
+
         _currentHouse.OnWorkersChanged += Rebuild;
+        _subscribedHouse = _currentHouse;
     }
 
     private void UnsubscribeFromHouse()
     {
-        if (_currentHouse == null)
+        if (_subscribedHouse == null)
             return;
 
-        _currentHouse.OnWorkersChanged -= Rebuild;
+        _subscribedHouse.OnWorkersChanged -= Rebuild;
+        _subscribedHouse = null;
     }
 
     private void ClearItems()
     {
-        foreach (WorkerListItem item in _items)
+        for (int i = 0; i < _items.Count; i++)
         {
+            WorkerListItem item = _items[i];
+
             if (item != null)
                 Destroy(item.gameObject);
         }
@@ -144,7 +163,6 @@ public class WorkerListPanel : MonoBehaviour
 
     private void ShowRoot()
     {
-        if (_root != null)
-            _root.SetActive(true);
+        _root.SetActive(true);
     }
 }

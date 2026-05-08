@@ -1,9 +1,7 @@
 using UnityEngine;
 
-
 /// <summary>
-/// Job-логика охоты на овцу.
-/// »щет SheepResource и говорит worker'у, что награда Ч Meat.
+/// Job логика охоты на овцу
 /// </summary>
 public sealed class HuntMeatJob : IWorkerJob
 {
@@ -19,9 +17,6 @@ public sealed class HuntMeatJob : IWorkerJob
 
     public ResourceNodeBase FindResource(Vector2 from)
     {
-        if (_resourceRegistry == null)
-            return null;
-
         return _resourceRegistry.FindBest<SheepResource>(from);
     }
 }

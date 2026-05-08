@@ -45,9 +45,9 @@ GameObject:
   - component: {fileID: 1614011938513431501}
   - component: {fileID: 664985930419080328}
   - component: {fileID: 1547542557496026080}
-  - component: {fileID: 5500797936531359811}
   - component: {fileID: 4768252895606956369}
   - component: {fileID: 1784093843276824935}
+  - component: {fileID: 2287996097431727651}
   m_Layer: 9
   m_Name: ArcheryBild
   m_TagString: Untagged
@@ -210,27 +210,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _selectionVisual: {fileID: 4160027971234194486}
   _canBeSelected: 1
---- !u!114 &5500797936531359811
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3979921759978543857}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f6519e3e90a420b4daf73a80b3a18539, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  config: {fileID: 11400000, guid: 2599f896fec1da645a0200120c3aba10, type: 2}
-  factionMember: {fileID: 1614011938513431501}
-  health: {fileID: 664985930419080328}
-  selectable: {fileID: 1547542557496026080}
-  _unitConfig: {fileID: 11400000, guid: 521fc41915694ff408e6beaa124593cd, type: 2}
-  _spawnPoint: {fileID: 4877625271817062214}
-  _maxQueue: 5
-  _spawnRadius: 0.8
-  _spawnNavMeshSearchRadius: 1.5
 --- !u!114 &4768252895606956369
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -264,6 +243,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetPriority: 50
+--- !u!114 &2287996097431727651
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3979921759978543857}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27017331df63b1b40bc4b6fb73da4740, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  config: {fileID: 11400000, guid: 2599f896fec1da645a0200120c3aba10, type: 2}
+  factionMember: {fileID: 1614011938513431501}
+  health: {fileID: 664985930419080328}
+  selectable: {fileID: 1547542557496026080}
+  _unitConfig: {fileID: 11400000, guid: 521fc41915694ff408e6beaa124593cd, type: 2}
+  _spawnPoint: {fileID: 4877625271817062214}
+  _maxQueue: 1
+  _spawnRadius: 0.8
+  _spawnNavMeshSearchRadius: 1.5
 --- !u!1 &4160027971234194486
 GameObject:
   m_ObjectHideFlags: 0

@@ -2,20 +2,26 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Мозг worker'а.
-/// Отвечает за назначение работы, отложенную смену работы
-/// и применение job-логики через WorkerJobFactory.
+/// Отвечает за назначение работы
 /// </summary>
 [RequireComponent(typeof(Worker))]
 public sealed class WorkerBrain : MonoBehaviour
 {
     private Worker _worker;
-    private WorkerJobFactory _workerJobFactory;
+    private ResourceRegistry _resourceRegistry;
+
+    private IWorkerJob _chopWoodJob;
+    private IWorkerJob _mineGoldJob;
+    private IWorkerJob _huntMeatJob;
 
     [Inject]
-    private void Construct(WorkerJobFactory workerJobFactory)
+    private void Construct(ResourceRegistry resourceRegistry)
     {
-        _workerJobFactory = workerJobFactory;
+        _resourceRegistry = resourceRegistry;
+
+        _chopWoodJob = new ChopWoodJob(_resourceRegistry);
+        _mineGoldJob = new MineGoldJob(_resourceRegistry);
+        _huntMeatJob = new HuntMeatJob(_resourceRegistry);
     }
 
     private void Awake()
@@ -24,8 +30,7 @@ public sealed class WorkerBrain : MonoBehaviour
     }
 
     /// <summary>
-    /// Назначает новую работу worker'у.
-    /// Если worker занят, работа может попасть в PendingJob.
+    /// Назначает новую работу worker
     /// </summary>
     public void AssignJob(WorkerJobType job)
     {
@@ -52,8 +57,7 @@ public sealed class WorkerBrain : MonoBehaviour
     }
 
     /// <summary>
-    /// Применяет отложенную работу, если она есть.
-    /// Обычно вызывается после доставки ресурса домой.
+    /// Применяет отложенную работу
     /// </summary>
     public void ApplyPendingJobIfAny()
     {
@@ -70,31 +74,35 @@ public sealed class WorkerBrain : MonoBehaviour
     }
 
     /// <summary>
-    /// Немедленно применяет новую работу.
-    /// Сбрасывает текущее задание и запускает поиск ресурса.
+    /// Немедленно применяет новую работу
     /// </summary>
     public void ApplyJobImmediately(WorkerJobType job)
     {
         if (_worker == null)
             return;
 
-        if (_workerJobFactory == null)
-        {
-            Debug.LogError($"{name}: WorkerJobFactory не внедрён через Zenject.", this);
-            return;
-        }
-
-        IWorkerJob logic = _workerJobFactory.Create(job);
+        IWorkerJob logic = GetJobLogic(job);
 
         _worker.ResetTaskState();
         _worker.SetCurrentJob(job, logic);
 
         if (job == WorkerJobType.None || logic == null)
         {
-            _worker.GoIdle();
+            _worker.StateMachine.ChangeState(WorkerStateType.Idle);
             return;
         }
 
-        _worker.StartFindingResource();
+        _worker.StateMachine.ChangeState(WorkerStateType.FindResource);
+    }
+
+    private IWorkerJob GetJobLogic(WorkerJobType job)
+    {
+        return job switch
+        {
+            WorkerJobType.ChopWood => _chopWoodJob,
+            WorkerJobType.MineGold => _mineGoldJob,
+            WorkerJobType.HuntMeat => _huntMeatJob,
+            _ => null
+        };
     }
 }

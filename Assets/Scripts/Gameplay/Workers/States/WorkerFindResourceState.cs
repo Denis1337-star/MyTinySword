@@ -1,9 +1,7 @@
 /// <summary>
-/// Состояние поиска ресурса.
-/// Пытается найти подходящую ресурсную точку для текущей работы
-/// и зарезервировать рабочий слот.
+/// Состояние поиска ресурса
 /// </summary>
-public class WorkerFindResourceState : IWorkerState
+public sealed class WorkerFindResourceState : IWorkerState
 {
     private readonly Worker _worker;
 
@@ -14,19 +12,21 @@ public class WorkerFindResourceState : IWorkerState
 
     public void Enter()
     {
-        _worker.Animator?.SetWorking(false);
+        _worker.Animator.SetWorking(false);
 
         bool assigned = WorkerResourceSelector.TryAssignResourceAndSlot(_worker);
+
         if (!assigned)
         {
-            _worker.GoIdle();
+            _worker.ClearCurrentAssignment();
+            _worker.StateMachine.ChangeState(WorkerStateType.Idle);
             return;
         }
 
-        _worker.Animator?.SetEquipment(GetToolForCurrentJob());
-        _worker.Movement?.MoveTo(_worker.TargetSlot.Position);
+        _worker.Animator.SetEquipment(GetToolForCurrentJob());
+        _worker.Movement.MoveTo(_worker.TargetSlot.Position);
 
-        _worker.EnterGoToResourceState();
+        _worker.StateMachine.ChangeState(WorkerStateType.GoToResource);
     }
 
     public void Update()

@@ -1,5 +1,0 @@
-
-public class Archery : ProductionBuildingBase
-{
-}
-

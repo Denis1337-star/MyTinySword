@@ -1,13 +1,13 @@
 using UnityEngine;
 
 /// <summary>
-/// —осто€ние движени€ к ресурсу.
-/// Worker идЄт к зарезервированному рабочему слоту
-/// и после прибыти€ переходит в состо€ние работы.
+/// —осто€ние движени€ к ресурсу
 /// </summary>
-public class WorkerGoToResourceState : IWorkerState
+public sealed class WorkerGoToResourceState : IWorkerState
 {
     private readonly Worker _worker;
+
+    private float _reachDistanceSqr;
 
     public WorkerGoToResourceState(Worker worker)
     {
@@ -19,11 +19,14 @@ public class WorkerGoToResourceState : IWorkerState
         if (!_worker.HasValidResourceAssignmentForMove())
         {
             _worker.ClearCurrentAssignment();
-            _worker.GoIdle();
+            _worker.StateMachine.ChangeState(WorkerStateType.Idle);
             return;
         }
 
-        _worker.Movement?.MoveTo(_worker.TargetSlot.Position);
+        float reachDistance = _worker.GetReachResourceDistance();
+        _reachDistanceSqr = reachDistance * reachDistance;
+
+        _worker.Movement.MoveTo(_worker.TargetSlot.Position);
     }
 
     public void Update()
@@ -31,22 +34,20 @@ public class WorkerGoToResourceState : IWorkerState
         if (!_worker.HasValidResourceAssignmentForMove())
         {
             _worker.ClearCurrentAssignment();
-            _worker.GoIdle();
+            _worker.StateMachine.ChangeState(WorkerStateType.Idle);
             return;
         }
 
-        if (_worker.Movement == null)
-            return;
+        Vector2 workerPosition = _worker.transform.position;
+        Vector2 targetPosition = _worker.TargetSlot.Position;
 
-        float distance = Vector2.Distance(
-            _worker.transform.position,
-            _worker.TargetSlot.Position);
+        float sqrDistance = (workerPosition - targetPosition).sqrMagnitude;
 
-        if (distance > _worker.GetReachResourceDistance())
+        if (sqrDistance > _reachDistanceSqr)
             return;
 
         _worker.Movement.Stop();
-        _worker.EnterWorkState();
+        _worker.StateMachine.ChangeState(WorkerStateType.Work);
     }
 
     public void Exit()

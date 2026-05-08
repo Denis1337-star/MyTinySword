@@ -40,7 +40,6 @@ public class GameSceneInstaller : MonoInstaller
         BindRegistries();
         BindSelectionAndCamera();
         BindUi();
-        BindGameplayServices();
         BindFactories();
         BindInputAndCommands();
     }
@@ -145,17 +144,6 @@ public class GameSceneInstaller : MonoInstaller
 
         Container.Bind<WorkerListPanel>()
             .FromInstance(_workerListPanel)
-            .AsSingle()
-            .NonLazy();
-    }
-
-    private void BindGameplayServices()
-    {
-        Container.Bind<WorkerJobFactory>()
-            .AsSingle()
-            .NonLazy();
-
-        Container.Bind<WorkerCommandService>()
             .AsSingle()
             .NonLazy();
     }

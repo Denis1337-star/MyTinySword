@@ -1,16 +1,14 @@
-using UnityEngine;
-
 /// <summary>
-///  инвентарь worker
+/// Инвентарь worker для переносимого ресурса
 /// </summary>
-public class WorkerInventory : MonoBehaviour
+public sealed class WorkerInventory
 {
     private ResourceType _resourceType = ResourceType.None;
-    private int _carriedAmount;
+    private int _amount;
 
+    public bool HasCargo => _amount > 0 && _resourceType != ResourceType.None;
     public ResourceType CarriedResourceType => _resourceType;
-    public int CarriedAmount => _carriedAmount;
-    public bool HasCargo => _resourceType != ResourceType.None && _carriedAmount > 0;
+    public int Amount => _amount;
 
     public void SetCargo(ResourceType resourceType, int amount)
     {
@@ -21,14 +19,19 @@ public class WorkerInventory : MonoBehaviour
         }
 
         _resourceType = resourceType;
-        _carriedAmount = amount;
+        _amount = amount;
     }
 
     public int TakeCargo(out ResourceType resourceType)
     {
-        resourceType = _resourceType;
+        if (!HasCargo)
+        {
+            resourceType = ResourceType.None;
+            return 0;
+        }
 
-        int amount = _carriedAmount;
+        resourceType = _resourceType;
+        int amount = _amount;
 
         Clear();
 
@@ -38,6 +41,6 @@ public class WorkerInventory : MonoBehaviour
     public void Clear()
     {
         _resourceType = ResourceType.None;
-        _carriedAmount = 0;
+        _amount = 0;
     }
 }

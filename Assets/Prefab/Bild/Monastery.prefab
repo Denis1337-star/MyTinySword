@@ -98,8 +98,8 @@ GameObject:
   - component: {fileID: 7491471523709675784}
   - component: {fileID: 524759571906041623}
   - component: {fileID: 7302005276912915982}
-  - component: {fileID: 86413426410218618}
   - component: {fileID: 6220339391013875141}
+  - component: {fileID: 3616817569082263979}
   m_Layer: 9
   m_Name: Monastery
   m_TagString: Untagged
@@ -262,27 +262,6 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 3, y: 4}
   m_EdgeRadius: 0
---- !u!114 &86413426410218618
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4383023627181470350}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ccea2eb328bbeb488ce2361e278be5c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  config: {fileID: 11400000, guid: a5f21c5f1dcfee340bfbd778929ee4a0, type: 2}
-  factionMember: {fileID: 7234057474138002409}
-  health: {fileID: 7491471523709675784}
-  selectable: {fileID: 524759571906041623}
-  _unitConfig: {fileID: 11400000, guid: 4051b288f95fa0548979b1143b994c1c, type: 2}
-  _spawnPoint: {fileID: 1267953345011277818}
-  _maxQueue: 5
-  _spawnRadius: 0.8
-  _spawnNavMeshSearchRadius: 1.5
 --- !u!114 &6220339391013875141
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -303,6 +282,27 @@ MonoBehaviour:
   _showWhenSelected: 0
   _showWhenDamaged: 1
   _fallbackOffset: {x: 0, y: 1.5, z: 0}
+--- !u!114 &3616817569082263979
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4383023627181470350}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2d1e849ab89a8842b2da6a67dc0dc7d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  config: {fileID: 11400000, guid: a5f21c5f1dcfee340bfbd778929ee4a0, type: 2}
+  factionMember: {fileID: 7234057474138002409}
+  health: {fileID: 7491471523709675784}
+  selectable: {fileID: 524759571906041623}
+  _unitConfig: {fileID: 11400000, guid: 4051b288f95fa0548979b1143b994c1c, type: 2}
+  _spawnPoint: {fileID: 1267953345011277818}
+  _maxQueue: 1
+  _spawnRadius: 0.8
+  _spawnNavMeshSearchRadius: 1.5
 --- !u!1 &5701405091619826596
 GameObject:
   m_ObjectHideFlags: 0

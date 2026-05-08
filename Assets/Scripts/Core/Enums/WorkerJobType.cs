@@ -1,6 +1,5 @@
 /// <summary>
-/// Тип работы worker'а.
-/// Определяет, какой ресурс рабочий будет искать и добывать.
+/// Тип работы worker
 /// </summary>
 public enum WorkerJobType
 {

@@ -1,22 +1,18 @@
 using UnityEngine;
-using UnityEngine.Serialization;
 
 /// <summary>
-/// Управляет animator-параметрами worker'а.
-/// Сам отслеживает движение через UnitMovement,
-/// а worker state-классы управляют работой, инструментом и переносимым грузом.
+/// Управляет animator параметрами worker
 /// </summary>
-public class WorkerAnimator : MonoBehaviour
+[RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(UnitMovement))]
+public sealed class WorkerAnimator : MonoBehaviour
 {
     private static readonly int IsMovingHash = Animator.StringToHash("IsMoving");
     private static readonly int IsWorkingHash = Animator.StringToHash("IsWorking");
     private static readonly int EquipmentHash = Animator.StringToHash("Equipment");
 
-    [FormerlySerializedAs("animator")]
-    [SerializeField] private Animator _animator;
-
-    [FormerlySerializedAs("movement")]
-    [SerializeField] private UnitMovement _movement;
+    private Animator _animator;
+    private UnitMovement _movement;
 
     private bool _isWorking;
     private bool _lastIsMoving;
@@ -24,7 +20,8 @@ public class WorkerAnimator : MonoBehaviour
 
     private void Awake()
     {
-        ResolveReferences();
+        _animator = GetComponent<Animator>();
+        _movement = GetComponent<UnitMovement>();
     }
 
     private void Update()
@@ -33,14 +30,10 @@ public class WorkerAnimator : MonoBehaviour
     }
 
     /// <summary>
-    /// Включает или выключает рабочую анимацию.
-    /// Пока worker работает, движение визуально выключается.
+    /// Включает или выключает рабочую анимацию
     /// </summary>
     public void SetWorking(bool value)
     {
-        if (_animator == null)
-            return;
-
         if (_isWorking == value)
             return;
 
@@ -55,13 +48,10 @@ public class WorkerAnimator : MonoBehaviour
     }
 
     /// <summary>
-    /// Меняет визуальный инструмент или переносимый груз worker'а.
+    /// Меняет визуальный инструмент или переносимый груз worker.
     /// </summary>
     public void SetEquipment(EquipmentType equipment)
     {
-        if (_animator == null)
-            return;
-
         if (_currentEquipment == equipment)
             return;
 
@@ -71,12 +61,7 @@ public class WorkerAnimator : MonoBehaviour
 
     private void UpdateMovingState()
     {
-        if (_animator == null)
-            return;
-
-        bool isMoving = _movement != null &&
-                        _movement.IsMoving &&
-                        !_isWorking;
+        bool isMoving = _movement.IsMoving && !_isWorking;
 
         if (_lastIsMoving == isMoving)
             return;
@@ -84,19 +69,4 @@ public class WorkerAnimator : MonoBehaviour
         _lastIsMoving = isMoving;
         _animator.SetBool(IsMovingHash, isMoving);
     }
-
-    private void ResolveReferences()
-    {
-        if (_animator == null)
-            _animator = GetComponent<Animator>();
-
-        if (_movement == null)
-            _movement = GetComponent<UnitMovement>();
-    }
-
-    private void OnValidate()
-    {
-        ResolveReferences();
-    }
 }
-

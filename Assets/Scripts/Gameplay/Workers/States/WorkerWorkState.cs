@@ -1,9 +1,7 @@
-
 /// <summary>
-/// Состояние работы с ресурсом.
-/// Запускает добычу и после завершения кладёт полученный ресурс в inventory worker'а.
+/// Состояние работы с ресурсом
 /// </summary>
-public class WorkerWorkState : IWorkerState
+public sealed class WorkerWorkState : IWorkerState
 {
     private readonly Worker _worker;
 
@@ -17,11 +15,11 @@ public class WorkerWorkState : IWorkerState
         if (!_worker.HasValidResourceAssignmentForWork())
         {
             _worker.ClearCurrentAssignment();
-            _worker.GoIdle();
+            _worker.StateMachine.ChangeState(WorkerStateType.Idle);
             return;
         }
 
-        _worker.Animator?.SetWorking(true);
+        _worker.Animator.SetWorking(true);
 
         bool started = _worker.TargetResource.TryStartWork(
             _worker,
@@ -29,9 +27,9 @@ public class WorkerWorkState : IWorkerState
 
         if (!started)
         {
-            _worker.Animator?.SetWorking(false);
+            _worker.Animator.SetWorking(false);
             _worker.ClearCurrentAssignment();
-            _worker.StartFindingResource();
+            _worker.StateMachine.ChangeState(WorkerStateType.FindResource);
         }
     }
 
@@ -41,24 +39,22 @@ public class WorkerWorkState : IWorkerState
 
     public void Exit()
     {
-        _worker.Animator?.SetWorking(false);
+        _worker.Animator.SetWorking(false);
     }
 
     private void OnWorkFinished(int amount)
     {
-        if (amount <= 0)
+        if (_worker.CurrentJobLogic == null)
         {
             _worker.ClearCurrentAssignment();
-            _worker.StartFindingResource();
+            _worker.StateMachine.ChangeState(WorkerStateType.Idle);
             return;
         }
 
-        ResourceType resourceType = _worker.CurrentJobLogic != null
-            ? _worker.CurrentJobLogic.RewardType
-            : ResourceType.None;
+        ResourceType resourceType = _worker.CurrentJobLogic.RewardType;
 
         _worker.Inventory.SetCargo(resourceType, amount);
         _worker.ClearCurrentAssignment();
-        _worker.EnterCarryState();
+        _worker.StateMachine.ChangeState(WorkerStateType.Carry);
     }
 }

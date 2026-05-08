@@ -1,12 +1,14 @@
 using UnityEngine;
 
 /// <summary>
-/// Состояние переноски груза.
-/// Worker несёт добытый ресурс домой и сдаёт его в хранилище.
+/// Состояние переноски груза
 /// </summary>
-public class WorkerCarryState : IWorkerState
+public sealed class WorkerCarryState : IWorkerState
 {
     private readonly Worker _worker;
+
+    private Vector2 _dropPosition;
+    private float _reachDistanceSqr;
 
     public WorkerCarryState(Worker worker)
     {
@@ -15,29 +17,33 @@ public class WorkerCarryState : IWorkerState
 
     public void Enter()
     {
-        _worker.Animator?.SetWorking(false);
-        _worker.Animator?.SetEquipment(GetCargoEquipment());
+        _worker.Animator.SetWorking(false);
+        _worker.Animator.SetEquipment(GetCargoEquipment());
 
         if (_worker.Home == null)
         {
-            _worker.Inventory?.Clear();
-            _worker.GoIdle();
+            _worker.Inventory.Clear();
+            _worker.StateMachine.ChangeState(WorkerStateType.Idle);
             return;
         }
 
-        _worker.Movement?.MoveTo(_worker.Home.GetDropPosition(_worker));
+        _dropPosition = _worker.Home.GetDropPosition(_worker);
+
+        float reachDistance = _worker.GetReachResourceDistance();
+        _reachDistanceSqr = reachDistance * reachDistance;
+
+        _worker.Movement.MoveTo(_dropPosition);
     }
 
     public void Update()
     {
-        if (_worker.Movement == null || _worker.Home == null)
+        if (_worker.Home == null)
             return;
 
-        float distance = Vector2.Distance(
-            _worker.transform.position,
-    _worker.Home.GetDropPosition(_worker));
+        Vector2 workerPosition = _worker.transform.position;
+        float sqrDistance = (workerPosition - _dropPosition).sqrMagnitude;
 
-        if (distance > _worker.GetReachResourceDistance())
+        if (sqrDistance > _reachDistanceSqr)
             return;
 
         _worker.Movement.Stop();
@@ -49,7 +55,11 @@ public class WorkerCarryState : IWorkerState
             return;
         }
 
-        _worker.StartFindingResource();
+        WorkerStateType nextState = _worker.CurrentJob != WorkerJobType.None
+            ? WorkerStateType.FindResource
+            : WorkerStateType.Idle;
+
+        _worker.StateMachine.ChangeState(nextState);
     }
 
     public void Exit()
@@ -58,9 +68,6 @@ public class WorkerCarryState : IWorkerState
 
     private EquipmentType GetCargoEquipment()
     {
-        if (_worker.Inventory == null)
-            return EquipmentType.None;
-
         return _worker.Inventory.CarriedResourceType switch
         {
             ResourceType.Wood => EquipmentType.Wood,

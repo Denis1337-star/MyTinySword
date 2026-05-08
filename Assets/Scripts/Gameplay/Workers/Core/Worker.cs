@@ -3,25 +3,16 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Центральная сущность worker'а.
-/// Хранит ссылки на компоненты, состояние работы, текущий ресурс и управляет worker state machine.
+/// Хранит ссылки на обязательные компоненты
 /// </summary>
 [RequireComponent(typeof(UnitMovement))]
-[RequireComponent(typeof(WorkerInventory))]
 [RequireComponent(typeof(WorkerBrain))]
-public class Worker : ValidatedMonoBehaviour
+[RequireComponent(typeof(WorkerAnimator))]
+public sealed class Worker : ValidatedMonoBehaviour
 {
-    [Header("Config")]
     [SerializeField] private WorkerConfig _config;
 
-    private WorkerIdleState _idleState;
-    private WorkerFindResourceState _findResourceState;
-    private WorkerGoToResourceState _goToResourceState;
-    private WorkerWorkState _workState;
-    private WorkerCarryState _carryState;
-
     private WorkerRegistry _workerRegistry;
-
     private ResourceStorage _resourceStorage;
 
     public WorkerStateMachine StateMachine { get; private set; }
@@ -40,21 +31,18 @@ public class Worker : ValidatedMonoBehaviour
     public WorkSlot TargetSlot { get; set; }
 
     public WorkerConfig Config => _config;
-    public ResourceStorage ResourceStorage => _resourceStorage;
 
     public event Action OnJobChanged;
     public event Action OnActivityChanged;
 
-    public string CurrentStateName => StateMachine != null
-        ? StateMachine.CurrentStateName
-        : "None";
-
-    public bool HasCargo => Inventory != null && Inventory.HasCargo;
+    public string CurrentStateName => StateMachine.CurrentStateName;
+    public bool HasCargo => Inventory.HasCargo;
     public bool HasPendingJob => PendingJob != WorkerJobType.None;
 
-
     [Inject]
-    private void Construct( WorkerRegistry workerRegistry, ResourceStorage resourceStorage)
+    private void Construct(
+        WorkerRegistry workerRegistry,
+        ResourceStorage resourceStorage)
     {
         _workerRegistry = workerRegistry;
         _resourceStorage = resourceStorage;
@@ -64,17 +52,13 @@ public class Worker : ValidatedMonoBehaviour
     {
         Movement = GetComponent<UnitMovement>();
         Animator = GetComponent<WorkerAnimator>();
-        Inventory = GetComponent<WorkerInventory>();
+        Inventory = new WorkerInventory();
         Brain = GetComponent<WorkerBrain>();
 
-        StateMachine = new WorkerStateMachine();
-        CurrentJob = WorkerJobType.None;
+        StateMachine = new WorkerStateMachine(this);
+        StateMachine.StateChanged += HandleStateChanged;
 
-        _idleState = new WorkerIdleState(this);
-        _findResourceState = new WorkerFindResourceState(this);
-        _goToResourceState = new WorkerGoToResourceState(this);
-        _workState = new WorkerWorkState(this);
-        _carryState = new WorkerCarryState(this);
+        CurrentJob = WorkerJobType.None;
 
         base.Awake();
     }
@@ -96,9 +80,6 @@ public class Worker : ValidatedMonoBehaviour
 
     private void Update()
     {
-        if (!enabled || StateMachine == null)
-            return;
-
         StateMachine.Update();
     }
 
@@ -106,24 +87,23 @@ public class Worker : ValidatedMonoBehaviour
     {
         ClearCurrentAssignment();
 
+        StateMachine.StateChanged -= HandleStateChanged;
+
         Home?.RemoveWorker(this);
-        _workerRegistry?.Unregister(this);
+        _workerRegistry.Unregister(this);
     }
 
     public void SetHome(House house)
     {
         Home = house;
 
-        _workerRegistry?.Register(this);
+        _workerRegistry.Register(this);
 
-        EnterIdleState();
+        StateMachine.ChangeState(WorkerStateType.Idle);
     }
 
     public void AssignJob(WorkerJobType job)
     {
-        if (Brain == null)
-            return;
-
         Brain.AssignJob(job);
     }
 
@@ -149,49 +129,11 @@ public class Worker : ValidatedMonoBehaviour
         OnJobChanged?.Invoke();
     }
 
-    public void ChangeState(IWorkerState state)
-    {
-        if (StateMachine == null)
-            return;
-
-        bool changed = StateMachine.ChangeState(state);
-
-        if (changed)
-            OnActivityChanged?.Invoke();
-    }
-
-    public void EnterIdleState()
-    {
-        ChangeState(_idleState);
-    }
-
-    public void EnterFindResourceState()
-    {
-        ChangeState(_findResourceState);
-    }
-
-    public void EnterGoToResourceState()
-    {
-        ChangeState(_goToResourceState);
-    }
-
-    public void EnterWorkState()
-    {
-        ChangeState(_workState);
-    }
-
-    public void EnterCarryState()
-    {
-        ChangeState(_carryState);
-    }
-
     public bool CanSwitchJobImmediately()
     {
         return TargetResource == null &&
                TargetSlot == null &&
-               Inventory != null &&
                !Inventory.HasCargo &&
-               Movement != null &&
                !Movement.HasTarget;
     }
 
@@ -208,30 +150,19 @@ public class Worker : ValidatedMonoBehaviour
     {
         ClearCurrentAssignment();
 
-        Inventory?.Clear();
-        Animator?.SetWorking(false);
+        Inventory.Clear();
+        Animator.SetWorking(false);
 
         OnActivityChanged?.Invoke();
     }
 
     public void DeliverCargo()
     {
-        if (Inventory == null || !Inventory.HasCargo)
+        if (!Inventory.HasCargo)
             return;
-
 
         int amount = Inventory.TakeCargo(out ResourceType resourceType);
         _resourceStorage.AddResource(resourceType, amount);
-    }
-
-    public void StartFindingResource()
-    {
-        EnterFindResourceState();
-    }
-
-    public void GoIdle()
-    {
-        EnterIdleState();
     }
 
     public bool HasValidResourceAssignmentForMove()
@@ -246,11 +177,16 @@ public class Worker : ValidatedMonoBehaviour
 
     public float GetReachResourceDistance()
     {
-        return _config != null ? _config.ReachResourceDistance : 0.3f;
+        return _config.ReachResourceDistance;
     }
 
     public float GetMaxWorkDistance()
     {
-        return _config != null ? _config.MaxWorkDistance : 0.35f;
+        return _config.MaxWorkDistance;
+    }
+
+    private void HandleStateChanged()
+    {
+        OnActivityChanged?.Invoke();
     }
 }
