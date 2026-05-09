@@ -4,34 +4,41 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// UI-элемент одного рабочего в списке рабочих дома
-/// Показывает работу, состояние и позволяет выбрать рабочего
+/// UI элемент одного рабочего в списке рабочих дома
 /// </summary>
-public class WorkerListItem : MonoBehaviour
+public sealed class WorkerListItem : ValidatedMonoBehaviour
 {
     [SerializeField] private TMP_Text _infoText;
     [SerializeField] private Button _selectButton;
 
     private Worker _worker;
+    private Worker _subscribedWorker;
     private Action<Worker> _onSelected;
+
+    protected override bool ValidateInternal()
+    {
+        bool valid = true;
+
+        valid &= ValidationUtility.IsAssigned(this, _infoText, nameof(_infoText));
+        valid &= ValidationUtility.IsAssigned(this, _selectButton, nameof(_selectButton));
+
+        return valid;
+    }
 
     private void OnEnable()
     {
-        _selectButton?.onClick.AddListener(HandleSelectClicked);
+        _selectButton.onClick.AddListener(HandleSelectClicked);
 
         SubscribeToWorker();
     }
 
     private void OnDisable()
     {
-        _selectButton?.onClick.RemoveListener(HandleSelectClicked);
+        _selectButton.onClick.RemoveListener(HandleSelectClicked);
 
         UnsubscribeFromWorker();
     }
 
-    /// <summary>
-    /// Привязывает item к конкретному рабочему
-    /// </summary>
     public void Bind(Worker worker, Action<Worker> onSelected)
     {
         UnsubscribeFromWorker();
@@ -57,8 +64,8 @@ public class WorkerListItem : MonoBehaviour
         string currentJob = WorkerJobLocalization.GetName(_worker.CurrentJob);
 
         string jobLine = _worker.HasPendingJob
-            ? $"Job: {currentJob} → {WorkerJobLocalization.GetName(_worker.PendingJob)}"
-            : $"Job: {currentJob}";
+            ? $"Работа: {currentJob} → {WorkerJobLocalization.GetName(_worker.PendingJob)}"
+            : $"Работа: {currentJob}";
 
         _infoText.text =
             $"{_worker.name}\n" +
@@ -78,16 +85,20 @@ public class WorkerListItem : MonoBehaviour
         if (_worker == null)
             return;
 
+        if (_subscribedWorker == _worker)
+            return;
+
         _worker.OnJobChanged += Refresh;
-        _worker.OnActivityChanged += Refresh;
+
+        _subscribedWorker = _worker;
     }
 
     private void UnsubscribeFromWorker()
     {
-        if (_worker == null)
+        if (_subscribedWorker == null)
             return;
 
-        _worker.OnJobChanged -= Refresh;
-        _worker.OnActivityChanged -= Refresh;
+        _subscribedWorker.OnJobChanged -= Refresh;
+        _subscribedWorker = null;
     }
 }

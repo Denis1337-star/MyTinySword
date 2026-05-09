@@ -34,18 +34,18 @@ public abstract class ProductionBuildingBase : BuildingBase
     public event Action OnQueueChanged;
 
     [Inject]
-    private void Construct(
-        ResourceStorage resourceStorage,
-        ArmyUnitRegistry armyUnitRegistry,
-        ArmyUnitFactory armyUnitFactory)
+    private void Construct( ResourceStorage resourceStorage,
+        ArmyUnitRegistry armyUnitRegistry, ArmyUnitFactory armyUnitFactory)
     {
         _resourceStorage = resourceStorage;
         _armyUnitRegistry = armyUnitRegistry;
         _armyUnitFactory = armyUnitFactory;
     }
 
-    private void OnValidate()
+    protected override void OnValidate()
     {
+        base.OnValidate();
+
         _maxQueue = Mathf.Max(1, _maxQueue);
         _spawnRadius = Mathf.Max(0f, _spawnRadius);
         _spawnNavMeshSearchRadius = Mathf.Max(0.1f, _spawnNavMeshSearchRadius);
@@ -149,18 +149,13 @@ public abstract class ProductionBuildingBase : BuildingBase
 
         Vector3 spawnPosition = GetNextSpawnPosition();
 
-        GameObject spawnedObject = _armyUnitFactory.Create(
-            unitConfig.Prefab,
-            spawnPosition,
-            Quaternion.identity);
+        GameObject spawnedObject = _armyUnitFactory.Create(unitConfig.Prefab,
+            spawnPosition, Quaternion.identity);
 
         if (spawnedObject == null)
             return false;
 
         ArmyUnit armyUnit = spawnedObject.GetComponent<ArmyUnit>();
-
-        if (armyUnit == null)
-            armyUnit = spawnedObject.GetComponentInChildren<ArmyUnit>();
 
         if (armyUnit == null)
         {
@@ -192,15 +187,10 @@ public abstract class ProductionBuildingBase : BuildingBase
         float radius = _spawnRadius * Mathf.Sqrt(index + 1f) * 0.5f;
 
         Vector3 candidate = center + new Vector3(
-            Mathf.Cos(angle),
-            Mathf.Sin(angle),
-            0f) * radius;
+            Mathf.Cos(angle), Mathf.Sin(angle),0f) * radius;
 
-        if (NavMesh.SamplePosition(
-                candidate,
-                out NavMeshHit hit,
-                _spawnNavMeshSearchRadius,
-                NavMesh.AllAreas))
+        if (NavMesh.SamplePosition(candidate,out NavMeshHit hit,
+                _spawnNavMeshSearchRadius,NavMesh.AllAreas))
         {
             return hit.position;
         }
@@ -208,7 +198,7 @@ public abstract class ProductionBuildingBase : BuildingBase
         return center;
     }
 
-    private void OnDestroy()
+    protected virtual void OnDestroy()
     {
         if (_productionRoutine != null)
             StopCoroutine(_productionRoutine);

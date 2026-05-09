@@ -1,5 +1,5 @@
 /// <summary>
-/// Локализация названий профессий worker'а для UI.
+/// Локализация названий профессий worker для UI
 /// </summary>
 public static class WorkerJobLocalization
 {
@@ -12,18 +12,6 @@ public static class WorkerJobLocalization
             WorkerJobType.MineGold => "Добыча золота",
             WorkerJobType.HuntMeat => "Охота",
             _ => "Неизвестно"
-        };
-    }
-
-    public static string GetShortName(WorkerJobType jobType)
-    {
-        return jobType switch
-        {
-            WorkerJobType.None => "Idle",
-            WorkerJobType.ChopWood => "Wood",
-            WorkerJobType.MineGold => "Gold",
-            WorkerJobType.HuntMeat => "Meat",
-            _ => "Unknown"
         };
     }
 }

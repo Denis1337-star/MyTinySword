@@ -13,10 +13,8 @@ public sealed class BuildingFactory
         _container = container;
     }
 
-    public ConstructionSite CreateConstructionSite(
-        ConstructionSite prefab,
-        Vector3 position,
-        Quaternion rotation)
+    public ConstructionSite CreateConstructionSite(ConstructionSite prefab,
+        Vector3 position, Quaternion rotation)
     {
         if (prefab == null)
         {
@@ -25,16 +23,11 @@ public sealed class BuildingFactory
         }
 
         return _container.InstantiatePrefabForComponent<ConstructionSite>(
-            prefab,
-            position,
-            rotation,
-            null);
+            prefab, position, rotation, null);
     }
 
-    public GameObject CreateBuilding(
-        GameObject prefab,
-        Vector3 position,
-        Quaternion rotation)
+    public GameObject CreateBuilding(GameObject prefab,
+        Vector3 position, Quaternion rotation)
     {
         if (prefab == null)
         {
@@ -43,9 +36,6 @@ public sealed class BuildingFactory
         }
 
         return _container.InstantiatePrefab(
-            prefab,
-            position,
-            rotation,
-            null);
+            prefab, position, rotation, null);
     }
 }

@@ -1,16 +1,16 @@
 using System;
 
-
 /// <summary>
-/// Главная база 
+/// Главное здание базы
 /// </summary>
-public class Castle : BuildingBase
+public sealed class Castle : BuildingBase
 {
     public event Action<Castle> OnCastleDestroyed;
 
     protected override void HandleDeath()
     {
         OnCastleDestroyed?.Invoke(this);
+
         base.HandleDeath();
     }
 }

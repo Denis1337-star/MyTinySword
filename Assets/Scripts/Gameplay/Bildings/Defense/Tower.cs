@@ -1,27 +1,33 @@
 using UnityEngine;
 
 /// <summary>
-/// Автоматически ищет врагов в радиусе и атакует их 
+/// Автоматически ищет врагов в радиусе и атакует их
 /// </summary>
-public class Tower : BuildingBase
+public sealed class Tower : BuildingBase
 {
+    private const int TargetBufferSize = 32;
+
     [Header("Tower Combat")]
-    [SerializeField] private float attackRange;
-    [SerializeField] private float attackCooldown;
-    [SerializeField] private int damage;
-    [SerializeField] private ProjectileArrow arrowPrefab;
-    [SerializeField] private float arrowSpeed;
-    [SerializeField] private Transform shootPoint;
+    [SerializeField] private float _attackRange;
+    [SerializeField] private float _attackCooldown;
+    [SerializeField] private int _damage;
+    [SerializeField] private ProjectileArrow _arrowPrefab;
+    [SerializeField] private float _arrowSpeed;
+    [SerializeField] private Transform _shootPoint;
 
-    private Health currentTarget;
-    private float attackTimer;
+    private readonly Collider2D[] _targetBuffer = new Collider2D[TargetBufferSize];
 
-    private void OnValidate()
+    private Health _currentTarget;
+    private float _attackTimer;
+
+    protected override void OnValidate()
     {
-        attackRange = Mathf.Max(0.1f, attackRange);
-        attackCooldown = Mathf.Max(0.1f, attackCooldown);
-        damage = Mathf.Max(0, damage);
-        arrowSpeed = Mathf.Max(0.1f, arrowSpeed);
+        base.OnValidate();
+
+        _attackRange = Mathf.Max(0.1f, _attackRange);
+        _attackCooldown = Mathf.Max(0.1f, _attackCooldown);
+        _damage = Mathf.Max(0, _damage);
+        _arrowSpeed = Mathf.Max(0.1f, _arrowSpeed);
     }
 
     private void Update()
@@ -34,18 +40,19 @@ public class Tower : BuildingBase
 
     private void UpdateCombat()
     {
-        if (currentTarget == null || currentTarget.IsDead || !IsTargetInRange(currentTarget))
-            currentTarget = FindBestTarget();
+        if (_currentTarget == null || _currentTarget.IsDead || !IsTargetInRange(_currentTarget))
+            _currentTarget = FindBestTarget();
 
-        if (currentTarget == null)
+        if (_currentTarget == null)
             return;
 
-        attackTimer -= Time.deltaTime;
-        if (attackTimer > 0f)
+        _attackTimer -= Time.deltaTime;
+
+        if (_attackTimer > 0f)
             return;
 
-        Shoot(currentTarget);
-        attackTimer = attackCooldown;
+        Shoot(_currentTarget);
+        _attackTimer = _attackCooldown;
     }
 
     private bool IsTargetInRange(Health target)
@@ -54,7 +61,7 @@ public class Tower : BuildingBase
             return false;
 
         float distanceSqr = (target.transform.position - transform.position).sqrMagnitude;
-        return distanceSqr <= attackRange * attackRange;
+        return distanceSqr <= _attackRange * _attackRange;
     }
 
     private Health FindBestTarget()
@@ -62,20 +69,27 @@ public class Tower : BuildingBase
         if (FactionMember == null)
             return null;
 
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, attackRange);
-        if (hits == null || hits.Length == 0)
+        int hitCount = Physics2D.OverlapCircleNonAlloc(
+            transform.position,
+            _attackRange,
+            _targetBuffer);
+
+        if (hitCount == 0)
             return null;
 
         Health bestTarget = null;
         int bestPriority = int.MinValue;
         float bestDistanceSqr = float.MaxValue;
 
-        foreach (Collider2D hit in hits)
+        for (int i = 0; i < hitCount; i++)
         {
+            Collider2D hit = _targetBuffer[i];
+
             if (hit == null)
                 continue;
 
             Health targetHealth = hit.GetComponentInParent<Health>();
+
             if (targetHealth == null || targetHealth.IsDead)
                 continue;
 
@@ -83,6 +97,7 @@ public class Tower : BuildingBase
                 continue;
 
             FactionMember targetFaction = targetHealth.GetComponentInParent<FactionMember>();
+
             if (targetFaction == null || !FactionMember.IsEnemy(targetFaction))
                 continue;
 
@@ -113,22 +128,22 @@ public class Tower : BuildingBase
         if (target == null || target.IsDead)
             return;
 
-        Vector3 spawnPosition = shootPoint != null ? shootPoint.position : transform.position;
+        Vector3 spawnPosition = _shootPoint != null ? _shootPoint.position : transform.position;
 
-        if (arrowPrefab != null)
+        if (_arrowPrefab != null)
         {
-            ProjectileArrow arrow = Instantiate(arrowPrefab, spawnPosition, Quaternion.identity);
-            arrow.Initialize(target, damage, arrowSpeed);
+            ProjectileArrow arrow = Instantiate(_arrowPrefab, spawnPosition, Quaternion.identity);
+            arrow.Initialize(target, _damage, _arrowSpeed);
         }
         else
         {
-            target.TakeDamage(damage);
+            target.TakeDamage(_damage);
         }
     }
 
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.magenta;
-        Gizmos.DrawWireSphere(transform.position, attackRange);
+        Gizmos.DrawWireSphere(transform.position, _attackRange);
     }
 }

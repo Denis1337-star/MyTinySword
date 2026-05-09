@@ -16,8 +16,8 @@ public abstract class ResourceConfig : BaseConfig
     public override bool IsValid()
     {
         return _resourceType != ResourceType.None &&
-               _workTime > 0f &&
-               _respawnTime >= 0f;
+          _workTime >= 0.1f &&
+          _respawnTime >= 0f;
     }
 
     protected virtual void OnValidate()

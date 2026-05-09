@@ -146,6 +146,15 @@ public sealed class Worker : ValidatedMonoBehaviour
         TargetSlot = null;
     }
 
+    public void CompleteCurrentAssignment()
+    {
+        if (TargetResource != null)
+            TargetResource.CompleteWork(this);
+
+        TargetResource = null;
+        TargetSlot = null;
+    }
+
     public void ResetTaskState()
     {
         ClearCurrentAssignment();

@@ -26,11 +26,6 @@ public class GameSceneInstaller : MonoInstaller
 
     [Header("UI")]
     [SerializeField] private Canvas _screenCanvas;
-    [SerializeField] private ConstructionPanel _constructionPanel;
-    [SerializeField] private WorkerCommandPanel _workerCommandPanel;
-    [SerializeField] private HousePanel _housePanel;
-    [SerializeField] private ProductionBuildingPanel _productionBuildingPanel;
-    [SerializeField] private ArmySelectionPanel _armySelectionPanel;
     [SerializeField] private WorkerListPanel _workerListPanel;
     [SerializeField] private SelectionUiPresenter _selectionUiPresenter;
 
@@ -116,31 +111,6 @@ public class GameSceneInstaller : MonoInstaller
             .FromInstance(_selectionUiPresenter)
                  .AsSingle()
                  .NonLazy();
-
-        Container.Bind<ConstructionPanel>()
-            .FromInstance(_constructionPanel)
-            .AsSingle()
-            .NonLazy();
-
-        Container.Bind<WorkerCommandPanel>()
-            .FromInstance(_workerCommandPanel)
-            .AsSingle()
-            .NonLazy();
-
-        Container.Bind<HousePanel>()
-            .FromInstance(_housePanel)
-            .AsSingle()
-            .NonLazy();
-
-        Container.Bind<ProductionBuildingPanel>()
-            .FromInstance(_productionBuildingPanel)
-            .AsSingle()
-            .NonLazy();
-
-        Container.Bind<ArmySelectionPanel>()
-            .FromInstance(_armySelectionPanel)
-            .AsSingle()
-            .NonLazy();
 
         Container.Bind<WorkerListPanel>()
             .FromInstance(_workerListPanel)

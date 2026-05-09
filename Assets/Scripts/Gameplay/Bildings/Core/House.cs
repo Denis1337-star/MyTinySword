@@ -4,14 +4,17 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Дом  владелец группы рабочих
+/// Дом  здание которое владеет группой рабочих
 /// </summary>
-public sealed class House : ValidatedMonoBehaviour
+public sealed class House : BuildingBase
 {
     private const int WorkersPerDropRing = 8;
     private const float FullCircleRadians = Mathf.PI * 2f;
 
-    [SerializeField] private HouseConfig _config;
+    [Header("House Config")]
+    [SerializeField] private HouseConfig _houseConfig;
+
+    [Header("Worker Spawn")]
     [SerializeField] private Transform _spawnPoint;
     [SerializeField] private Transform _dropPoint;
     [SerializeField] private Transform _idlePointsRoot;
@@ -28,12 +31,12 @@ public sealed class House : ValidatedMonoBehaviour
 
     public Vector2 DropPoint => _dropPoint.position;
 
-    public int MaxWorkers => _config.MaxWorkers;
+    public int MaxWorkers => _houseConfig.MaxWorkers;
     public int CurrentWorkers => _workers.Count;
     public IReadOnlyList<Worker> Workers => _workers;
 
-    public int CurrentWoodCost => _config.BaseWoodCost + CurrentWorkers * _config.WoodIncreasePerWorker;
-    public int CurrentGoldCost => _config.BaseGoldCost + CurrentWorkers * _config.GoldIncreasePerWorker;
+    public int CurrentWoodCost => _houseConfig.BaseWoodCost + CurrentWorkers * _houseConfig.WoodIncreasePerWorker;
+    public int CurrentGoldCost => _houseConfig.BaseGoldCost + CurrentWorkers * _houseConfig.GoldIncreasePerWorker;
 
     public event Action OnWorkersChanged;
 
@@ -53,16 +56,23 @@ public sealed class House : ValidatedMonoBehaviour
         base.Awake();
     }
 
+    protected override void OnValidate()
+    {
+        base.OnValidate();
+
+        _dropRadius = Mathf.Max(0f, _dropRadius);
+    }
+
     protected override bool ValidateInternal()
     {
-        bool valid = true;
+        bool valid = base.ValidateInternal();
 
-        valid &= ValidationUtility.IsAssigned(this, _config, nameof(_config));
+        valid &= ValidationUtility.IsAssigned(this, _houseConfig, nameof(_houseConfig));
         valid &= ValidationUtility.IsAssigned(this, _spawnPoint, nameof(_spawnPoint));
         valid &= ValidationUtility.IsAssigned(this, _dropPoint, nameof(_dropPoint));
         valid &= ValidationUtility.IsAssigned(this, _workerPrefab, nameof(_workerPrefab));
 
-        if (_config != null && !_config.IsValid())
+        if (_houseConfig != null && !_houseConfig.IsValid())
         {
             Debug.LogError($"{name}: HouseConfig настроен некорректно.", this);
             valid = false;
@@ -71,17 +81,12 @@ public sealed class House : ValidatedMonoBehaviour
         return valid;
     }
 
-    private void OnValidate()
-    {
-        _dropRadius = Mathf.Max(0f, _dropRadius);
-    }
-
     private void Start()
     {
         if (!enabled)
             return;
 
-        int startWorkers = _config.StartWorkers;
+        int startWorkers = _houseConfig.StartWorkers;
 
         for (int i = 0; i < startWorkers; i++)
         {
@@ -92,6 +97,13 @@ public sealed class House : ValidatedMonoBehaviour
         }
 
         OnWorkersChanged?.Invoke();
+    }
+
+    protected override void HandleDeath()
+    {
+        DestroyOwnedWorkers();
+
+        base.HandleDeath();
     }
 
     private void CacheIdlePoints()
@@ -234,5 +246,20 @@ public sealed class House : ValidatedMonoBehaviour
             return -1;
 
         return _workers.IndexOf(worker);
+    }
+
+    private void DestroyOwnedWorkers()
+    {
+        for (int i = _workers.Count - 1; i >= 0; i--)
+        {
+            Worker worker = _workers[i];
+
+            if (worker == null)
+                continue;
+
+            Destroy(worker.gameObject);
+        }
+
+        _workers.Clear();
     }
 }

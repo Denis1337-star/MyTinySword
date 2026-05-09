@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 using Zenject;
 
@@ -39,8 +38,19 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
         if (!enabled)
             return;
 
-        _buildButton.onClick.AddListener(OnBuildClicked);
         Hide();
+    }
+
+    private void OnEnable()
+    {
+        _buildButton.onClick.AddListener(OnBuildClicked);
+        _resourceStorage.ResourcesChanged += Refresh;
+    }
+
+    private void OnDisable()
+    {
+        _buildButton.onClick.RemoveListener(OnBuildClicked);
+        _resourceStorage.ResourcesChanged -= Refresh;
     }
 
     protected override bool ValidateInternal()
@@ -58,17 +68,6 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
         valid &= ValidationUtility.IsAssigned(this, _optionPrefab, nameof(_optionPrefab));
 
         return valid;
-    }
-
-    private void Start()
-    {
-        _resourceStorage.ResourcesChanged += Refresh;
-    }
-
-    private void OnDestroy()
-    {
-        _resourceStorage.ResourcesChanged -= Refresh;
-        _buildButton.onClick.RemoveListener(OnBuildClicked);
     }
 
     public void Show(ConstructionSlot slot)

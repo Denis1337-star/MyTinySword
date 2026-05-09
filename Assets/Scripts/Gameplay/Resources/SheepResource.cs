@@ -5,6 +5,9 @@ using UnityEngine;
 /// <summary>
 /// Ресурсная точка овцы
 /// </summary>
+[RequireComponent(typeof(SheepAI))]
+[RequireComponent(typeof(SpriteRenderer))]
+[RequireComponent(typeof(Collider2D))]
 public sealed class SheepResource : ResourceNodeBase
 {
     [SerializeField] private SheepResourceConfig _config;
@@ -14,7 +17,6 @@ public sealed class SheepResource : ResourceNodeBase
     private Collider2D _resourceCollider;
 
     private Coroutine _workRoutine;
-
 
     protected override void Awake()
     {
@@ -49,6 +51,30 @@ public sealed class SheepResource : ResourceNodeBase
         }
 
         return valid;
+    }
+
+    public override WorkSlot TryReserveSlot(Worker worker)
+    {
+        WorkSlot slot = base.TryReserveSlot(worker);
+
+        if (slot == null)
+            return null;
+
+        SetFrozen(true);
+
+        return slot;
+    }
+
+    public override void CancelWork(Worker worker)
+    {
+        StopWorkRoutine();
+
+        SetAvailable(true);
+
+        base.CancelWork(worker);
+
+        SetVisible(true);
+        SetFrozen(false);
     }
 
     protected override void StartWorkRoutine(Action<int> onFinished)
@@ -94,15 +120,11 @@ public sealed class SheepResource : ResourceNodeBase
     private void SetVisible(bool isVisible)
     {
         _spriteRenderer.enabled = isVisible;
-
         _resourceCollider.enabled = isVisible;
     }
 
     private void SetFrozen(bool isFrozen)
     {
-        if (_sheepAI == null)
-            return;
-
         _sheepAI.SetFrozen(isFrozen);
     }
 
@@ -130,15 +152,5 @@ public sealed class SheepResource : ResourceNodeBase
     private void OnValidate()
     {
         ResolveReferences();
-    }
-
-    public override void CancelWork(Worker worker)
-    {
-        StopWorkRoutine();
-
-        base.CancelWork(worker);
-
-        SetVisible(true);
-        SetFrozen(false);
     }
 }

@@ -5,6 +5,8 @@ using UnityEngine;
 /// <summary>
 /// Ресурсная точка золота
 /// </summary>
+[RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(SpriteRenderer))]
 public sealed class GoldResource : ResourceNodeBase
 {
     private static readonly int SizeHash = Animator.StringToHash("Size");
@@ -17,7 +19,6 @@ public sealed class GoldResource : ResourceNodeBase
     private ResourceSize _size = ResourceSize.Tiny;
     private Coroutine _growRoutine;
     private Coroutine _workRoutine;
-
 
     protected override void Awake()
     {
@@ -58,6 +59,19 @@ public sealed class GoldResource : ResourceNodeBase
         }
 
         return valid;
+    }
+
+    public override void CancelWork(Worker worker)
+    {
+        StopWorkRoutine();
+
+        SetAvailable(true);
+
+        base.CancelWork(worker);
+
+        SetVisible(true);
+        UpdateVisual();
+        StartGrowRoutine();
     }
 
     protected override void StartWorkRoutine(Action<int> onFinished)
@@ -153,12 +167,12 @@ public sealed class GoldResource : ResourceNodeBase
     {
         int sizeIndex = Mathf.Max(0, (int)_size - 1);
 
-            _animator.SetInteger(SizeHash, sizeIndex);
+        _animator.SetInteger(SizeHash, sizeIndex);
     }
 
     private void SetVisible(bool value)
     {
-            _spriteRenderer.enabled = value;
+        _spriteRenderer.enabled = value;
     }
 
     private void ResolveReferences()

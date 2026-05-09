@@ -11,10 +11,9 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour
 
     private ResourceRegistry _resourceRegistry;
 
-    protected bool _available = true;
+    protected bool _isAvailable = true;
 
-    public bool IsAvailable => _available;
-
+    public bool IsAvailable => _isAvailable;
 
     [Inject]
     private void Construct(ResourceRegistry resourceRegistry)
@@ -67,7 +66,7 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour
         if (!CanStartWork(worker))
             return false;
 
-        _available = false;
+        _isAvailable = false;
         StartWorkRoutine(onFinished);
 
         return true;
@@ -88,21 +87,32 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour
         return transform.position;
     }
 
+    /// <summary>
+    /// Отменяет работу с ресурсом
+    /// </summary>
     public virtual void CancelWork(Worker worker)
+    {
+        ReleaseSlot(worker);
+    }
+
+    /// <summary>
+    /// Завершает работу с ресурсом без отмены самой ресурсной логики
+    /// </summary>
+    public virtual void CompleteWork(Worker worker)
     {
         ReleaseSlot(worker);
     }
 
     protected void SetAvailable(bool available)
     {
-        _available = available;
+        _isAvailable = available;
     }
 
     protected abstract void StartWorkRoutine(Action<int> onFinished);
 
     private bool CanStartWork(Worker worker)
     {
-        if (!_available)
+        if (!_isAvailable)
             return false;
 
         if (worker == null)

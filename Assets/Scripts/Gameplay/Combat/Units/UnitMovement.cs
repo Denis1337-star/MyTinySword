@@ -1,20 +1,18 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-
 [RequireComponent(typeof(NavMeshAgent))]
-public class UnitMovement : MonoBehaviour
+public sealed class UnitMovement : MonoBehaviour
 {
     [Header("Agent Settings")]
-    [SerializeField] private float _speed = 3.5f;
-    [SerializeField] private float _stoppingDistance = 0.2f;
-    [SerializeField] private float _agentRadius = 0.25f;
+    [SerializeField, Min(0.1f)] private float _speed = 3.5f;
+    [SerializeField, Min(0f)] private float _stoppingDistance = 0.2f;
+    [SerializeField, Min(0.01f)] private float _agentRadius = 0.25f;
     [SerializeField] private int _areaMask = UnityEngine.AI.NavMesh.AllAreas;
 
-    private const float DefaultStoppingDistance = 0.2f;
     private const float InitialNavMeshSearchRadius = 5f;
     private const float TargetNavMeshSearchRadius = 3f;
-    private const float MovingVelocityThreshold = 0.01f;
+    private const float MovingVelocitySqrThreshold = 0.01f;
 
     private NavMeshAgent _agent;
 
@@ -43,7 +41,7 @@ public class UnitMovement : MonoBehaviour
             if (_agent.pathPending)
                 return true;
 
-            return _agent.velocity.sqrMagnitude > MovingVelocityThreshold;
+            return _agent.velocity.sqrMagnitude > MovingVelocitySqrThreshold;
         }
     }
 
@@ -66,9 +64,6 @@ public class UnitMovement : MonoBehaviour
         PlaceOnNavMesh();
     }
 
-    /// <summary>
-    /// Отправляет юнита к ближайшей валидной точке NavMesh рядом с указанной позицией
-    /// </summary>
     public bool MoveTo(Vector2 position)
     {
         if (!EnsureAgentOnNavMesh())
@@ -80,9 +75,6 @@ public class UnitMovement : MonoBehaviour
         return _agent.SetDestination(hit.position);
     }
 
-    /// <summary>
-    /// Останавливает движение и сбрасывает текущий путь
-    /// </summary>
     public void Stop()
     {
         if (!CanUseAgent())
@@ -119,7 +111,7 @@ public class UnitMovement : MonoBehaviour
         if (_agent == null)
             return;
 
-        if (!NavMesh.SamplePosition(transform.position, out NavMeshHit hit, InitialNavMeshSearchRadius, NavMesh.AllAreas))
+        if (!NavMesh.SamplePosition(transform.position, out NavMeshHit hit, InitialNavMeshSearchRadius, _areaMask))
             return;
 
         _agent.Warp(hit.position);

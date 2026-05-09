@@ -54,7 +54,7 @@ public sealed class WorkerWorkState : IWorkerState
         ResourceType resourceType = _worker.CurrentJobLogic.RewardType;
 
         _worker.Inventory.SetCargo(resourceType, amount);
-        _worker.ClearCurrentAssignment();
+        _worker.CompleteCurrentAssignment();
         _worker.StateMachine.ChangeState(WorkerStateType.Carry);
     }
 }

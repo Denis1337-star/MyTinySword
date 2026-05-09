@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// Объект стройки
 /// </summary>
-public class ConstructionSite : MonoBehaviour
+public sealed class ConstructionSite : MonoBehaviour
 {
     private ConstructionSlot _slot;
     private BuildingConfig _config;
@@ -14,14 +14,13 @@ public class ConstructionSite : MonoBehaviour
     private float _buildTime;
     private bool _initialized;
     private bool _finished;
+    private bool _completionAttempted;
 
     public float Progress01 => _buildTime > 0f ? Mathf.Clamp01(_progress / _buildTime) : 1f;
     public BuildingConfig Config => _config;
 
-    public void Initialize(
-        ConstructionSlot slot,
-        BuildingConfig config,
-        BuildingRegistry buildingRegistry,
+    public void Initialize(ConstructionSlot slot,
+       BuildingConfig config,BuildingRegistry buildingRegistry,
         BuildingFactory buildingFactory)
     {
         _slot = slot;
@@ -29,15 +28,16 @@ public class ConstructionSite : MonoBehaviour
         _buildingRegistry = buildingRegistry;
         _buildingFactory = buildingFactory;
 
-        _buildTime = config.BuildTime;
+        _buildTime =  config.BuildTime;
         _progress = 0f;
         _finished = false;
+        _completionAttempted = false;
         _initialized = true;
     }
 
     private void Update()
     {
-        if (!_initialized || _finished)
+        if (!_initialized || _finished || _completionAttempted)
             return;
 
         _progress += Time.deltaTime;
@@ -46,18 +46,24 @@ public class ConstructionSite : MonoBehaviour
             CompleteConstruction();
     }
 
-    private void CompleteConstruction()
+    private void OnDestroy()
     {
+        if (!_initialized)
+            return;
+
         if (_finished)
             return;
 
-        _finished = true;
+        _buildingRegistry?.UnregisterConstruction(_config);
+    }
 
-        if (_buildingFactory == null)
-        {
-            Debug.LogError($"{name}: BuildingFactory не передан в ConstructionSite.", this);
+    private void CompleteConstruction()
+    {
+        if (_finished || _completionAttempted)
             return;
-        }
+
+        _completionAttempted = true;
+
 
         GameObject building = _buildingFactory.CreateBuilding(
             _config.BuildingPrefab,
@@ -65,7 +71,12 @@ public class ConstructionSite : MonoBehaviour
             Quaternion.identity);
 
         if (building == null)
+        {
+            Debug.LogError($"{name}: не удалось создать здание из BuildingConfig \"{_config.name}\".", this);
             return;
+        }
+
+        _finished = true;
 
         _buildingRegistry?.RegisterBuilt(_config);
 

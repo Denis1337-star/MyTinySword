@@ -4,42 +4,34 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Управляет отображением UI панелей в зависимости от текущего выбора
+/// Управляет отображением UI-панелей в зависимости от текущего выбора
 /// </summary>
-public sealed class SelectionUiPresenter : MonoBehaviour
+public sealed class SelectionUiPresenter : ValidatedMonoBehaviour
 {
+    [Header("Panels")]
     [SerializeField] private WorkerCommandPanel _workerCommandPanel;
     [SerializeField] private HousePanel _housePanel;
     [SerializeField] private ProductionBuildingPanel _productionBuildingPanel;
     [SerializeField] private ArmySelectionPanel _armySelectionPanel;
+    [SerializeField] private ConstructionPanel _constructionPanel;
 
     private SelectionSystem _selectionSystem;
     private CompositeDisposable _disposables;
 
     [Inject]
-    private void Construct(
-        SelectionSystem selectionSystem,
-        WorkerCommandPanel workerCommandPanel,
-        HousePanel housePanel,
-        ProductionBuildingPanel productionBuildingPanel,
-        ArmySelectionPanel armySelectionPanel)
+    private void Construct(SelectionSystem selectionSystem)
     {
         _selectionSystem = selectionSystem;
-
-        _workerCommandPanel = workerCommandPanel;
-        _housePanel = housePanel;
-        _productionBuildingPanel = productionBuildingPanel;
-        _armySelectionPanel = armySelectionPanel;
     }
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
+
+        if (!enabled)
+            return;
+
         HideAll();
-    }
-
-    private void Start()
-    {
-        Subscribe();
     }
 
     private void OnEnable()
@@ -50,6 +42,19 @@ public sealed class SelectionUiPresenter : MonoBehaviour
     private void OnDisable()
     {
         DisposeSubscriptions();
+    }
+
+    protected override bool ValidateInternal()
+    {
+        bool valid = true;
+
+        valid &= ValidationUtility.IsAssigned(this, _workerCommandPanel, nameof(_workerCommandPanel));
+        valid &= ValidationUtility.IsAssigned(this, _housePanel, nameof(_housePanel));
+        valid &= ValidationUtility.IsAssigned(this, _productionBuildingPanel, nameof(_productionBuildingPanel));
+        valid &= ValidationUtility.IsAssigned(this, _armySelectionPanel, nameof(_armySelectionPanel));
+        valid &= ValidationUtility.IsAssigned(this, _constructionPanel, nameof(_constructionPanel));
+
+        return valid;
     }
 
     private void HandleSelectionChanged(UnitSelectable selectable)
@@ -70,6 +75,8 @@ public sealed class SelectionUiPresenter : MonoBehaviour
 
         if (TryShowProductionBuildingPanel(selectable))
             return;
+
+        TryShowConstructionPanel(selectable);
     }
 
     private void HandleSelectionCleared(Unit _)
@@ -79,8 +86,6 @@ public sealed class SelectionUiPresenter : MonoBehaviour
 
     private void Subscribe()
     {
-        if (_selectionSystem == null)
-            return;
 
         if (_disposables != null)
             return;
@@ -106,12 +111,6 @@ public sealed class SelectionUiPresenter : MonoBehaviour
 
     private void RefreshFromCurrentSelection()
     {
-        if (_selectionSystem == null)
-        {
-            HideAll();
-            return;
-        }
-
         UnitSelectable currentSelection = _selectionSystem.CurrentSelection;
 
         if (currentSelection == null)
@@ -125,9 +124,6 @@ public sealed class SelectionUiPresenter : MonoBehaviour
 
     private bool TryShowArmyPanel()
     {
-        if (_selectionSystem == null || _armySelectionPanel == null)
-            return false;
-
         IReadOnlyList<UnitSelectable> selectedUnits = _selectionSystem.SelectedUnits;
 
         if (selectedUnits == null || selectedUnits.Count == 0)
@@ -136,6 +132,7 @@ public sealed class SelectionUiPresenter : MonoBehaviour
         for (int i = 0; i < selectedUnits.Count; i++)
         {
             UnitSelectable selectable = selectedUnits[i];
+
             if (selectable == null)
                 continue;
 
@@ -156,9 +153,6 @@ public sealed class SelectionUiPresenter : MonoBehaviour
 
     private bool TryShowWorkerPanel(UnitSelectable selectable)
     {
-        if (_workerCommandPanel == null)
-            return false;
-
         Worker worker = FindComponentNearSelectable<Worker>(selectable);
 
         if (worker == null)
@@ -170,9 +164,6 @@ public sealed class SelectionUiPresenter : MonoBehaviour
 
     private bool TryShowHousePanel(UnitSelectable selectable)
     {
-        if (_housePanel == null)
-            return false;
-
         House house = FindComponentNearSelectable<House>(selectable);
 
         if (house == null)
@@ -184,15 +175,23 @@ public sealed class SelectionUiPresenter : MonoBehaviour
 
     private bool TryShowProductionBuildingPanel(UnitSelectable selectable)
     {
-        if (_productionBuildingPanel == null)
-            return false;
-
         ProductionBuildingBase building = FindComponentNearSelectable<ProductionBuildingBase>(selectable);
 
         if (building == null)
             return false;
 
         _productionBuildingPanel.Show(building);
+        return true;
+    }
+
+    private bool TryShowConstructionPanel(UnitSelectable selectable)
+    {
+        ConstructionSlot slot = FindComponentNearSelectable<ConstructionSlot>(selectable);
+
+        if (slot == null)
+            return false;
+
+        _constructionPanel.Show(slot);
         return true;
     }
 
@@ -203,22 +202,15 @@ public sealed class SelectionUiPresenter : MonoBehaviour
 
         T component = selectable.GetComponent<T>();
 
-        if (component != null)
             return component;
-
-        component = selectable.GetComponentInParent<T>();
-
-        if (component != null)
-            return component;
-
-        return selectable.GetComponentInChildren<T>();
     }
 
     private void HideAll()
     {
-        _workerCommandPanel?.Hide();
-        _housePanel?.Hide();
-        _productionBuildingPanel?.Hide();
-        _armySelectionPanel?.Hide();
+        _workerCommandPanel.Hide();
+        _housePanel.Hide();
+        _productionBuildingPanel.Hide();
+        _armySelectionPanel.Hide();
+        _constructionPanel.Hide();
     }
 }

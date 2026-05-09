@@ -300,7 +300,7 @@ MonoBehaviour:
   selectable: {fileID: 524759571906041623}
   _unitConfig: {fileID: 11400000, guid: 4051b288f95fa0548979b1143b994c1c, type: 2}
   _spawnPoint: {fileID: 1267953345011277818}
-  _maxQueue: 1
+  _maxQueue: 5
   _spawnRadius: 0.8
   _spawnNavMeshSearchRadius: 1.5
 --- !u!1 &5701405091619826596

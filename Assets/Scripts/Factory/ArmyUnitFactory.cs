@@ -4,7 +4,6 @@ using Zenject;
 /// <summary>
 /// Фабрика для создания боевых юнитов через Zenject
 /// </summary>
-
 public sealed class ArmyUnitFactory
 {
     private readonly DiContainer _container;
@@ -14,10 +13,8 @@ public sealed class ArmyUnitFactory
         _container = container;
     }
 
-    public GameObject Create(
-        GameObject prefab,
-        Vector3 position,
-        Quaternion rotation)
+    public GameObject Create(GameObject prefab,
+        Vector3 position, Quaternion rotation)
     {
         if (prefab == null)
         {
@@ -26,9 +23,6 @@ public sealed class ArmyUnitFactory
         }
 
         return _container.InstantiatePrefab(
-            prefab,
-            position,
-            rotation,
-            null);
+            prefab, position, rotation, null);
     }
 }

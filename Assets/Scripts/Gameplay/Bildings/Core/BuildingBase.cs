@@ -1,9 +1,12 @@
 using UnityEngine;
+using Zenject;
 
 /// <summary>
 /// Базовый класс для всех зданий
 /// </summary>
-public class BuildingBase : ValidatedMonoBehaviour
+[RequireComponent(typeof(FactionMember))]
+[RequireComponent(typeof(UnitSelectable))]
+public abstract class BuildingBase : ValidatedMonoBehaviour
 {
     [Header("Config")]
     [SerializeField] protected BuildingConfig config;
@@ -13,15 +16,23 @@ public class BuildingBase : ValidatedMonoBehaviour
     [SerializeField] protected Health health;
     [SerializeField] protected UnitSelectable selectable;
 
+    private BuildingRegistry _buildingRegistry;
+
     public BuildingConfig Config => config;
     public FactionMember FactionMember => factionMember;
     public Health Health => health;
     public UnitSelectable Selectable => selectable;
 
-    public string DisplayName =>  config.DisplayName;
-    public FactionType Faction =>  factionMember.Faction;
+    public string DisplayName => config.DisplayName;
+    public FactionType Faction => factionMember.Faction;
 
-    private void OnValidate()
+    [Inject]
+    private void Construct(BuildingRegistry buildingRegistry)
+    {
+        _buildingRegistry = buildingRegistry;
+    }
+
+    protected virtual void OnValidate()
     {
         ResolveReferences();
     }
@@ -57,7 +68,7 @@ public class BuildingBase : ValidatedMonoBehaviour
 
         if (config != null && !config.IsValid())
         {
-            Debug.LogError($"{name}: BuildingConfig is invalid.", this);
+            Debug.LogError($"{name}: BuildingConfig настроен некорректно.", this);
             valid = false;
         }
 
@@ -66,10 +77,12 @@ public class BuildingBase : ValidatedMonoBehaviour
 
     protected virtual void HandleDeath()
     {
+        UnregisterUniqueBuilding();
+
         Destroy(gameObject);
     }
 
-    private void ResolveReferences()
+    protected void ResolveReferences()
     {
         if (factionMember == null)
             factionMember = GetComponent<FactionMember>();
@@ -80,11 +93,23 @@ public class BuildingBase : ValidatedMonoBehaviour
         if (selectable == null)
             selectable = GetComponent<UnitSelectable>();
     }
+
     private void ApplyConfig()
     {
         if (config == null || health == null)
             return;
 
         health.Initialize(config.MaxHealth);
+    }
+
+    private void UnregisterUniqueBuilding()
+    {
+        if (config == null)
+            return;
+
+        if (!config.UniqueBuilding)
+            return;
+
+        _buildingRegistry?.UnregisterBuilt(config);
     }
 }

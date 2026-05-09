@@ -60,7 +60,6 @@ GameObject:
   - component: {fileID: 4521076979832619557}
   - component: {fileID: 164206608696711869}
   - component: {fileID: 2947089080037236613}
-  - component: {fileID: 2093569384635429782}
   m_Layer: 0
   m_Name: Sheep
   m_TagString: Untagged
@@ -204,6 +203,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5fc4b441ac128a3488c85ff1c3df44e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _speed: 3.5
+  _stoppingDistance: 0.2
+  _agentRadius: 0.25
+  _areaMask: -1
 --- !u!114 &4521076979832619557
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -232,8 +235,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _workSlot: {fileID: 5005038742377153201}
   _config: {fileID: 11400000, guid: fcf2a7b93da70fe4aa95d276a7ac9941, type: 2}
-  _spriteRenderer: {fileID: 487309473237773883}
-  _collider: {fileID: 25945001822367249}
 --- !u!195 &2947089080037236613
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -256,30 +257,3 @@ NavMeshAgent:
   m_BaseOffset: 0.3
   m_WalkableMask: 1
   m_ObstacleAvoidanceType: 0
---- !u!50 &2093569384635429782
-Rigidbody2D:
-  serializedVersion: 4
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5497623770540223354}
-  m_BodyType: 1
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDrag: 0
-  m_AngularDrag: 0.05
-  m_GravityScale: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 4

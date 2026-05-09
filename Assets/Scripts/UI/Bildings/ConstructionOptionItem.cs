@@ -5,7 +5,7 @@ using UnityEngine.UI;
 /// <summary>
 /// UI элемент выбора здани€ в панели строительства
 /// </summary>
-public sealed class ConstructionOptionItem : MonoBehaviour
+public sealed class ConstructionOptionItem : ValidatedMonoBehaviour
 {
     [SerializeField] private Image _iconImage;
     [SerializeField] private Button _button;
@@ -16,20 +16,25 @@ public sealed class ConstructionOptionItem : MonoBehaviour
 
     public BuildingConfig Config => _config;
 
-    private void Awake()
+    protected override bool ValidateInternal()
     {
-        if (_button == null)
-            _button = GetComponent<Button>();
+        bool valid = true;
+
+        valid &= ValidationUtility.IsAssigned(this, _iconImage, nameof(_iconImage));
+        valid &= ValidationUtility.IsAssigned(this, _button, nameof(_button));
+        valid &= ValidationUtility.IsAssigned(this, _selectedFrame, nameof(_selectedFrame));
+
+        return valid;
     }
 
     private void OnEnable()
     {
-        _button?.onClick.AddListener(HandleClick);
+        _button.onClick.AddListener(HandleClick);
     }
 
     private void OnDisable()
     {
-        _button?.onClick.RemoveListener(HandleClick);
+        _button.onClick.RemoveListener(HandleClick);
     }
 
     /// <summary>
@@ -40,19 +45,15 @@ public sealed class ConstructionOptionItem : MonoBehaviour
         _config = config;
         _onSelected = onSelected;
 
-        if (_iconImage != null)
-            _iconImage.sprite = _config != null ? _config.Icon : null;
-
-        if (_button != null)
-            _button.interactable = _config != null;
+        _iconImage.sprite = _config != null ? _config.Icon : null;
+        _button.interactable = _config != null;
 
         SetSelected(false);
     }
 
     public void SetSelected(bool value)
     {
-        if (_selectedFrame != null)
-            _selectedFrame.SetActive(value);
+        _selectedFrame.SetActive(value);
     }
 
     private void HandleClick()

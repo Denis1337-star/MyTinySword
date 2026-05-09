@@ -5,6 +5,7 @@ using UnityEngine;
 /// <summary>
 /// Ресурсная точка дерева
 /// </summary>
+[RequireComponent(typeof(Animator))]
 public sealed class TreeResource : ResourceNodeBase
 {
     private static readonly int StumpHash = Animator.StringToHash("Stump");
@@ -44,6 +45,20 @@ public sealed class TreeResource : ResourceNodeBase
         }
 
         return valid;
+    }
+
+    /// <summary>
+    /// Отменяет добычу дерева
+    /// </summary>
+    public override void CancelWork(Worker worker)
+    {
+        StopWorkRoutine();
+
+        SetAvailable(true);
+
+        base.CancelWork(worker);
+
+        SetTreeVisual();
     }
 
     protected override void StartWorkRoutine(Action<int> onFinished)
