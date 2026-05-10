@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using UniRx;
 using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Центральная система выбора объектов игроком
+/// Центральная система выбора объектов игроком.
 /// </summary>
 public sealed class SelectionSystem : MonoBehaviour
 {
@@ -16,16 +15,13 @@ public sealed class SelectionSystem : MonoBehaviour
     private readonly Collider2D[] _selectionHits = new Collider2D[MaxSelectionHits];
     private readonly List<UnitSelectable> _selectedUnits = new();
 
-    private readonly Subject<UnitSelectable> _selectionChanged = new();
-    private readonly Subject<Unit> _selectionCleared = new();
-
     private Camera _mainCamera;
-
-    public IObservable<UnitSelectable> SelectionChanged => _selectionChanged;
-    public IObservable<Unit> SelectionCleared => _selectionCleared;
 
     public UnitSelectable CurrentSelection { get; private set; }
     public IReadOnlyList<UnitSelectable> SelectedUnits => _selectedUnits;
+
+    public event Action<UnitSelectable> SelectionChanged;
+    public event Action SelectionCleared;
 
     [Inject]
     private void Construct(Camera mainCamera)
@@ -35,8 +31,8 @@ public sealed class SelectionSystem : MonoBehaviour
 
     private void OnDestroy()
     {
-        _selectionChanged.Dispose();
-        _selectionCleared.Dispose();
+        SelectionChanged = null;
+        SelectionCleared = null;
     }
 
     public bool TrySelectAtScreenPosition(Vector2 screenPosition)
@@ -65,6 +61,7 @@ public sealed class SelectionSystem : MonoBehaviour
         for (int i = 0; i < hitCount; i++)
         {
             Collider2D hit = _selectionHits[i];
+
             if (hit == null)
                 continue;
 
@@ -98,8 +95,8 @@ public sealed class SelectionSystem : MonoBehaviour
         {
             selectable.Select();
 
-            // Повторный tap по уже выбранному объекту должен обновить UI
-            _selectionChanged.OnNext(selectable);
+            // Повторный tap по уже выбранному объекту должен обновить UI.
+            SelectionChanged?.Invoke(selectable);
             return;
         }
 
@@ -110,7 +107,7 @@ public sealed class SelectionSystem : MonoBehaviour
 
         _selectedUnits.Add(selectable);
 
-        _selectionChanged.OnNext(selectable);
+        SelectionChanged?.Invoke(selectable);
     }
 
     public void SelectArmyUnits(IReadOnlyList<UnitSelectable> armyUnits)
@@ -134,12 +131,7 @@ public sealed class SelectionSystem : MonoBehaviour
             _selectedUnits.Add(selectable);
         }
 
-        CurrentSelection = _selectedUnits.Count > 0 ? _selectedUnits[0] : null;
-
-        if (CurrentSelection != null)
-            _selectionChanged.OnNext(CurrentSelection);
-        else
-            _selectionCleared.OnNext(Unit.Default);
+        NotifySelectionResult();
     }
 
     public void SelectArmyUnits(IReadOnlyList<ArmyUnit> armyUnits)
@@ -155,6 +147,7 @@ public sealed class SelectionSystem : MonoBehaviour
         for (int i = 0; i < armyUnits.Count; i++)
         {
             ArmyUnit armyUnit = armyUnits[i];
+
             if (armyUnit == null)
                 continue;
 
@@ -167,12 +160,7 @@ public sealed class SelectionSystem : MonoBehaviour
             _selectedUnits.Add(selectable);
         }
 
-        CurrentSelection = _selectedUnits.Count > 0 ? _selectedUnits[0] : null;
-
-        if (CurrentSelection != null)
-            _selectionChanged.OnNext(CurrentSelection);
-        else
-            _selectionCleared.OnNext(Unit.Default);
+        NotifySelectionResult();
     }
 
     public void SelectWorkerFromUI(Worker worker)
@@ -191,7 +179,20 @@ public sealed class SelectionSystem : MonoBehaviour
     public void ClearSelection()
     {
         ClearSelectionInternal();
-        _selectionCleared.OnNext(Unit.Default);
+        SelectionCleared?.Invoke();
+    }
+
+    private void NotifySelectionResult()
+    {
+        CurrentSelection = _selectedUnits.Count > 0 ? _selectedUnits[0] : null;
+
+        if (CurrentSelection != null)
+        {
+            SelectionChanged?.Invoke(CurrentSelection);
+            return;
+        }
+
+        SelectionCleared?.Invoke();
     }
 
     private void ClearSelectionInternal()

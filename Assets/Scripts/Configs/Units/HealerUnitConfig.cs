@@ -17,6 +17,7 @@ public sealed class HealerUnitConfig : UnitConfig
     public override bool IsValid()
     {
         return base.IsValid() &&
+               UnitType == ArmyUnitType.Healer &&
                _healAmount >= 1 &&
                _healRange >= 0.1f &&
                _healCooldown >= 0.1f;
@@ -26,9 +27,7 @@ public sealed class HealerUnitConfig : UnitConfig
     {
         return
             base.GetPreviewStatsText() + "\n" +
-            $"Heal Amount: {_healAmount}\n" +
-            $"Heal Range: {_healRange}\n" +
-            $"Heal Cooldown: {_healCooldown}";
+            $"Лечение: {_healAmount}\n" ;
     }
 
     protected override void OnValidate()

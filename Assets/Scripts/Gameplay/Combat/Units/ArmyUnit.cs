@@ -2,19 +2,23 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Базовый компонент боевого юнита.
-/// Работает и для player, и для enemy.
+/// Базовый компонент боевого юнита
 /// </summary>
-public class ArmyUnit : MonoBehaviour
+[RequireComponent(typeof(Health))]
+[RequireComponent(typeof(FactionMember))]
+[RequireComponent(typeof(UnitMovement))]
+[RequireComponent(typeof(UnitAnimatorBridge))]
+[RequireComponent(typeof(ArmyUnitBrain))]
+[RequireComponent(typeof(Collider2D))]
+public sealed class ArmyUnit : ValidatedMonoBehaviour
 {
     [SerializeField] private UnitConfig _config;
-
-    [Header("Runtime Modules")]
     [SerializeField] private Health _health;
     [SerializeField] private FactionMember _factionMember;
     [SerializeField] private UnitMovement _movement;
     [SerializeField] private UnitAnimatorBridge _animatorBridge;
     [SerializeField] private ArmyUnitBrain _brain;
+    [SerializeField] private Collider2D _bodyCollider;
 
     private ArmyUnitRegistry _armyUnitRegistry;
 
@@ -24,6 +28,7 @@ public class ArmyUnit : MonoBehaviour
     public UnitMovement Movement => _movement;
     public UnitAnimatorBridge AnimatorBridge => _animatorBridge;
     public ArmyUnitBrain Brain => _brain;
+    public Collider2D BodyCollider => _bodyCollider;
 
     public bool IsDead => _health == null || _health.IsDead;
 
@@ -33,9 +38,15 @@ public class ArmyUnit : MonoBehaviour
         _armyUnitRegistry = armyUnitRegistry;
     }
 
-    private void Awake()
+    protected override void Awake()
     {
         ResolveReferences();
+
+        base.Awake();
+
+        if (!enabled)
+            return;
+
         ApplyConfig();
     }
 
@@ -66,6 +77,27 @@ public class ArmyUnit : MonoBehaviour
         ResolveReferences();
     }
 
+    protected override bool ValidateInternal()
+    {
+        bool valid = true;
+
+        valid &= ValidationUtility.IsAssigned(this, _config, nameof(_config));
+        valid &= ValidationUtility.IsAssigned(this, _health, nameof(_health));
+        valid &= ValidationUtility.IsAssigned(this, _factionMember, nameof(_factionMember));
+        valid &= ValidationUtility.IsAssigned(this, _movement, nameof(_movement));
+        valid &= ValidationUtility.IsAssigned(this, _animatorBridge, nameof(_animatorBridge));
+        valid &= ValidationUtility.IsAssigned(this, _brain, nameof(_brain));
+        valid &= ValidationUtility.IsAssigned(this, _bodyCollider, nameof(_bodyCollider));
+
+        if (_config != null && !_config.IsValid())
+        {
+            Debug.LogError($"{name}: UnitConfig настроен некорректно.", this);
+            valid = false;
+        }
+
+        return valid;
+    }
+
     public bool IsPlayerUnit()
     {
         return _factionMember != null && _factionMember.IsPlayer();
@@ -78,14 +110,8 @@ public class ArmyUnit : MonoBehaviour
 
     private void ApplyConfig()
     {
-        if (_config == null)
-            return;
-
-        if (_health != null)
-            _health.Initialize(_config.MaxHealth);
-
-        if (_movement != null)
-            _movement.SetSpeed(_config.MoveSpeed);
+        _health.Initialize(_config.MaxHealth);
+        _movement.SetSpeed(_config.MoveSpeed);
     }
 
     private void HandleDeath()
@@ -98,34 +124,19 @@ public class ArmyUnit : MonoBehaviour
         if (_health == null)
             _health = GetComponent<Health>();
 
-        if (_health == null)
-            _health = GetComponentInChildren<Health>();
-
         if (_factionMember == null)
             _factionMember = GetComponent<FactionMember>();
-
-        if (_factionMember == null)
-            _factionMember = GetComponentInParent<FactionMember>();
-
-        if (_factionMember == null)
-            _factionMember = GetComponentInChildren<FactionMember>();
 
         if (_movement == null)
             _movement = GetComponent<UnitMovement>();
 
-        if (_movement == null)
-            _movement = GetComponentInChildren<UnitMovement>();
-
         if (_animatorBridge == null)
             _animatorBridge = GetComponent<UnitAnimatorBridge>();
-
-        if (_animatorBridge == null)
-            _animatorBridge = GetComponentInChildren<UnitAnimatorBridge>();
 
         if (_brain == null)
             _brain = GetComponent<ArmyUnitBrain>();
 
-        if (_brain == null)
-            _brain = GetComponentInChildren<ArmyUnitBrain>();
+        if (_bodyCollider == null)
+            _bodyCollider = GetComponent<Collider2D>();
     }
 }

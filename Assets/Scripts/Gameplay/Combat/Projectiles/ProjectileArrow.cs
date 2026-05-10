@@ -1,15 +1,17 @@
 using UnityEngine;
 
-
 /// <summary>
 /// Летит к цели и при попадании наносит урон
 /// </summary>
-public class ProjectileArrow : MonoBehaviour
+public sealed class ProjectileArrow : MonoBehaviour
 {
-    private Health target;
-    private int damage;
-    private float speed;
-    private bool initialized;
+    [SerializeField, Min(0.1f)] private float _maxLifetime = 5f;
+
+    private Health _target;
+    private int _damage;
+    private float _speed;
+    private float _lifeTimer;
+    private bool _initialized;
 
     public void Initialize(Health target, int damage, float speed)
     {
@@ -19,19 +21,28 @@ public class ProjectileArrow : MonoBehaviour
             return;
         }
 
-        this.target = target;
-        this.damage = damage;
-        this.speed = speed;
+        _target = target;
+        _damage = damage;
+        _speed = speed;
+        _lifeTimer = 0f;
 
-        initialized = true;
+        _initialized = true;
     }
 
     private void Update()
     {
-        if (!initialized)
+        if (!_initialized)
             return;
 
-        if (target == null || target.IsDead)
+        _lifeTimer += Time.deltaTime;
+
+        if (_lifeTimer >= _maxLifetime)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        if (_target == null || _target.IsDead)
         {
             Destroy(gameObject);
             return;
@@ -42,10 +53,10 @@ public class ProjectileArrow : MonoBehaviour
 
     private void MoveToTarget()
     {
-        Vector3 targetPosition = target.transform.position;
+        Vector3 targetPosition = _target.transform.position;
         Vector3 direction = targetPosition - transform.position;
 
-        float step = speed * Time.deltaTime;
+        float step = _speed * Time.deltaTime;
 
         if (direction.sqrMagnitude <= step * step)
         {
@@ -61,8 +72,8 @@ public class ProjectileArrow : MonoBehaviour
 
     private void HitTarget()
     {
-        if (target != null && !target.IsDead)
-            target.TakeDamage(damage);
+        if (_target != null && !_target.IsDead)
+            _target.TakeDamage(_damage);
 
         Destroy(gameObject);
     }

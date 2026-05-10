@@ -1,10 +1,9 @@
 using System.Collections.Generic;
-using UniRx;
 using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Управляет отображением UI-панелей в зависимости от текущего выбора
+/// Управляет отображением UI панелей в зависимости от текущего выбора
 /// </summary>
 public sealed class SelectionUiPresenter : ValidatedMonoBehaviour
 {
@@ -16,7 +15,7 @@ public sealed class SelectionUiPresenter : ValidatedMonoBehaviour
     [SerializeField] private ConstructionPanel _constructionPanel;
 
     private SelectionSystem _selectionSystem;
-    private CompositeDisposable _disposables;
+    private bool _isSubscribed;
 
     [Inject]
     private void Construct(SelectionSystem selectionSystem)
@@ -39,9 +38,15 @@ public sealed class SelectionUiPresenter : ValidatedMonoBehaviour
         Subscribe();
     }
 
+    private void Start()
+    {
+        Subscribe();
+        RefreshFromCurrentSelection();
+    }
+
     private void OnDisable()
     {
-        DisposeSubscriptions();
+        Unsubscribe();
     }
 
     protected override bool ValidateInternal()
@@ -55,6 +60,55 @@ public sealed class SelectionUiPresenter : ValidatedMonoBehaviour
         valid &= ValidationUtility.IsAssigned(this, _constructionPanel, nameof(_constructionPanel));
 
         return valid;
+    }
+
+    private void Subscribe()
+    {
+        if (_isSubscribed)
+            return;
+
+        if (_selectionSystem == null)
+            return;
+
+        _selectionSystem.SelectionChanged += HandleSelectionChanged;
+        _selectionSystem.SelectionCleared += HandleSelectionCleared;
+
+        _isSubscribed = true;
+
+        RefreshFromCurrentSelection();
+    }
+
+    private void Unsubscribe()
+    {
+        if (!_isSubscribed)
+            return;
+
+        if (_selectionSystem != null)
+        {
+            _selectionSystem.SelectionChanged -= HandleSelectionChanged;
+            _selectionSystem.SelectionCleared -= HandleSelectionCleared;
+        }
+
+        _isSubscribed = false;
+    }
+
+    private void RefreshFromCurrentSelection()
+    {
+        if (_selectionSystem == null)
+        {
+            HideAll();
+            return;
+        }
+
+        UnitSelectable currentSelection = _selectionSystem.CurrentSelection;
+
+        if (currentSelection == null)
+        {
+            HandleSelectionCleared();
+            return;
+        }
+
+        HandleSelectionChanged(currentSelection);
     }
 
     private void HandleSelectionChanged(UnitSelectable selectable)
@@ -79,51 +133,16 @@ public sealed class SelectionUiPresenter : ValidatedMonoBehaviour
         TryShowConstructionPanel(selectable);
     }
 
-    private void HandleSelectionCleared(Unit _)
+    private void HandleSelectionCleared()
     {
         HideAll();
     }
 
-    private void Subscribe()
-    {
-
-        if (_disposables != null)
-            return;
-
-        _disposables = new CompositeDisposable();
-
-        _selectionSystem.SelectionChanged
-            .Subscribe(HandleSelectionChanged)
-            .AddTo(_disposables);
-
-        _selectionSystem.SelectionCleared
-            .Subscribe(HandleSelectionCleared)
-            .AddTo(_disposables);
-
-        RefreshFromCurrentSelection();
-    }
-
-    private void DisposeSubscriptions()
-    {
-        _disposables?.Dispose();
-        _disposables = null;
-    }
-
-    private void RefreshFromCurrentSelection()
-    {
-        UnitSelectable currentSelection = _selectionSystem.CurrentSelection;
-
-        if (currentSelection == null)
-        {
-            HandleSelectionCleared(Unit.Default);
-            return;
-        }
-
-        HandleSelectionChanged(currentSelection);
-    }
-
     private bool TryShowArmyPanel()
     {
+        if (_selectionSystem == null)
+            return false;
+
         IReadOnlyList<UnitSelectable> selectedUnits = _selectionSystem.SelectedUnits;
 
         if (selectedUnits == null || selectedUnits.Count == 0)
@@ -202,7 +221,15 @@ public sealed class SelectionUiPresenter : ValidatedMonoBehaviour
 
         T component = selectable.GetComponent<T>();
 
+        if (component != null)
             return component;
+
+        component = selectable.GetComponentInParent<T>();
+
+        if (component != null)
+            return component;
+
+        return selectable.GetComponentInChildren<T>();
     }
 
     private void HideAll()

@@ -3,34 +3,17 @@ using UnityEngine.Serialization;
 using Zenject;
 
 /// <summary>
-/// Спавнит и обновляет HP bar над объектом.
-/// Работает для воинов, worker'ов, зданий и врагов.
+/// Спавнит и обновляет HP bar над объектом
 /// </summary>
-public sealed class HealthBarSpawner : MonoBehaviour
+public sealed class HealthBarSpawner : ValidatedMonoBehaviour
 {
-    [Header("References")]
-    [FormerlySerializedAs("health")]
     [SerializeField] private Health _health;
-
-    [FormerlySerializedAs("factionMember")]
     [SerializeField] private FactionMember _factionMember;
-
-    [FormerlySerializedAs("selectable")]
     [SerializeField] private UnitSelectable _selectable;
-
-    [FormerlySerializedAs("anchor")]
     [SerializeField] private WorldHealthBarAnchor _anchor;
-
-    [Header("UI")]
-    [FormerlySerializedAs("healthBarPrefab")]
     [SerializeField] private HealthBarView _healthBarPrefab;
-
-    [Header("Behaviour")]
     [SerializeField] private bool _showWhenSelected = true;
     [SerializeField] private bool _showWhenDamaged = true;
-
-    [Header("Offset Fallback")]
-    [FormerlySerializedAs("fallbackOffset")]
     [SerializeField] private Vector3 _fallbackOffset = new(0f, 1.5f, 0f);
 
     private HealthBarView _spawnedBar;
@@ -48,16 +31,20 @@ public sealed class HealthBarSpawner : MonoBehaviour
         _screenCanvas = screenCanvas;
     }
 
-    private void Awake()
+    protected override void Awake()
+    {
+        ResolveReferences();
+
+        base.Awake();
+    }
+
+    private void OnValidate()
     {
         ResolveReferences();
     }
 
     private void OnEnable()
     {
-        if (_health == null)
-            return;
-
         _health.OnHealthChanged += OnHealthChanged;
         _health.OnDied += OnDied;
     }
@@ -71,6 +58,16 @@ public sealed class HealthBarSpawner : MonoBehaviour
         }
 
         DestroyBar();
+    }
+
+    protected override bool ValidateInternal()
+    {
+        bool valid = true;
+
+        valid &= ValidationUtility.IsAssigned(this, _health, nameof(_health));
+        valid &= ValidationUtility.IsAssigned(this, _healthBarPrefab, nameof(_healthBarPrefab));
+
+        return valid;
     }
 
     private void Update()
@@ -92,7 +89,13 @@ public sealed class HealthBarSpawner : MonoBehaviour
 
     private void OnHealthChanged(int current, int max)
     {
-        _damagedOnce = true;
+        _damagedOnce = current < max;
+
+        if (!ShouldShowBar())
+        {
+            HideBar();
+            return;
+        }
 
         ShowBar();
         RefreshBar();
@@ -121,15 +124,6 @@ public sealed class HealthBarSpawner : MonoBehaviour
     {
         if (_spawnedBar != null)
             return;
-
-        if (_healthBarPrefab == null)
-            return;
-
-        if (_screenCanvas == null)
-            _screenCanvas = FindObjectOfType<Canvas>();
-
-        if (_mainCamera == null)
-            _mainCamera = Camera.main;
 
         if (_screenCanvas == null || _mainCamera == null)
         {
@@ -203,20 +197,11 @@ public sealed class HealthBarSpawner : MonoBehaviour
         if (_health == null)
             _health = GetComponent<Health>();
 
-        if (_health == null)
-            _health = GetComponentInParent<Health>();
-
         if (_factionMember == null)
             _factionMember = GetComponent<FactionMember>();
 
-        if (_factionMember == null)
-            _factionMember = GetComponentInParent<FactionMember>();
-
         if (_selectable == null)
             _selectable = GetComponent<UnitSelectable>();
-
-        if (_selectable == null)
-            _selectable = GetComponentInParent<UnitSelectable>();
 
         if (_anchor == null)
             _anchor = GetComponentInChildren<WorldHealthBarAnchor>();

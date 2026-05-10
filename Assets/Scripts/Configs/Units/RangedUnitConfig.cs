@@ -22,6 +22,7 @@ public sealed class RangedUnitConfig : UnitConfig
     public override bool IsValid()
     {
         return base.IsValid() &&
+               UnitType == ArmyUnitType.Archer &&
                _damage >= 1 &&
                _attackRange >= 0.1f &&
                _attackCooldown >= 0.1f &&
@@ -33,10 +34,8 @@ public sealed class RangedUnitConfig : UnitConfig
     {
         return
             base.GetPreviewStatsText() + "\n" +
-            $"Damage: {_damage}\n" +
-            $"Attack Range: {_attackRange}\n" +
-            $"Attack Cooldown: {_attackCooldown}\n" +
-            $"Arrow Speed: {_arrowSpeed}";
+            $"Урон: {_damage}\n" +
+            $"Дистанция атаки: {_attackRange}\n";
     }
 
     protected override void OnValidate()

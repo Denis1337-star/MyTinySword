@@ -7,7 +7,7 @@ using Zenject;
 /// Показывает состав выделенной группы боевых юнитов по типам
 /// и кнопку Выбрать всех
 /// </summary>
-public sealed class ArmySelectionPanel : MonoBehaviour
+public sealed class ArmySelectionPanel : ValidatedMonoBehaviour
 {
     [SerializeField] private Transform _contentRoot;
     [SerializeField] private ArmySelectionItem _itemPrefab;
@@ -15,6 +15,7 @@ public sealed class ArmySelectionPanel : MonoBehaviour
 
     private readonly List<ArmySelectionItem> _items = new();
     private readonly Dictionary<ArmyUnitType, GroupInfo> _groups = new();
+    private readonly List<ArmyUnit> _playerUnitsBuffer = new();
 
     private SelectionSystem _selectionSystem;
     private ArmyUnitRegistry _armyUnitRegistry;
@@ -31,34 +32,44 @@ public sealed class ArmySelectionPanel : MonoBehaviour
         _armyUnitRegistry = armyUnitRegistry;
     }
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
+
+        if (!enabled)
+            return;
+
         SetPanelActive(false);
     }
 
     private void OnEnable()
     {
-        if (_selectAllButton != null)
-            _selectAllButton.onClick.AddListener(SelectAllPlayerUnits);
+        _selectAllButton.onClick.AddListener(SelectAllPlayerUnits);
 
         SubscribeToRegistry();
 
-        // Если панель включили не через Show() синхронизируемся с текущим выбором
         if (!_isApplyingShow)
             RefreshFromCurrentSelection();
     }
 
     private void OnDisable()
     {
-        if (_selectAllButton != null)
-            _selectAllButton.onClick.RemoveListener(SelectAllPlayerUnits);
+        _selectAllButton.onClick.RemoveListener(SelectAllPlayerUnits);
 
         UnsubscribeFromRegistry();
     }
 
-    /// <summary>
-    /// Показывает панель на основе текущего списка выбранных объектов
-    /// </summary>
+    protected override bool ValidateInternal()
+    {
+        bool valid = true;
+
+        valid &= ValidationUtility.IsAssigned(this, _contentRoot, nameof(_contentRoot));
+        valid &= ValidationUtility.IsAssigned(this, _itemPrefab, nameof(_itemPrefab));
+        valid &= ValidationUtility.IsAssigned(this, _selectAllButton, nameof(_selectAllButton));
+
+        return valid;
+    }
+
     public void Show(IReadOnlyList<UnitSelectable> selectedUnits)
     {
         _isApplyingShow = true;
@@ -81,11 +92,8 @@ public sealed class ArmySelectionPanel : MonoBehaviour
                 continue;
 
             ArmySelectionItem item = CreateItem();
-
-            if (item == null)
-                continue;
-
             item.Bind(group.Icon, group.Count);
+
             _items.Add(item);
         }
 
@@ -104,9 +112,6 @@ public sealed class ArmySelectionPanel : MonoBehaviour
 
     private ArmySelectionItem CreateItem()
     {
-        if (_itemPrefab == null || _contentRoot == null)
-            return null;
-
         return Instantiate(_itemPrefab, _contentRoot);
     }
 
@@ -134,7 +139,7 @@ public sealed class ArmySelectionPanel : MonoBehaviour
             if (config == null)
             {
                 Debug.LogWarning(
-                    $"{armyUnit.name}: ArmyUnit не имеет UnitConfig, поэтому не будет показан в ArmySelectionPanel.",
+                    $"{armyUnit.name}: ArmyUnit не имеет UnitConfig",
                     armyUnit);
 
                 continue;
@@ -192,9 +197,9 @@ public sealed class ArmySelectionPanel : MonoBehaviour
         if (_selectionSystem == null || _armyUnitRegistry == null)
             return;
 
-        List<ArmyUnit> units = _armyUnitRegistry.GetAllPlayerUnits();
+        _armyUnitRegistry.GetAllPlayerUnitsNonAlloc(_playerUnitsBuffer);
 
-        _selectionSystem.SelectArmyUnits(units);
+        _selectionSystem.SelectArmyUnits(_playerUnitsBuffer);
     }
 
     private void SubscribeToRegistry()

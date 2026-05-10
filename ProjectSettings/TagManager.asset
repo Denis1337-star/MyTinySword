@@ -12,7 +12,7 @@ TagManager:
   - Water
   - UI
   - Ground
-  - Obstracle
+  - Obstacle
   - Resource
   - Player
   - 
@@ -50,7 +50,7 @@ TagManager:
   - name: Units
     uniqueID: 4151200297
     locked: 0
-  - name: Bildings
+  - name: Buildings
     uniqueID: 1816104283
     locked: 0
   - name: UI

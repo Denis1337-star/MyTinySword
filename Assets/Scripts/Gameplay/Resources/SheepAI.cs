@@ -3,78 +3,83 @@ using UnityEngine;
 using UnityEngine.AI;
 
 /// <summary>
-/// перемещение по случайным точкам внутри территории 
+/// Перемещает овцу по случайным точкам внутри территории
 /// </summary>
 [RequireComponent(typeof(UnitMovement))]
-public class SheepAI : MonoBehaviour
+[RequireComponent(typeof(NavMeshAgent))]
+public sealed class SheepAI : MonoBehaviour
 {
+    private const float ArriveDistance = 0.2f;
+    private const float ArriveDistanceSqr = ArriveDistance * ArriveDistance;
+
+    private static readonly int IsMovingHash = Animator.StringToHash("IsMoving");
+
     [SerializeField] private float eatTime = 3f;
     [SerializeField] private SheepTerritory territory;
 
-    private UnitMovement movement;
-    private Animator animator;
-    private NavMeshAgent agent;
+    private UnitMovement _movement;
+    private Animator _animator;
+    private NavMeshAgent _agent;
 
-    private float timer;
-    private bool isEating;
-    private bool isfrozen;
-    private Vector2 targetPoint;
+    private float _timer;
+    private bool _isEating;
+    private bool _isFrozen;
+    private bool _lastIsMoving;
+    private Vector2 _targetPoint;
 
     private void Awake()
     {
-        movement = GetComponent<UnitMovement>();
-        animator = GetComponent<Animator>();
-        agent = GetComponent<NavMeshAgent>();
+        _movement = GetComponent<UnitMovement>();
+        _animator = GetComponent<Animator>();
+        _agent = GetComponent<NavMeshAgent>();
 
         eatTime = Mathf.Max(0.1f, eatTime);
     }
 
     private IEnumerator Start()
     {
-        yield return new WaitUntil(() => agent != null && agent.isOnNavMesh);
+        while (!_agent.isOnNavMesh)
+            yield return null;
+
         MoveToNewPoint();
     }
 
     private void Update()
     {
-        if (isfrozen)
+        if (_isFrozen)
             return;
 
-        if (animator != null)
-            animator.SetBool("IsMoving", movement != null && movement.HasTarget);
+        UpdateMovingAnimation();
 
-        if (!isEating && IsAtTarget())
+        if (!_isEating && IsAtTarget())
         {
-            isEating = true;
-            timer = eatTime;
+            _isEating = true;
+            _timer = eatTime;
         }
 
-        if (!isEating)
+        if (!_isEating)
             return;
 
-        timer -= Time.deltaTime;
+        _timer -= Time.deltaTime;
 
-        if (timer > 0f)
+        if (_timer > 0f)
             return;
 
-        isEating = false;
+        _isEating = false;
         MoveToNewPoint();
     }
 
     public void SetFrozen(bool value)
     {
-        if (isfrozen == value)
+        if (_isFrozen == value)
             return;
 
-        isfrozen = value;
+        _isFrozen = value;
 
         if (value)
         {
-            movement?.Stop();
-
-            if (animator != null)
-                animator.SetBool("IsMoving", false);
-
+            _movement.Stop();
+            SetMovingAnimation(false);
             return;
         }
 
@@ -83,12 +88,13 @@ public class SheepAI : MonoBehaviour
 
     private bool IsAtTarget()
     {
-        return Vector2.Distance(transform.position, targetPoint) < 0.2f;
+        Vector2 position = transform.position;
+        return (position - _targetPoint).sqrMagnitude < ArriveDistanceSqr;
     }
 
     private void MoveToNewPoint()
     {
-        if (territory == null || movement == null)
+        if (territory == null)
             return;
 
         for (int i = 0; i < 5; i++)
@@ -98,11 +104,29 @@ public class SheepAI : MonoBehaviour
             if (!NavMesh.SamplePosition(random, out NavMeshHit hit, 3f, NavMesh.AllAreas))
                 continue;
 
-            targetPoint = hit.position;
-            movement.MoveTo(hit.position);
+            _targetPoint = hit.position;
+            _movement.MoveTo(hit.position);
             return;
         }
 
-        Debug.LogWarning($"{name}: no valid NavMesh point in territory.", this);
+        Debug.LogWarning($"{name}: не найдена подходящая NavMesh-точка внутри территории.", this);
+    }
+
+    private void UpdateMovingAnimation()
+    {
+        bool isMoving = _movement.HasTarget;
+        SetMovingAnimation(isMoving);
+    }
+
+    private void SetMovingAnimation(bool isMoving)
+    {
+        if (_animator == null)
+            return;
+
+        if (_lastIsMoving == isMoving)
+            return;
+
+        _lastIsMoving = isMoving;
+        _animator.SetBool(IsMovingHash, isMoving);
     }
 }

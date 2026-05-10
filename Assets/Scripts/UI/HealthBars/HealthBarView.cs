@@ -1,15 +1,11 @@
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 /// <summary>
-/// UI-представление полоски здоровья над world-объектом.
-/// Живёт внутри Screen Canvas, но следует за Transform в мире.
+/// UI представление полоски здоровья над world объектом
 /// </summary>
-public sealed class HealthBarView : MonoBehaviour
+public sealed class HealthBarView : ValidatedMonoBehaviour
 {
-    [Header("UI")]
-    [FormerlySerializedAs("fillImage")]
     [SerializeField] private Image _fillImage;
 
     private RectTransform _rectTransform;
@@ -20,9 +16,20 @@ public sealed class HealthBarView : MonoBehaviour
     private Canvas _canvas;
     private Vector3 _worldOffset;
 
-    private void Awake()
+    protected override void Awake()
     {
         _rectTransform = transform as RectTransform;
+
+        base.Awake();
+    }
+
+    protected override bool ValidateInternal()
+    {
+        bool valid = true;
+
+        valid &= ValidationUtility.IsAssigned(this, _fillImage, nameof(_fillImage));
+
+        return valid;
     }
 
     public void Initialize(
@@ -41,17 +48,13 @@ public sealed class HealthBarView : MonoBehaviour
             ? _canvas.transform as RectTransform
             : null;
 
-        if (_fillImage != null)
-            _fillImage.color = fillColor;
+        _fillImage.color = fillColor;
 
         UpdatePosition();
     }
 
     public void SetFill(float normalizedValue)
     {
-        if (_fillImage == null)
-            return;
-
         _fillImage.fillAmount = Mathf.Clamp01(normalizedValue);
     }
 

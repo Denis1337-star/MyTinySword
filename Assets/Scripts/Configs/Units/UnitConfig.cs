@@ -56,17 +56,17 @@ public abstract class UnitConfig : BaseConfig
                _woodCost >= 0 &&
                _meatCost >= 0 &&
                _maxHealth >= 1 &&
-               _moveSpeed > 0f &&
-               _visionRange > 0f &&
+               _moveSpeed >= 0.1f &&
+               _visionRange >= 0.1f &&
                _buildTime >= 0.1f;
     }
 
     public virtual string GetPreviewStatsText()
     {
         return
-            $"HP: {_maxHealth}\n" +
-            $"Move Speed: {_moveSpeed}\n" +
-            $"Vision: {_visionRange}";
+            $"Çהמנמגüו: {_maxHealth}\n" +
+            $"Ñךמנמסעü: {_moveSpeed}\n" +
+            $"Îבחמנ: {_visionRange}";
     }
 
     protected virtual void OnValidate()

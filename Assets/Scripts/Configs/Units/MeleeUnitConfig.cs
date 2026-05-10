@@ -17,6 +17,7 @@ public sealed class MeleeUnitConfig : UnitConfig
     public override bool IsValid()
     {
         return base.IsValid() &&
+               UnitType == ArmyUnitType.Warrior &&
                _damage >= 1 &&
                _attackRange >= 0f &&
                _attackCooldown >= 0.1f;
@@ -26,9 +27,8 @@ public sealed class MeleeUnitConfig : UnitConfig
     {
         return
             base.GetPreviewStatsText() + "\n" +
-            $"Damage: {_damage}\n" +
-            $"Melee Range: {_attackRange}\n" +
-            $"Attack Cooldown: {_attackCooldown}";
+            $"Урон: {_damage}\n" +
+            $"Дистанция атаки: {_attackRange}\n" ;
     }
 
     protected override void OnValidate()

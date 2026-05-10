@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// Компонент визуального выделения объекта
 /// </summary>
-public sealed class UnitSelectable : MonoBehaviour
+public sealed class UnitSelectable : ValidatedMonoBehaviour
 {
     [SerializeField] private GameObject _selectionVisual;
     [SerializeField] private bool _canBeSelected = true;
@@ -11,20 +11,23 @@ public sealed class UnitSelectable : MonoBehaviour
     public bool IsSelected { get; private set; }
     public bool CanBeSelected => _canBeSelected;
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
+
+        if (!enabled)
+            return;
+
         ApplySelectionVisual(false);
     }
 
-    private void OnValidate()
+    protected override bool ValidateInternal()
     {
-        if (_selectionVisual != null)
-            return;
+        bool valid = true;
 
-        Transform selectionTransform = transform.Find("Selection");
+        valid &= ValidationUtility.IsAssigned(this, _selectionVisual, nameof(_selectionVisual));
 
-        if (selectionTransform != null)
-            _selectionVisual = selectionTransform.gameObject;
+        return valid;
     }
 
     public void Select()
@@ -48,7 +51,6 @@ public sealed class UnitSelectable : MonoBehaviour
         ApplySelectionVisual(false);
     }
 
-
     public void SetCanBeSelected(bool canBeSelected)
     {
         _canBeSelected = canBeSelected;
@@ -59,9 +61,6 @@ public sealed class UnitSelectable : MonoBehaviour
 
     private void ApplySelectionVisual(bool isVisible)
     {
-        if (_selectionVisual == null)
-            return;
-
         if (_selectionVisual == gameObject)
             return;
 

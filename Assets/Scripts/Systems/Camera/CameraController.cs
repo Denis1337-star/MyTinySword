@@ -7,7 +7,7 @@ using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 /// <summary>
 /// ”правл€ет ручным перемещением и zoom камеры через touch input
 /// </summary>
-public sealed class CameraController : MonoBehaviour
+public sealed class CameraController : ValidatedMonoBehaviour
 {
     [SerializeField] private CinemachineVirtualCamera _virtualCamera;
     [SerializeField] private Transform _cameraTarget;
@@ -20,8 +20,13 @@ public sealed class CameraController : MonoBehaviour
 
     public bool IsDragging { get; private set; }
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
+
+        if (!enabled)
+            return;
+
         ClampZoomValues();
     }
 
@@ -33,6 +38,16 @@ public sealed class CameraController : MonoBehaviour
     private void OnValidate()
     {
         ClampZoomValues();
+    }
+
+    protected override bool ValidateInternal()
+    {
+        bool valid = true;
+
+        valid &= ValidationUtility.IsAssigned(this, _virtualCamera, nameof(_virtualCamera));
+        valid &= ValidationUtility.IsAssigned(this, _cameraTarget, nameof(_cameraTarget));
+
+        return valid;
     }
 
     private void HandleTouchInput()
@@ -103,9 +118,6 @@ public sealed class CameraController : MonoBehaviour
 
     private void MoveCamera(Vector2 screenDelta)
     {
-        if (_cameraTarget == null)
-            return;
-
         float zoomMultiplier = GetCurrentZoom();
 
         Vector3 moveDelta = new(

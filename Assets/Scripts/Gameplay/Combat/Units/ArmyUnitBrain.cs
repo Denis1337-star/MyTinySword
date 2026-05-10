@@ -1,52 +1,46 @@
 using UnityEngine;
-using UnityEngine.Serialization;
 
 /// <summary>
 /// Управляет поведением боевого юнита
 /// </summary>
-public class ArmyUnitBrain : MonoBehaviour
+public sealed class ArmyUnitBrain : MonoBehaviour
 {
-    private Collider2D _bodyCollider;
-    [Header("Components")]
-    [FormerlySerializedAs("unit")]
-    [SerializeField] private ArmyUnit _unit;
+    private ArmyUnit _unit;
+    private ArmyTargetFinder _targetFinder;
+    private ArmyUnitCombat _combat;
 
-    [FormerlySerializedAs("movement")]
-    [SerializeField] private UnitMovement _movement;
-
-    [FormerlySerializedAs("health")]
-    [SerializeField] private Health _health;
-
-    [FormerlySerializedAs("factionMember")]
-    [SerializeField] private FactionMember _factionMember;
-
-    [FormerlySerializedAs("animatorBridge")]
-    [SerializeField] private UnitAnimatorBridge _animatorBridge;
-
-    private IDamageable _currentTarget;
+    private BrainState _state;
+    private Health _currentTarget;
     private Health _currentHealTarget;
 
-    private Vector3 _commandedMoveTarget;
-    private float _actionTimer;
-
+    private Vector2 _commandedMoveTarget;
     private bool _hasCommandedMoveTarget;
     private bool _returnToMoveAfterCombat;
 
-    private BrainState _currentState = BrainState.Idle;
+    private float _attackTimer;
+    private float _healTimer;
 
-    private UnitConfig Config => _unit != null ? _unit.Config : null;
+    private enum BrainState
+    {
+        Idle,
+        Move,
+        Attack,
+        Heal
+    }
 
     private void Awake()
     {
-        ResolveReferences();
+        _unit = GetComponent<ArmyUnit>();
+        _targetFinder = new ArmyTargetFinder(_unit, transform);
+        _combat = new ArmyUnitCombat(_unit, transform);
     }
 
     private void Update()
     {
-        if (_health != null && _health.IsDead)
+        if (!CanAct())
             return;
 
-        switch (_currentState)
+        switch (_state)
         {
             case BrainState.Idle:
                 UpdateIdle();
@@ -66,11 +60,11 @@ public class ArmyUnitBrain : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Даёт юниту команду двигаться в указанную позицию.
-    /// </summary>
-    public void MoveTo(Vector3 position)
+    public void MoveTo(Vector2 position)
     {
+        if (!CanAct())
+            return;
+
         _currentTarget = null;
         _currentHealTarget = null;
 
@@ -78,294 +72,188 @@ public class ArmyUnitBrain : MonoBehaviour
         _hasCommandedMoveTarget = true;
         _returnToMoveAfterCombat = false;
 
-        _movement?.MoveTo(position);
-        _currentState = BrainState.Move;
+        _state = BrainState.Move;
+        _unit.Movement.MoveTo(position);
     }
 
-    /// <summary>
-    /// Даёт юниту команду атаковать конкретную цель.
-    /// </summary>
     public void Attack(IDamageable target)
     {
-        if (target == null)
+        if (!CanAct())
             return;
 
-        _currentTarget = target;
+        Health targetHealth = GetHealthFromDamageable(target);
+
+        if (targetHealth == null || targetHealth.IsDead)
+            return;
+
+        if (!_targetFinder.IsEnemy(targetHealth))
+            return;
+
+        StartAttack(targetHealth, false);
+    }
+
+    public void Heal(Health target)
+    {
+        if (!CanAct())
+            return;
+
+        if (_unit.Config.UnitType != ArmyUnitType.Healer)
+            return;
+
+        if (target == null || target.IsDead)
+            return;
+
+        if (_targetFinder.IsEnemy(target))
+            return;
+
+        StartHeal(target, false);
+    }
+
+    public void Stop()
+    {
+        if (!CanAct())
+            return;
+
+        _currentTarget = null;
         _currentHealTarget = null;
 
         _hasCommandedMoveTarget = false;
         _returnToMoveAfterCombat = false;
 
-        _currentState = BrainState.Attack;
+        _unit.Movement.Stop();
+        _state = BrainState.Idle;
     }
 
     private void UpdateIdle()
     {
-        if (Config == null)
-            return;
-
-        if (Config.UnitType == ArmyUnitType.Healer)
+        if (_unit.Config.UnitType == ArmyUnitType.Healer)
         {
-            TryAutoAcquireHealTarget(returnToMoveAfterFind: false);
-            return;
+            Health ally = _targetFinder.FindLowestHealthAllyUnit();
+
+            if (ally != null)
+            {
+                StartHeal(ally, false);
+                return;
+            }
         }
 
-        TryAutoAcquireEnemyTarget(returnToMoveAfterFind: false);
+        Health enemy = _targetFinder.FindNearestEnemyTarget();
+
+        if (enemy != null)
+            StartAttack(enemy, false);
     }
 
     private void UpdateMove()
     {
-        if (Config == null)
-            return;
+        if (_unit.Config.UnitType == ArmyUnitType.Healer)
+        {
+            Health ally = _targetFinder.FindLowestHealthAllyUnit();
 
-        bool foundActionTarget = Config.UnitType == ArmyUnitType.Healer
-            ? TryAutoAcquireHealTarget(returnToMoveAfterFind: true)
-            : TryAutoAcquireEnemyTarget(returnToMoveAfterFind: true);
+            if (ally != null)
+            {
+                StartHeal(ally, true);
+                return;
+            }
+        }
+        else
+        {
+            Health enemy = _targetFinder.FindNearestEnemyTarget();
 
-        if (foundActionTarget)
-            return;
+            if (enemy != null)
+            {
+                StartAttack(enemy, true);
+                return;
+            }
+        }
 
-        if (_movement == null)
-            return;
-
-        if (!_movement.IsMoving)
-            _currentState = BrainState.Idle;
+        if (!_unit.Movement.HasTarget)
+        {
+            _hasCommandedMoveTarget = false;
+            _state = BrainState.Idle;
+        }
     }
 
     private void UpdateAttack()
     {
-        if (Config == null)
-            return;
-
         if (_currentTarget == null || _currentTarget.IsDead)
         {
-            OnActionFinished();
+            FinishCombatAction();
             return;
         }
 
-        Transform targetTransform = (_currentTarget as MonoBehaviour)?.transform;
-        if (targetTransform == null)
+        float distanceToTarget = _combat.GetDistanceToTarget(_currentTarget);
+
+        if (distanceToTarget > _unit.Config.AttackRange)
         {
-            OnActionFinished();
+            _unit.Movement.MoveTo(_currentTarget.transform.position);
             return;
         }
 
-        float distance = GetDistanceToTarget(_currentTarget);
+        _unit.Movement.Stop();
 
-        if (distance > Config.AttackRange)
-        {
-            _movement?.MoveTo(GetApproachPosition(_currentTarget));
-            return;
-        }
+        _attackTimer -= Time.deltaTime;
 
-        _movement?.Stop();
-
-        _actionTimer -= Time.deltaTime;
-        if (_actionTimer > 0f)
+        if (_attackTimer > 0f)
             return;
 
-        _animatorBridge?.PlayAttack();
-
-        if (Config.UnitType == ArmyUnitType.Archer)
-            ShootArrow(_currentTarget);
-        else
-            DealMeleeDamage(_currentTarget);
-
-        _actionTimer = Config.AttackCooldown;
+        _combat.PerformAttack(_currentTarget);
+        _attackTimer = _unit.Config.AttackCooldown;
     }
 
     private void UpdateHeal()
     {
-        if (Config == null)
-            return;
-
-        if (_currentHealTarget == null ||
-            _currentHealTarget.IsDead ||
-            _currentHealTarget.CurrentHealth >= _currentHealTarget.MaxHealth)
+        if (_unit.Config.UnitType != ArmyUnitType.Healer)
         {
-            OnActionFinished();
+            FinishCombatAction();
             return;
         }
 
-        float distance = Vector3.Distance(
-            transform.position,
-            _currentHealTarget.transform.position);
-
-        if (distance > Config.HealRange)
+        if (_currentHealTarget == null || _currentHealTarget.IsDead)
         {
-            _movement?.MoveTo(_currentHealTarget.transform.position);
+            FinishCombatAction();
             return;
         }
 
-        _movement?.Stop();
+        float healRange = _unit.Config.HealRange;
+        float healRangeSqr = healRange * healRange;
+        float distanceSqr = (_currentHealTarget.transform.position - transform.position).sqrMagnitude;
 
-        _actionTimer -= Time.deltaTime;
-        if (_actionTimer > 0f)
+        if (distanceSqr > healRangeSqr)
+        {
+            _unit.Movement.MoveTo(_currentHealTarget.transform.position);
+            return;
+        }
+
+        _unit.Movement.Stop();
+
+        _healTimer -= Time.deltaTime;
+
+        if (_healTimer > 0f)
             return;
 
-        _animatorBridge?.PlayAttack();
-        _currentHealTarget.Heal(Config.HealAmount);
-
-        _actionTimer = Config.HealCooldown;
+        _combat.PerformHeal(_currentHealTarget);
+        _healTimer = _unit.Config.HealCooldown;
     }
 
-    private bool TryAutoAcquireEnemyTarget(bool returnToMoveAfterFind)
+    private void StartAttack(Health target, bool returnToMoveAfterCombat)
     {
-        IDamageable target = FindNearestEnemyTarget();
-        if (target == null)
-            return false;
-
         _currentTarget = target;
         _currentHealTarget = null;
 
-        _returnToMoveAfterCombat = returnToMoveAfterFind;
-        _currentState = BrainState.Attack;
-
-        return true;
+        _returnToMoveAfterCombat = returnToMoveAfterCombat && _hasCommandedMoveTarget;
+        _state = BrainState.Attack;
     }
 
-    private bool TryAutoAcquireHealTarget(bool returnToMoveAfterFind)
+    private void StartHeal(Health target, bool returnToMoveAfterCombat)
     {
-        Health target = FindLowestHealthAllyUnit();
-        if (target == null)
-            return false;
-
         _currentHealTarget = target;
         _currentTarget = null;
 
-        _returnToMoveAfterCombat = returnToMoveAfterFind;
-        _currentState = BrainState.Heal;
-
-        return true;
+        _returnToMoveAfterCombat = returnToMoveAfterCombat && _hasCommandedMoveTarget;
+        _state = BrainState.Heal;
     }
 
-    private IDamageable FindNearestEnemyTarget()
-    {
-        if (_factionMember == null || Config == null)
-            return null;
-
-        Collider2D[] hits = Physics2D.OverlapCircleAll(
-            transform.position,
-            Config.VisionRange);
-
-        if (hits == null || hits.Length == 0)
-            return null;
-
-        IDamageable bestTarget = null;
-        int bestPriority = int.MinValue;
-        float bestDistance = float.MaxValue;
-
-        foreach (Collider2D hit in hits)
-        {
-            IDamageable damageable = TryGetDamageableTarget(hit);
-            if (damageable == null)
-                continue;
-
-            MonoBehaviour targetBehaviour = damageable as MonoBehaviour;
-            if (targetBehaviour == null || targetBehaviour.gameObject == gameObject)
-                continue;
-
-            FactionMember targetFaction = GetFactionMember(targetBehaviour);
-            if (targetFaction == null || !_factionMember.IsEnemy(targetFaction))
-                continue;
-
-            int priority = GetTargetPriority(targetBehaviour);
-            float distance = Vector3.Distance(
-                transform.position,
-                targetBehaviour.transform.position);
-
-            bool betterPriority = priority > bestPriority;
-            bool samePriorityButCloser = priority == bestPriority && distance < bestDistance;
-
-            if (!betterPriority && !samePriorityButCloser)
-                continue;
-
-            bestPriority = priority;
-            bestDistance = distance;
-            bestTarget = damageable;
-        }
-
-        return bestTarget;
-    }
-
-    private Health FindLowestHealthAllyUnit()
-    {
-        if (_factionMember == null || Config == null)
-            return null;
-
-        Collider2D[] hits = Physics2D.OverlapCircleAll(
-            transform.position,
-            Config.VisionRange);
-
-        if (hits == null || hits.Length == 0)
-            return null;
-
-        Health bestTarget = null;
-        float lowestHealthPercent = float.MaxValue;
-
-        foreach (Collider2D hit in hits)
-        {
-            Health targetHealth = TryGetHealth(hit);
-            if (targetHealth == null || targetHealth.IsDead)
-                continue;
-
-            ArmyUnit allyArmyUnit = hit.GetComponent<ArmyUnit>();
-            if (allyArmyUnit == null)
-                allyArmyUnit = hit.GetComponentInParent<ArmyUnit>();
-
-            if (allyArmyUnit == null)
-                continue;
-
-            FactionMember allyFaction = allyArmyUnit.FactionMember;
-            if (allyFaction == null || !_factionMember.IsAlly(allyFaction))
-                continue;
-
-            if (targetHealth.CurrentHealth >= targetHealth.MaxHealth)
-                continue;
-
-            float healthPercent = (float)targetHealth.CurrentHealth / targetHealth.MaxHealth;
-            if (healthPercent >= lowestHealthPercent)
-                continue;
-
-            lowestHealthPercent = healthPercent;
-            bestTarget = targetHealth;
-        }
-
-        return bestTarget;
-    }
-
-    private void DealMeleeDamage(IDamageable target)
-    {
-        if (Config == null || target == null)
-            return;
-
-        target.TakeDamage(Config.Damage);
-    }
-
-    private void ShootArrow(IDamageable target)
-    {
-        if (Config == null || target == null || Config.ArrowPrefab == null)
-        {
-            DealMeleeDamage(target);
-            return;
-        }
-
-        Health targetHealth = target as Health;
-        if (targetHealth == null)
-        {
-            DealMeleeDamage(target);
-            return;
-        }
-
-        ProjectileArrow arrow = Instantiate(
-            Config.ArrowPrefab,
-            transform.position,
-            Quaternion.identity);
-
-        arrow.Initialize(targetHealth, Config.Damage, Config.ArrowSpeed);
-    }
-
-    private void OnActionFinished()
+    private void FinishCombatAction()
     {
         _currentTarget = null;
         _currentHealTarget = null;
@@ -373,138 +261,37 @@ public class ArmyUnitBrain : MonoBehaviour
         if (_returnToMoveAfterCombat && _hasCommandedMoveTarget)
         {
             _returnToMoveAfterCombat = false;
-            _movement?.MoveTo(_commandedMoveTarget);
-            _currentState = BrainState.Move;
+            _state = BrainState.Move;
+            _unit.Movement.MoveTo(_commandedMoveTarget);
             return;
         }
 
-        _currentState = BrainState.Idle;
+        _returnToMoveAfterCombat = false;
+        _hasCommandedMoveTarget = false;
+
+        _unit.Movement.Stop();
+        _state = BrainState.Idle;
     }
 
-    private void ResolveReferences()
+    private Health GetHealthFromDamageable(IDamageable damageable)
     {
-        if (_unit == null)
-            _unit = GetComponent<ArmyUnit>();
+        Component component = damageable as Component;
 
-        if (_movement == null)
-            _movement = GetComponent<UnitMovement>();
-
-        if (_health == null)
-            _health = GetComponent<Health>();
-
-        if (_factionMember == null)
-            _factionMember = GetComponent<FactionMember>();
-
-        if (_animatorBridge == null)
-            _animatorBridge = GetComponent<UnitAnimatorBridge>();
-
-        if (_bodyCollider == null)
-            _bodyCollider = GetComponent<Collider2D>();
-
-    }
-
-    private static IDamageable TryGetDamageableTarget(Collider2D hit)
-    {
-        if (hit == null)
+        if (component == null)
             return null;
 
-        IDamageable damageable = hit.GetComponent<IDamageable>();
-        if (damageable == null)
-            damageable = hit.GetComponentInParent<IDamageable>();
-
-        if (damageable == null || damageable.IsDead)
-            return null;
-
-        return damageable;
+        return component.GetComponentInParent<Health>();
     }
 
-    private static Health TryGetHealth(Collider2D hit)
+    private bool CanAct()
     {
-        if (hit == null)
-            return null;
-
-        Health health = hit.GetComponent<Health>();
-        if (health == null)
-            health = hit.GetComponentInParent<Health>();
-
-        return health;
-    }
-
-    private static FactionMember GetFactionMember(MonoBehaviour targetBehaviour)
-    {
-        if (targetBehaviour == null)
-            return null;
-
-        FactionMember factionMember = targetBehaviour.GetComponent<FactionMember>();
-        if (factionMember == null)
-            factionMember = targetBehaviour.GetComponentInParent<FactionMember>();
-
-        return factionMember;
-    }
-
-    private static int GetTargetPriority(MonoBehaviour targetBehaviour)
-    {
-        if (targetBehaviour == null)
-            return (int)TargetPriorityType.Building;
-
-        CombatTargetInfo targetInfo = targetBehaviour.GetComponent<CombatTargetInfo>();
-        if (targetInfo == null)
-            targetInfo = targetBehaviour.GetComponentInParent<CombatTargetInfo>();
-
-        return targetInfo != null
-            ? (int)targetInfo.TargetPriority
-            : (int)TargetPriorityType.Building;
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        if (_unit == null || _unit.Config == null)
-            return;
-
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, _unit.Config.VisionRange);
-
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, _unit.Config.AttackRange);
-
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawWireSphere(transform.position, _unit.Config.HealRange);
-    }
-    private float GetDistanceToTarget(IDamageable target)
-    {
-        if (target == null)
-            return float.MaxValue;
-
-        MonoBehaviour targetBehaviour = target as MonoBehaviour;
-        if (targetBehaviour == null)
-            return float.MaxValue;
-
-        Collider2D targetCollider = targetBehaviour.GetComponent<Collider2D>();
-        if (targetCollider == null)
-            targetCollider = targetBehaviour.GetComponentInParent<Collider2D>();
-
-        if (_bodyCollider != null && targetCollider != null)
-        {
-            ColliderDistance2D distance = _bodyCollider.Distance(targetCollider);
-            return Mathf.Max(0f, distance.distance);
-        }
-
-        return Vector2.Distance(transform.position, targetBehaviour.transform.position);
-    }
-
-    private Vector2 GetApproachPosition(IDamageable target)
-    {
-        MonoBehaviour targetBehaviour = target as MonoBehaviour;
-        if (targetBehaviour == null)
-            return transform.position;
-
-        Collider2D targetCollider = targetBehaviour.GetComponent<Collider2D>();
-        if (targetCollider == null)
-            targetCollider = targetBehaviour.GetComponentInParent<Collider2D>();
-
-        if (targetCollider == null)
-            return targetBehaviour.transform.position;
-
-        return targetCollider.ClosestPoint(transform.position);
+        return _unit != null &&
+               !_unit.IsDead &&
+               _unit.Config != null &&
+               _unit.Movement != null &&
+               _unit.Health != null &&
+               _unit.FactionMember != null &&
+               _unit.AnimatorBridge != null &&
+               _unit.BodyCollider != null;
     }
 }

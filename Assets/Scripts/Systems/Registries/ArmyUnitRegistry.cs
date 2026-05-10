@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Глобальный реестр всех боевых юнитов на сцене.
-/// Также хранит зарезервированные места для юнитов, которые уже стоят в очереди производства.
+/// Глобальный реестр всех боевых юнитов 
 /// </summary>
 public sealed class ArmyUnitRegistry : MonoBehaviour
 {
-    [Header("Army Limit")]
-    [SerializeField] private int _maxPlayerArmyUnits = 10;
+    [SerializeField, Min(1)] private int _maxPlayerArmyUnits = 10;
 
     private readonly List<ArmyUnit> _allUnits = new();
 
@@ -34,7 +32,6 @@ public sealed class ArmyUnitRegistry : MonoBehaviour
     private void OnValidate()
     {
         _maxPlayerArmyUnits = Mathf.Max(1, _maxPlayerArmyUnits);
-        _reservedPlayerArmySlots = Mathf.Max(0, _reservedPlayerArmySlots);
     }
 
     public void Register(ArmyUnit unit)
@@ -47,9 +44,6 @@ public sealed class ArmyUnitRegistry : MonoBehaviour
 
         _allUnits.Add(unit);
 
-        // Если юнит был создан из очереди производства,
-        // его место уже было зарезервировано раньше.
-        // Теперь резерв превращается в реального живого юнита.
         if (unit.IsPlayerUnit() && _reservedPlayerArmySlots > 0)
             _reservedPlayerArmySlots--;
 
@@ -107,12 +101,17 @@ public sealed class ArmyUnitRegistry : MonoBehaviour
             OnArmyChanged?.Invoke();
     }
 
-    public List<ArmyUnit> GetAllPlayerUnits()
+    public void GetAllPlayerUnitsNonAlloc(List<ArmyUnit> result)
     {
-        List<ArmyUnit> result = new();
+        if (result == null)
+            return;
 
-        foreach (ArmyUnit unit in _allUnits)
+        result.Clear();
+
+        for (int i = 0; i < _allUnits.Count; i++)
         {
+            ArmyUnit unit = _allUnits[i];
+
             if (unit == null)
                 continue;
 
@@ -121,16 +120,16 @@ public sealed class ArmyUnitRegistry : MonoBehaviour
 
             result.Add(unit);
         }
-
-        return result;
     }
 
     private int CountPlayerUnits()
     {
         int count = 0;
 
-        foreach (ArmyUnit unit in _allUnits)
+        for (int i = 0; i < _allUnits.Count; i++)
         {
+            ArmyUnit unit = _allUnits[i];
+
             if (unit == null)
                 continue;
 
@@ -139,5 +138,12 @@ public sealed class ArmyUnitRegistry : MonoBehaviour
         }
 
         return count;
+    }
+
+    private void OnDestroy()
+    {
+        _allUnits.Clear();
+        _reservedPlayerArmySlots = 0;
+        OnArmyChanged = null;
     }
 }

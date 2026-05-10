@@ -26,19 +26,17 @@ public sealed class CommandSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// ѕытаетс€ отдать выбранной армии команду атаки по enemy 
+    /// ѕытаетс€ отдать выбранной армии команду атаки по enemy
     /// </summary>
     public bool TryAttackSelectedArmyAtScreenPosition(Vector2 screenPosition)
     {
-        if (_selectionSystem == null || _mainCamera == null)
-            return false;
-
         IReadOnlyList<UnitSelectable> selectedUnits = _selectionSystem.SelectedUnits;
 
         if (!HasPlayerArmyUnits(selectedUnits))
             return false;
 
         FactionMember selectedArmyFaction = FindFirstSelectedPlayerFaction(selectedUnits);
+
         if (selectedArmyFaction == null)
             return false;
 
@@ -57,9 +55,6 @@ public sealed class CommandSystem : MonoBehaviour
     /// </summary>
     public bool TryMoveSelectedArmyAtScreenPosition(Vector2 screenPosition)
     {
-        if (_selectionSystem == null || _mainCamera == null)
-            return false;
-
         IReadOnlyList<UnitSelectable> selectedUnits = _selectionSystem.SelectedUnits;
 
         if (!HasPlayerArmyUnits(selectedUnits))
@@ -68,18 +63,6 @@ public sealed class CommandSystem : MonoBehaviour
         Vector2 worldPosition = TouchUtility.ScreenToWorld(_mainCamera, screenPosition);
 
         return IssueMoveCommand(selectedUnits, worldPosition);
-    }
-
-    /// <summary>
-    /// —тарый общий метод оставл€ем дл€ совместимости.
-    /// —начала пытаетс€ атаковать врага, если врага нет Ч двигает армию.
-    /// </summary>
-    public bool TryCommandSelectedArmyAtScreenPosition(Vector2 screenPosition)
-    {
-        if (TryAttackSelectedArmyAtScreenPosition(screenPosition))
-            return true;
-
-        return TryMoveSelectedArmyAtScreenPosition(screenPosition);
     }
 
     private bool IssueAttackCommand(
@@ -164,15 +147,7 @@ public sealed class CommandSystem : MonoBehaviour
 
         IDamageable damageable = hit.GetComponent<IDamageable>();
 
-        if (damageable != null)
             return damageable;
-
-        damageable = hit.GetComponentInParent<IDamageable>();
-
-        if (damageable != null)
-            return damageable;
-
-        return hit.GetComponentInChildren<IDamageable>();
     }
 
     private bool IsValidEnemyTarget(
@@ -195,22 +170,14 @@ public sealed class CommandSystem : MonoBehaviour
 
     private FactionMember FindFactionMember(IDamageable damageable)
     {
-        MonoBehaviour targetBehaviour = damageable as MonoBehaviour;
+        Component targetComponent = damageable as Component;
 
-        if (targetBehaviour == null)
+        if (targetComponent == null)
             return null;
 
-        FactionMember factionMember = targetBehaviour.GetComponent<FactionMember>();
+        FactionMember factionMember = targetComponent.GetComponent<FactionMember>();
 
-        if (factionMember != null)
-            return factionMember;
-
-        factionMember = targetBehaviour.GetComponentInParent<FactionMember>();
-
-        if (factionMember != null)
-            return factionMember;
-
-        return targetBehaviour.GetComponentInChildren<FactionMember>();
+        return factionMember;
     }
 
     private bool HasPlayerArmyUnits(IReadOnlyList<UnitSelectable> selectedUnits)
@@ -254,16 +221,6 @@ public sealed class CommandSystem : MonoBehaviour
             return false;
 
         brain = armyUnit.Brain;
-
-        if (brain == null)
-            brain = armyUnit.GetComponent<ArmyUnitBrain>();
-
-        if (brain == null)
-            brain = armyUnit.GetComponentInParent<ArmyUnitBrain>();
-
-        if (brain == null)
-            brain = armyUnit.GetComponentInChildren<ArmyUnitBrain>();
-
         return brain != null;
     }
 
@@ -277,12 +234,6 @@ public sealed class CommandSystem : MonoBehaviour
             return false;
 
         armyUnit = selectable.GetComponent<ArmyUnit>();
-
-        if (armyUnit == null)
-            armyUnit = selectable.GetComponentInParent<ArmyUnit>();
-
-        if (armyUnit == null)
-            armyUnit = selectable.GetComponentInChildren<ArmyUnit>();
 
         if (armyUnit == null)
             return false;

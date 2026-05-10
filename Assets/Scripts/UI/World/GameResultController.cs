@@ -3,18 +3,21 @@ using UnityEngine;
 /// <summary>
 /// Следит за уничтожением главных баз и завершает матч
 /// </summary>
-public class GameResultController : MonoBehaviour
+public sealed class GameResultController : ValidatedMonoBehaviour
 {
-    [Header("References")]
-    [SerializeField] private Castle playerCastle;
-    [SerializeField] private Castle enemyCastle;
-    [SerializeField] private GameResultPanel resultPanel;
+    [SerializeField] private Castle _playerCastle;
+    [SerializeField] private Castle _enemyCastle;
+    [SerializeField] private GameResultPanel _resultPanel;
 
-    private bool gameFinished;
+    private bool _gameFinished;
 
-    private void Awake()
+    protected override void Awake()
     {
-        ValidateReferences();
+        base.Awake();
+
+        if (!enabled)
+            return;
+
         Subscribe();
     }
 
@@ -23,48 +26,41 @@ public class GameResultController : MonoBehaviour
         Unsubscribe();
     }
 
-    private void ValidateReferences()
+    protected override bool ValidateInternal()
     {
-        if (playerCastle == null)
-            Debug.LogError($"{name}: Player Castle is not assigned.", this);
+        bool valid = true;
 
-        if (enemyCastle == null)
-            Debug.LogError($"{name}: Enemy Castle is not assigned.", this);
+        valid &= ValidationUtility.IsAssigned(this, _playerCastle, nameof(_playerCastle));
+        valid &= ValidationUtility.IsAssigned(this, _enemyCastle, nameof(_enemyCastle));
+        valid &= ValidationUtility.IsAssigned(this, _resultPanel, nameof(_resultPanel));
 
-        if (resultPanel == null)
-            Debug.LogError($"{name}: GameResultPanel is not assigned.", this);
+        return valid;
     }
 
     private void Subscribe()
     {
-        if (playerCastle != null)
-            playerCastle.OnCastleDestroyed += OnCastleDestroyed;
-
-        if (enemyCastle != null)
-            enemyCastle.OnCastleDestroyed += OnCastleDestroyed;
+        _playerCastle.OnCastleDestroyed += OnCastleDestroyed;
+        _enemyCastle.OnCastleDestroyed += OnCastleDestroyed;
     }
 
     private void Unsubscribe()
     {
-        if (playerCastle != null)
-            playerCastle.OnCastleDestroyed -= OnCastleDestroyed;
-
-        if (enemyCastle != null)
-            enemyCastle.OnCastleDestroyed -= OnCastleDestroyed;
+        _playerCastle.OnCastleDestroyed -= OnCastleDestroyed;
+        _enemyCastle.OnCastleDestroyed -= OnCastleDestroyed;
     }
 
     private void OnCastleDestroyed(Castle destroyedCastle)
     {
-        if (gameFinished || destroyedCastle == null)
+        if (_gameFinished || destroyedCastle == null)
             return;
 
-        if (destroyedCastle == playerCastle)
+        if (destroyedCastle == _playerCastle)
         {
             FinishGame(false);
             return;
         }
 
-        if (destroyedCastle == enemyCastle)
+        if (destroyedCastle == _enemyCastle)
         {
             FinishGame(true);
             return;
@@ -73,13 +69,12 @@ public class GameResultController : MonoBehaviour
 
     private void FinishGame(bool victory)
     {
-        gameFinished = true;
+        _gameFinished = true;
+        Debug.Log("ава");
 
         if (victory)
-            resultPanel?.ShowVictory();
+            _resultPanel.ShowVictory();
         else
-            resultPanel?.ShowDefeat();
-
-        Time.timeScale = 0f;
+            _resultPanel.ShowDefeat();
     }
 }

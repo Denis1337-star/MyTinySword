@@ -4,7 +4,7 @@ using Zenject;
 /// <summary>
 /// Главный installer сцены
 /// </summary>
-public class GameSceneInstaller : MonoInstaller
+public sealed class GameSceneInstaller : MonoInstaller
 {
     [Header("Core Scene Services")]
     [SerializeField] private ResourceStorage _resourceStorage;
@@ -31,24 +31,40 @@ public class GameSceneInstaller : MonoInstaller
 
     public override void InstallBindings()
     {
+        if (!ValidateReferences())
+            return;
+
         BindCoreServices();
         BindRegistries();
         BindSelectionAndCamera();
+        BindInputAndCommands();
         BindUi();
         BindFactories();
-        BindInputAndCommands();
     }
-    private void BindInputAndCommands()
-    {
-        Container.Bind<GameplayInputController>()
-            .FromInstance(_gameplayInputController)
-            .AsSingle()
-            .NonLazy();
 
-        Container.Bind<CommandSystem>()
-            .FromInstance(_commandSystem)
-            .AsSingle()
-            .NonLazy();
+    private bool ValidateReferences()
+    {
+        bool valid = true;
+
+        valid &= ValidationUtility.IsAssigned(this, _resourceStorage, nameof(_resourceStorage));
+
+        valid &= ValidationUtility.IsAssigned(this, _workerRegistry, nameof(_workerRegistry));
+        valid &= ValidationUtility.IsAssigned(this, _resourceRegistry, nameof(_resourceRegistry));
+        valid &= ValidationUtility.IsAssigned(this, _buildingRegistry, nameof(_buildingRegistry));
+        valid &= ValidationUtility.IsAssigned(this, _armyUnitRegistry, nameof(_armyUnitRegistry));
+
+        valid &= ValidationUtility.IsAssigned(this, _selectionSystem, nameof(_selectionSystem));
+        valid &= ValidationUtility.IsAssigned(this, _mainCamera, nameof(_mainCamera));
+        valid &= ValidationUtility.IsAssigned(this, _cameraFocusController, nameof(_cameraFocusController));
+
+        valid &= ValidationUtility.IsAssigned(this, _gameplayInputController, nameof(_gameplayInputController));
+        valid &= ValidationUtility.IsAssigned(this, _commandSystem, nameof(_commandSystem));
+
+        valid &= ValidationUtility.IsAssigned(this, _screenCanvas, nameof(_screenCanvas));
+        valid &= ValidationUtility.IsAssigned(this, _workerListPanel, nameof(_workerListPanel));
+        valid &= ValidationUtility.IsAssigned(this, _selectionUiPresenter, nameof(_selectionUiPresenter));
+
+        return valid;
     }
 
     private void BindCoreServices()
@@ -100,6 +116,19 @@ public class GameSceneInstaller : MonoInstaller
             .NonLazy();
     }
 
+    private void BindInputAndCommands()
+    {
+        Container.Bind<GameplayInputController>()
+            .FromInstance(_gameplayInputController)
+            .AsSingle()
+            .NonLazy();
+
+        Container.Bind<CommandSystem>()
+            .FromInstance(_commandSystem)
+            .AsSingle()
+            .NonLazy();
+    }
+
     private void BindUi()
     {
         Container.Bind<Canvas>()
@@ -109,8 +138,8 @@ public class GameSceneInstaller : MonoInstaller
 
         Container.Bind<SelectionUiPresenter>()
             .FromInstance(_selectionUiPresenter)
-                 .AsSingle()
-                 .NonLazy();
+            .AsSingle()
+            .NonLazy();
 
         Container.Bind<WorkerListPanel>()
             .FromInstance(_workerListPanel)

@@ -9,8 +9,8 @@ using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 /// </summary>
 public sealed class GameplayInputController : MonoBehaviour
 {
-    [SerializeField] private SelectionSystem _selectionSystem;
-    [SerializeField] private CommandSystem _commandSystem;
+    private SelectionSystem _selectionSystem;
+    private CommandSystem _commandSystem;
 
     [Inject]
     private void Construct(
@@ -50,27 +50,18 @@ public sealed class GameplayInputController : MonoBehaviour
     private void HandleGameplayTap(Vector2 screenPosition)
     {
         // Если выбрана армия и игрок тапнул по врагу — это команда атаки
-        if (_commandSystem != null &&
-            _commandSystem.TryAttackSelectedArmyAtScreenPosition(screenPosition))
-        {
+        if (_commandSystem.TryAttackSelectedArmyAtScreenPosition(screenPosition))
             return;
-        }
 
-        // Если под tap есть selectable объект — выбираем его
-        if (_selectionSystem != null &&
-            _selectionSystem.TrySelectAtScreenPosition(screenPosition))
-        {
+        // Если под tap есть selectable объект — выбирает его
+        if (_selectionSystem.TrySelectAtScreenPosition(screenPosition))
             return;
-        }
 
-        // Если selectable объекта нет но выбрана армия — двигаем армию в точку
-        if (_commandSystem != null &&
-            _commandSystem.TryMoveSelectedArmyAtScreenPosition(screenPosition))
-        {
+        // Если selectable объекта нет но выбрана армия — двигает армию в точку
+        if (_commandSystem.TryMoveSelectedArmyAtScreenPosition(screenPosition))
             return;
-        }
 
         // Если это не UI не враг не selectable и не команда армии — очищаем выбор
-        _selectionSystem?.ClearSelection();
+        _selectionSystem.ClearSelection();
     }
 }
