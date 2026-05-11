@@ -1,154 +1,155 @@
+using Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem.EnhancedTouch;
-using Cinemachine;
+
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
-using TouchPhase = UnityEngine.InputSystem.TouchPhase;
 
 /// <summary>
-/// Контроллер ручного управления камерой
-/// Отвечает за pan одним пальцем и zoom двумя пальцами
+/// Управляет ручным перемещением и zoom камеры через touch input
 /// </summary>
-public class CameraController : MonoBehaviour
+public sealed class CameraController : ValidatedMonoBehaviour
 {
-    [Header("Cinemachine")]
-    [SerializeField] private CinemachineVirtualCamera virtualCamera;
+    [SerializeField] private CinemachineVirtualCamera _virtualCamera;
+    [SerializeField] private Transform _cameraTarget;
+    [SerializeField] private float _moveSpeed = 0.001f;
+    [SerializeField] private float _zoomSpeed = 0.01f;
+    [SerializeField, Min(0.1f)] private float _minZoom = 3f;
+    [SerializeField, Min(0.1f)] private float _maxZoom = 12f;
 
-    [Header("Move")]
-    [SerializeField] private float moveSpeed = 0.003f;
+    private float _lastPinchDistance;
 
-    [Header("Zoom")]
-    [SerializeField] private float zoomSpeed = 0.01f;
-    [SerializeField] private float minZoom = 3f;
-    [SerializeField] private float maxZoom = 12f;
+    public bool IsDragging { get; private set; }
 
-    private Vector2 lastTouchPos;   // Последняя позиция пальца для вычисления delta при drag
-    private float lastPinchDist;     // Последняя дистанция между двумя пальцами для pinch zoom
-    private bool isDragging;       // Флаг, показывает, что игрок сейчас действительно тащит камеру вручную
-
-    public bool IsDragging => isDragging;
-
-    private void OnEnable()
+    protected override void Awake()
     {
-        EnhancedTouchSupport.Enable();
-    }
+        base.Awake();
 
-    private void OnDisable()
-    {
-        EnhancedTouchSupport.Disable();
-    }
-    private void OnValidate()
-    {
-        // Не допускаем некорректный диапазон zoom
-        minZoom = Mathf.Max(0.01f, minZoom);
-        maxZoom = Mathf.Max(minZoom, maxZoom);
+        if (!enabled)
+            return;
 
-        moveSpeed = Mathf.Max(0f, moveSpeed);
-        zoomSpeed = Mathf.Max(0f, zoomSpeed);
+        ClampZoomValues();
     }
 
     private void Update()
     {
-        if (virtualCamera == null)
-            return;
-
-        var touches = Touch.activeTouches;
-
-        if (touches.Count == 0)   // Если касаний нет — сбрасываем временное input-состояние
-        {
-            ResetTouchState();
-            return;
-        }
-
-        if (touches.Count >= 2)  // Если касаний нет — сбрасываем временное input-состояние
-        {
-            HandleZoom(touches);
-            return;
-        }
-
-        HandlePan(touches[0]);    // Один палец — ручной drag камеры
+        HandleTouchInput();
     }
 
-    /// <summary>
-    /// Обрабатывает pinch zoom по двум пальцам.
-    /// </summary>
-    private void HandleZoom(System.Collections.Generic.IReadOnlyList<Touch> touches)
+    private void OnValidate()
     {
-        Vector2 p0 = touches[0].screenPosition;
-        Vector2 p1 = touches[1].screenPosition;
-
-        float currentDist = Vector2.Distance(p0, p1);
-
-        // Если это не первый кадр pinch-жеста —
-        // можно вычислить изменение расстояния между пальцами
-        if (lastPinchDist > 0f)
-        {
-            float delta = currentDist - lastPinchDist;
-            Zoom(delta);
-        }
-
-        lastPinchDist = currentDist;
-        isDragging = false;  // Zoom не считаем drag-перемещением камеры
+        ClampZoomValues();
     }
 
-    /// <summary>
-    /// Обрабатывает drag камеры одним пальцем.
-    /// </summary>
-    private void HandlePan(Touch touch)
+    protected override bool ValidateInternal()
     {
-        lastPinchDist = 0f;
+        bool valid = true;
 
-        if (touch.phase == TouchPhase.Began)
+        valid &= ValidationUtility.IsAssigned(this, _virtualCamera, nameof(_virtualCamera));
+        valid &= ValidationUtility.IsAssigned(this, _cameraTarget, nameof(_cameraTarget));
+
+        return valid;
+    }
+
+    private void HandleTouchInput()
+    {
+        IsDragging = false;
+
+        var activeTouches = Touch.activeTouches;
+
+        if (activeTouches.Count == 1)
         {
-            lastTouchPos = touch.screenPosition;
-            isDragging = false;
+            HandleSingleTouch(activeTouches[0]);
             return;
         }
 
-        if (touch.phase == TouchPhase.Moved)
+        if (activeTouches.Count >= 2)
         {
-            Vector2 delta = touch.screenPosition - lastTouchPos;
-
-            if (delta.sqrMagnitude > 0.1f)  // Игнорируем слишком мелкие шумовые движения пальца
-            {
-                isDragging = true;
-                Move(delta);
-            }
-
-            lastTouchPos = touch.screenPosition;
+            HandlePinchZoom(activeTouches[0], activeTouches[1]);
             return;
         }
 
-        if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
-            isDragging = false;
+        _lastPinchDistance = 0f;
     }
 
-    /// <summary>
-    /// Перемещает виртуальную камеру
-    /// Скорость pan масштабируется от текущего zoom,
-    /// чтобы управление ощущалось естественно на разных уровнях приближения
-    /// </summary>
-    private void Move(Vector2 delta)
+    private void HandleSingleTouch(Touch touch)
     {
-        float zoomFactor = virtualCamera.m_Lens.OrthographicSize;
-        Vector3 move = new Vector3(-delta.x, -delta.y, 0f) * moveSpeed * zoomFactor;
+        if (TouchUtility.IsPointerOverUI(touch))
+            return;
 
-        virtualCamera.transform.position += move;
+        if (touch.phase == UnityEngine.InputSystem.TouchPhase.Began)
+            return;
+
+        if (touch.phase != UnityEngine.InputSystem.TouchPhase.Moved)
+            return;
+
+        Vector2 delta = touch.delta;
+
+        if (delta.sqrMagnitude <= 0f)
+            return;
+
+        MoveCamera(delta);
+        IsDragging = true;
     }
-    /// <summary>
-    /// Изменяет orthographic size камеры в допустимых пределах.
-    /// </summary>
-    private void Zoom(float delta)
+
+    private void HandlePinchZoom(Touch firstTouch, Touch secondTouch)
     {
-        float size = virtualCamera.m_Lens.OrthographicSize;
-        size -= delta * zoomSpeed;
-        virtualCamera.m_Lens.OrthographicSize = Mathf.Clamp(size, minZoom, maxZoom);
+        if (TouchUtility.IsPointerOverUI(firstTouch) || TouchUtility.IsPointerOverUI(secondTouch))
+        {
+            _lastPinchDistance = 0f;
+            return;
+        }
+
+        Vector2 firstPosition = firstTouch.screenPosition;
+        Vector2 secondPosition = secondTouch.screenPosition;
+
+        float currentDistance = Vector2.Distance(firstPosition, secondPosition);
+
+        if (_lastPinchDistance <= 0f)
+        {
+            _lastPinchDistance = currentDistance;
+            return;
+        }
+
+        float distanceDelta = currentDistance - _lastPinchDistance;
+        _lastPinchDistance = currentDistance;
+
+        ApplyZoom(distanceDelta);
     }
-    /// <summary>
-    /// Изменяет orthographic size камеры в допустимых пределах.
-    /// </summary>
-    private void ResetTouchState()
+
+    private void MoveCamera(Vector2 screenDelta)
     {
-        isDragging = false;
-        lastPinchDist = 0f;
+        float zoomMultiplier = GetCurrentZoom();
+
+        Vector3 moveDelta = new(
+            -screenDelta.x * _moveSpeed * zoomMultiplier,
+            -screenDelta.y * _moveSpeed * zoomMultiplier,
+            0f);
+
+        _cameraTarget.position += moveDelta;
+    }
+
+    private void ApplyZoom(float distanceDelta)
+    {
+        float currentZoom = _virtualCamera.m_Lens.OrthographicSize;
+        float targetZoom = currentZoom - distanceDelta * _zoomSpeed;
+
+        _virtualCamera.m_Lens.OrthographicSize = Mathf.Clamp(
+            targetZoom,
+            _minZoom,
+            _maxZoom);
+    }
+
+    private float GetCurrentZoom()
+    {
+        return _virtualCamera.m_Lens.OrthographicSize;
+    }
+
+    private void ClampZoomValues()
+    {
+        _moveSpeed = Mathf.Max(0.0001f, _moveSpeed);
+        _zoomSpeed = Mathf.Max(0.0001f, _zoomSpeed);
+
+        _minZoom = Mathf.Max(0.1f, _minZoom);
+        _maxZoom = Mathf.Max(_minZoom, _maxZoom);
     }
 }

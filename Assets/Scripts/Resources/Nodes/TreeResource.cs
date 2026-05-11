@@ -3,74 +3,126 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// Конкретная реализация дерева как ресурса
-/// Поддерживает рубку, визуальное превращение в пень и респавн
+/// Ресурсная точка дерева
 /// </summary>
-public class TreeResource : ResourceNodeBase
+[RequireComponent(typeof(Animator))]
+public sealed class TreeResource : ResourceNodeBase
 {
-    [Header("Config")]
-    [SerializeField] private TreeResourceConfig config;
+    private static readonly int StumpHash = Animator.StringToHash("Stump");
 
-    private Animator animator;
+    [SerializeField] private TreeResourceConfig _config;
 
-    public override Vector2 WorkPosition => GetWorkPosition(null);
-    public override float Priority => config != null ? config.priority : 10f;
+    private Animator _animator;
+    private Coroutine _workRoutine;
 
     protected override void Awake()
     {
-        base.Awake();
-        animator = GetComponent<Animator>();
+        ResolveReferences();
 
-        if (config == null)
-            Debug.LogError($"TreeResource {name}: TreeResourceConfig не назначен.", this);
+        base.Awake();
 
         SetTreeVisual();
     }
 
-    // Запускает конкретную рабочую рутину дерева — рубку
-    protected override void StartWorkRoutine(Action<int> onFinished)
+    protected override void OnDestroy()
     {
-        StartCoroutine(ChopRoutine(onFinished));
+        StopWorkRoutine();
+
+        base.OnDestroy();
+    }
+
+    protected override bool ValidateInternal()
+    {
+        bool valid = base.ValidateInternal();
+
+        valid &= ValidationUtility.IsAssigned(this, _config, nameof(_config));
+        valid &= ValidationUtility.IsAssigned(this, _animator, nameof(_animator));
+
+        if (_config != null && !_config.IsValid())
+        {
+            Debug.LogError($"{name}: TreeResourceConfig некорректный.", this);
+            valid = false;
+        }
+
+        return valid;
     }
 
     /// <summary>
-    /// Логика рубки дерева
-    /// ожидание, выдача награды, смена визуала, ожидание респавна
+    /// Отменяет добычу дерева
     /// </summary>
-    private IEnumerator ChopRoutine(Action<int> callback)
+    public override void CancelWork(Worker worker)
     {
-        float chopTime = config != null ? config.chopTime : 2f;
-        int rewardAmount = config != null ? config.rewardAmount : 3;
-        float respawnTime = config != null ? config.respawnTime : 10f;
+        StopWorkRoutine();
 
-        yield return new WaitForSeconds(chopTime);
+        SetAvailable(true);
 
-        callback?.Invoke(rewardAmount);
+        base.CancelWork(worker);
+
+        SetTreeVisual();
+    }
+
+    protected override void StartWorkRoutine(Action<int> onFinished)
+    {
+        StopWorkRoutine();
+
+        if (_config == null || !_config.IsValid())
+        {
+            SetAvailable(true);
+            onFinished?.Invoke(0);
+            return;
+        }
+
+        _workRoutine = StartCoroutine(WorkRoutine(onFinished));
+    }
+
+    private IEnumerator WorkRoutine(Action<int> onFinished)
+    {
+        yield return new WaitForSeconds(_config.WorkTime);
+
+        onFinished?.Invoke(_config.RewardAmount);
+
         SetStumpVisual();
 
-        yield return new WaitForSeconds(respawnTime);
+        yield return new WaitForSeconds(_config.RespawnTime);
 
         Respawn();
     }
 
-    // Возвращает дерево в доступное состояние после респавна
     private void Respawn()
     {
-        available = true;
+        SetAvailable(true);
+        _workRoutine = null;
+
         SetTreeVisual();
     }
 
-    // Устанавливает визуал обычного дерева
     private void SetTreeVisual()
     {
-        if (animator != null)
-            animator.SetBool("Stump", false);
+        _animator.SetBool(StumpHash, false);
     }
-    // Устанавливает визуал пня после рубки
+
     private void SetStumpVisual()
     {
-        if (animator != null)
-            animator.SetBool("Stump", true);
+        _animator.SetBool(StumpHash, true);
+    }
+
+    private void StopWorkRoutine()
+    {
+        if (_workRoutine == null)
+            return;
+
+        StopCoroutine(_workRoutine);
+        _workRoutine = null;
+    }
+
+    private void ResolveReferences()
+    {
+        if (_animator == null)
+            _animator = GetComponent<Animator>();
+    }
+
+    private void OnValidate()
+    {
+        ResolveReferences();
     }
 }
-

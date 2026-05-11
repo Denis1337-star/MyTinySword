@@ -1,160 +1,141 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Zenject;
 
 /// <summary>
-/// UI-панель выбранного дома.
-/// Показывает лимит worker'ов, стоимость найма,
-/// позволяет нанять нового worker'а и отображает список worker'ов дома.
+/// UI панель дома
 /// </summary>
-public class HousePanel : MonoBehaviour
+public sealed class HousePanel : ValidatedMonoBehaviour
 {
-    [SerializeField] private Text limitText;
-    [SerializeField] private Button hireButton;
-    [SerializeField] private WorkerListPanel workerList;
-    [SerializeField] private Text costText;
+    [SerializeField] private GameObject _root;
+    [SerializeField] private TMP_Text _workersLimitText;
+    [SerializeField] private TMP_Text _hireCostText;
+    [SerializeField] private Button _hireButton;
 
-    // Дом, который сейчас отображает панель
-    private House currentHouse;
+    private House _currentHouse;
+    private WorkerListPanel _workerListPanel;
 
-    // Storage, на который панель подписана в текущий момент
-    private ResourceStorage subscribedStorage;
-
-    private void Awake()
+    [Inject]
+    private void Construct(WorkerListPanel workerListPanel)
     {
-        if (hireButton != null)
-            hireButton.onClick.AddListener(OnHireClicked);
+        _workerListPanel = workerListPanel;
+    }
 
-        // По умолчанию панель скрыта, пока не выбран дом
-        gameObject.SetActive(false);
+    protected override void Awake()
+    {
+        base.Awake();
+
+        if (!enabled)
+            return;
+
+        Hide();
+    }
+
+    private void OnEnable()
+    {
+        _hireButton.onClick.AddListener(HireWorker);
     }
 
     private void OnDisable()
     {
-        Unsubscribe();
+        _hireButton.onClick.RemoveListener(HireWorker);
+        UnsubscribeFromHouse();
     }
 
-    private void OnDestroy()
+    protected override bool ValidateInternal()
     {
-        if (hireButton != null)
-            hireButton.onClick.RemoveListener(OnHireClicked);
+        bool valid = true;
 
-        Unsubscribe();
+        valid &= ValidationUtility.IsAssigned(this, _root, nameof(_root));
+        valid &= ValidationUtility.IsAssigned(this, _workersLimitText, nameof(_workersLimitText));
+        valid &= ValidationUtility.IsAssigned(this, _hireCostText, nameof(_hireCostText));
+        valid &= ValidationUtility.IsAssigned(this, _hireButton, nameof(_hireButton));
+
+        return valid;
     }
 
-    /// <summary>
-    /// Показывает панель для указанного дома.
-    /// </summary>
     public void Show(House house)
     {
         if (house == null)
-            return;
-
-        // Если уже показываем этот же дом — просто обновляем данные
-        if (currentHouse == house && gameObject.activeSelf)
         {
-            Refresh();
+            Hide();
             return;
         }
 
-        Hide();
+        if (_currentHouse == house)
+        {
+            ShowRoot();
+            Refresh();
+            _workerListPanel?.Show(house);
+            return;
+        }
 
-        currentHouse = house;
-        Subscribe();
-        gameObject.SetActive(true);
+        UnsubscribeFromHouse();
 
-        // Привязываем список worker'ов к текущему дому
-        if (workerList != null)
-            workerList.Bind(currentHouse);
+        _currentHouse = house;
+        _currentHouse.OnWorkersChanged += Refresh;
 
+        ShowRoot();
         Refresh();
+
+        _workerListPanel?.Show(house);
     }
 
-    /// <summary>
-    /// Полностью скрывает панель и очищает привязку к текущему дому.
-    /// </summary>
     public void Hide()
     {
-        Unsubscribe();
+        UnsubscribeFromHouse();
 
-        currentHouse = null;
-        gameObject.SetActive(false);
+        _currentHouse = null;
 
-        if (workerList != null)
-            workerList.Bind(null);
+        _workerListPanel?.Hide();
+
+        _root.SetActive(false);
     }
 
-    /// <summary>
-    /// Подписывается на события дома и storage,
-    /// чтобы UI обновлялся автоматически.
-    /// </summary>
-    private void Subscribe()
+    private void HireWorker()
     {
-        if (currentHouse != null)
-            currentHouse.OnWorkersChanged += Refresh;
+        if (_currentHouse == null)
+            return;
 
-        ResourceStorage storage = ResourceStorage.Instance;
-        if (storage != null)
-        {
-            subscribedStorage = storage;
-            subscribedStorage.OnResourcesChanged += Refresh;
-        }
+        _currentHouse.HireWorker();
+        Refresh();
     }
 
-    /// <summary>
-    /// Снимает все текущие подписки панели.
-    /// </summary>
-    private void Unsubscribe()
-    {
-        if (currentHouse != null)
-            currentHouse.OnWorkersChanged -= Refresh;
-
-        if (subscribedStorage != null)
-        {
-            subscribedStorage.OnResourcesChanged -= Refresh;
-            subscribedStorage = null;
-        }
-    }
-
-    /// <summary>
-    /// Обновляет весь UI панели дома.
-    /// </summary>
     private void Refresh()
     {
-        if (currentHouse == null)
-            return;
-
-        if (limitText != null)
-            limitText.text = $"Рабочие: {currentHouse.CurrentWorkers} / {currentHouse.MaxWorkers}";
-
-        ResourceStorage storage = subscribedStorage ?? ResourceStorage.Instance;
-        int currentWood = storage != null ? storage.Wood : 0;
-        int currentGold = storage != null ? storage.Gold : 0;
-
-        if (costText != null)
+        if (_currentHouse == null)
         {
-            costText.text =
-                $"Стоимость найма\n" +
-                $"Дерево: {currentWood} / {currentHouse.CurrentWoodCost}\n" +
-                $"Золото: {currentGold} / {currentHouse.CurrentGoldCost}";
+            ClearText();
+            return;
         }
 
-        // Кнопка активна только если дом действительно может нанять worker'а
-        if (hireButton != null)
-            hireButton.interactable = currentHouse.CanHire();
+        _workersLimitText.text =
+            $"Нанято: {_currentHouse.CurrentWorkers}/{_currentHouse.MaxWorkers}";
 
-        if (workerList != null)
-            workerList.Refresh();
+        _hireCostText.text =
+            $"Стоимость: Дерево {_currentHouse.CurrentWoodCost} / Золото {_currentHouse.CurrentGoldCost}";
+
+        _hireButton.interactable = _currentHouse.CanHire();
     }
 
-    /// <summary>
-    /// Обработчик кнопки найма нового worker'а.
-    /// </summary>
-    public void OnHireClicked()
+    private void ClearText()
     {
-        if (currentHouse == null)
+        _workersLimitText.text = "Нанято: 0/0";
+        _hireCostText.text = "Стоимость: -";
+        _hireButton.interactable = false;
+    }
+
+    private void ShowRoot()
+    {
+        _root.SetActive(true);
+    }
+
+    private void UnsubscribeFromHouse()
+    {
+        if (_currentHouse == null)
             return;
 
-        currentHouse.HireWorker();
-        Refresh();
+        _currentHouse.OnWorkersChanged -= Refresh;
     }
 }

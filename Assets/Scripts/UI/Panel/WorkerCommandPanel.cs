@@ -1,208 +1,202 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// UI-панель выбранного worker'а.
-/// Показывает имя, текущую работу, pending job и текущее состояние,
-/// а также позволяет назначать новую работу через кнопки.
+/// UI панель выбранного worker
 /// </summary>
-public class WorkerCommandPanel : MonoBehaviour
+public sealed class WorkerCommandPanel : ValidatedMonoBehaviour
 {
+    [Header("Job Text")]
+    [SerializeField] private TMP_Text _currentJobText;
+    [SerializeField] private TMP_Text _pendingJobText;
+
     [Header("Buttons")]
-    [SerializeField] private Button chopWoodButton;
-    [SerializeField] private Button mineGoldButton;
-    [SerializeField] private Button huntMeatButton;
+    [SerializeField] private Button _chopWoodButton;
+    [SerializeField] private Button _mineGoldButton;
+    [SerializeField] private Button _huntMeatButton;
 
-    [Header("Services")]
-    [SerializeField] private WorkerCommandService workerCommandService;
+    private Worker _currentWorker;
+    private Worker _subscribedWorker;
 
-    [Header("Info")]
-    [SerializeField] private Text currentJobText;
-    [SerializeField] private Text pendingJobText;
-    [SerializeField] private Text stateText;
-    [SerializeField] private Text workerNameText;
-
-    [Header("Behaviour")]
-    [SerializeField] private bool closeAfterAssign = false;
-
-    private Worker currentWorker;   // Worker, которого сейчас отображает панель
-
-    private void Awake()
+    protected override void Awake()
     {
-        //Подключаем обработчики кнопок
-        if (chopWoodButton != null)
-            chopWoodButton.onClick.AddListener(OnChopWoodClicked);
+        base.Awake();
 
-        if (mineGoldButton != null)
-            mineGoldButton.onClick.AddListener(OnMineGoldClicked);
-
-        if (huntMeatButton != null)
-            huntMeatButton.onClick.AddListener(OnHuntMeatClicked);
+        if (!enabled)
+            return;
 
         gameObject.SetActive(false);
     }
-    /// <summary>
-    /// Показывает панель для указанного worker'а
-    /// </summary>
-    public void ShowForWorker(Worker worker)
+
+    protected override bool ValidateInternal()
     {
-        if (worker == null)
-            return;
+        bool valid = true;
 
-        // Если панель уже открыта для этого worker'а —
-        // просто обновляем отображение
-        if (currentWorker == worker && gameObject.activeSelf)
-        {
-            Refresh();
-            return;
-        }
+        valid &= ValidationUtility.IsAssigned(this, _currentJobText, nameof(_currentJobText));
+        valid &= ValidationUtility.IsAssigned(this, _pendingJobText, nameof(_pendingJobText));
+        valid &= ValidationUtility.IsAssigned(this, _chopWoodButton, nameof(_chopWoodButton));
+        valid &= ValidationUtility.IsAssigned(this, _mineGoldButton, nameof(_mineGoldButton));
+        valid &= ValidationUtility.IsAssigned(this, _huntMeatButton, nameof(_huntMeatButton));
 
-        UnsubscribeFromWorker();
+        return valid;
+    }
 
-        currentWorker = worker;
-        SubscribeToWorker();
-
-        gameObject.SetActive(true);
+    private void OnEnable()
+    {
+        SubscribeButtons();
+        SubscribeToCurrentWorker();
         Refresh();
-    }
-    /// <summary>
-    /// Полностью скрывает панель и снимает подписки с текущего worker'а
-    /// </summary>
-    public void Hide()
-    {
-        UnsubscribeFromWorker();
-        currentWorker = null;
-        gameObject.SetActive(false);
     }
 
     private void OnDisable()
     {
-        UnsubscribeFromWorker();
+        UnsubscribeButtons();
+        UnsubscribeFromCurrentWorker();
     }
-    /// <summary>
-    /// Подписывается на события worker'а,
-    /// чтобы UI автоматически обновлялся при изменениях
-    /// </summary>
-    private void SubscribeToWorker()
+
+    public void ShowForWorker(Worker worker)
     {
-        if (currentWorker == null)
-            return;
-
-        currentWorker.OnJobChanged += Refresh;
-        currentWorker.OnActivityChanged += Refresh;
-    }
-    /// <summary>
-    /// Снимает подписки с текущего worker'а
-    /// </summary>
-    private void UnsubscribeFromWorker()
-    {
-        if (currentWorker == null)
-            return;
-
-        currentWorker.OnJobChanged -= Refresh;
-        currentWorker.OnActivityChanged -= Refresh;
-    }
-    /// <summary>
-    /// Обновляет весь UI панели под текущее состояние worker'а
-    /// </summary>
-    private void Refresh()
-    {
-        if (currentWorker == null)
-            return;
-
-        if (workerNameText != null)
-            workerNameText.text = currentWorker.name;
-
-        if (currentJobText != null)
-            currentJobText.text = $"Текущая работа: {WorkerJobLocalization.GetName(currentWorker.CurrentJob)}";
-
-        if (pendingJobText != null)
+        if (worker == null)
         {
-            string pending = currentWorker.HasPendingJob
-                ? WorkerJobLocalization.GetName(currentWorker.PendingJob)
-                : "Нет";
-
-            pendingJobText.text = $"Следующая работа: {pending}";
+            Hide();
+            return;
         }
 
-        if (stateText != null)
-            stateText.text = $"Состояние: {GetReadableState(currentWorker.CurrentStateName)}";
+        if (_currentWorker != worker)
+        {
+            UnsubscribeFromCurrentWorker();
+            _currentWorker = worker;
 
+            if (gameObject.activeInHierarchy)
+                SubscribeToCurrentWorker();
+        }
+
+        if (!gameObject.activeSelf)
+            gameObject.SetActive(true);
+
+        Refresh();
+    }
+
+    public void Hide()
+    {
+        UnsubscribeFromCurrentWorker();
+
+        _currentWorker = null;
+
+        ClearText();
         RefreshButtons();
-    }
-    /// <summary>
-    /// Обновляет доступность кнопок профессий
-    /// Нельзя повторно назначить уже текущую или уже pending работу
-    /// </summary>
-    private void RefreshButtons()
-    {
-        if (currentWorker == null)
-            return;
 
-        if (chopWoodButton != null)
-        {
-            chopWoodButton.interactable =
-                currentWorker.CurrentJob != WorkerJobType.ChopWood &&
-                currentWorker.PendingJob != WorkerJobType.ChopWood;
-        }
-
-        if (mineGoldButton != null)
-        {
-            mineGoldButton.interactable =
-                currentWorker.CurrentJob != WorkerJobType.MineGold &&
-                currentWorker.PendingJob != WorkerJobType.MineGold;
-        }
-
-        if (huntMeatButton != null)
-        {
-            huntMeatButton.interactable =
-                currentWorker.CurrentJob != WorkerJobType.HuntMeat &&
-                currentWorker.PendingJob != WorkerJobType.HuntMeat;
-        }
+        if (gameObject.activeSelf)
+            gameObject.SetActive(false);
     }
 
-    private string GetReadableState(string stateName)
-    {
-        return stateName switch
-        {
-            nameof(WorkerIdleState) => "Ожидает",
-            nameof(WorkerFindResourceState) => "Ищет ресурс",
-            nameof(WorkerGoToResourceState) => "Идёт к ресурсу",
-            nameof(WorkerWorkState) => "Работает",
-            nameof(WorkerCarryState) => "Несёт ресурс",
-            _ => stateName
-        };
-    }
-
-    public void OnChopWoodClicked()
+    private void OnChopWoodClicked()
     {
         AssignJob(WorkerJobType.ChopWood);
     }
 
-    public void OnMineGoldClicked()
+    private void OnMineGoldClicked()
     {
         AssignJob(WorkerJobType.MineGold);
     }
 
-    public void OnHuntMeatClicked()
+    private void OnHuntMeatClicked()
     {
         AssignJob(WorkerJobType.HuntMeat);
     }
-    /// <summary>
-    /// Передаёт команду назначения новой работы выбранному worker'у
-    /// </summary>
+
     private void AssignJob(WorkerJobType job)
     {
-        if (currentWorker == null || workerCommandService == null)
+        if (_currentWorker == null)
             return;
 
-        bool assigned = workerCommandService.TryAssignJob(currentWorker, job);
-        if (!assigned)
-            return;
-
+        _currentWorker.AssignJob(job);
         Refresh();
+    }
 
-        if (closeAfterAssign)
-            Hide();
+    private void Refresh()
+    {
+        if (_currentWorker == null)
+        {
+            ClearText();
+            RefreshButtons();
+            return;
+        }
+
+        _currentJobText.text =
+            $"Текущая работа: {WorkerJobLocalization.GetName(_currentWorker.CurrentJob)}";
+
+        _pendingJobText.text = _currentWorker.HasPendingJob
+            ? $"Следующая работа: {WorkerJobLocalization.GetName(_currentWorker.PendingJob)}"
+            : "Следующая работа: нет";
+
+        RefreshButtons();
+    }
+
+    private void RefreshButtons()
+    {
+        _chopWoodButton.interactable = CanSelectJob(WorkerJobType.ChopWood);
+        _mineGoldButton.interactable = CanSelectJob(WorkerJobType.MineGold);
+        _huntMeatButton.interactable = CanSelectJob(WorkerJobType.HuntMeat);
+    }
+
+    private bool CanSelectJob(WorkerJobType job)
+    {
+        if (_currentWorker == null)
+            return false;
+
+        if (_currentWorker.CurrentJob == job && !_currentWorker.HasPendingJob)
+            return false;
+
+        if (_currentWorker.PendingJob == job)
+            return false;
+
+        return true;
+    }
+
+    private void ClearText()
+    {
+        _currentJobText.text = "Текущая работа: нет";
+        _pendingJobText.text = "Следующая работа: нет";
+    }
+
+    private void SubscribeButtons()
+    {
+        _chopWoodButton.onClick.AddListener(OnChopWoodClicked);
+        _mineGoldButton.onClick.AddListener(OnMineGoldClicked);
+        _huntMeatButton.onClick.AddListener(OnHuntMeatClicked);
+    }
+
+    private void UnsubscribeButtons()
+    {
+        _chopWoodButton.onClick.RemoveListener(OnChopWoodClicked);
+        _mineGoldButton.onClick.RemoveListener(OnMineGoldClicked);
+        _huntMeatButton.onClick.RemoveListener(OnHuntMeatClicked);
+    }
+
+    private void SubscribeToCurrentWorker()
+    {
+        if (_currentWorker == null)
+            return;
+
+        if (_subscribedWorker == _currentWorker)
+            return;
+
+        _currentWorker.OnJobChanged += Refresh;
+        _currentWorker.OnActivityChanged += Refresh;
+
+        _subscribedWorker = _currentWorker;
+    }
+
+    private void UnsubscribeFromCurrentWorker()
+    {
+        if (_subscribedWorker == null)
+            return;
+
+        _subscribedWorker.OnJobChanged -= Refresh;
+        _subscribedWorker.OnActivityChanged -= Refresh;
+
+        _subscribedWorker = null;
     }
 }

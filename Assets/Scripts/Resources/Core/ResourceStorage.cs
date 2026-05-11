@@ -2,111 +2,100 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// √лобальное хранилище ресурсов игрока
-/// ’ранит текущее количество дерева, золота и м€са
-/// а также уведомл€ет подписчиков при изменении значений
+/// ÷ентральное хранилище ресурсов 
 /// </summary>
-public class ResourceStorage : MonoBehaviour
+public sealed class ResourceStorage : MonoBehaviour
 {
-    public static ResourceStorage Instance { get; private set; }   // √лобальна€ точка доступа к общему хранилищу ресурсов
+    [SerializeField, Min(0)] private int _wood;
+    [SerializeField, Min(0)] private int _gold;
+    [SerializeField, Min(0)] private int _meat;
 
-    public event Action OnResourcesChanged;   // —обытие вызываетс€ каждый раз, когда количество ресурсов изменилось
+    public event Action ResourcesChanged;
 
-    [Header("Current Resources")]
-    [SerializeField] private int wood;
-    [SerializeField] private int gold;
-    [SerializeField] private int meat;
+    public int Wood => _wood;
+    public int Gold => _gold;
+    public int Meat => _meat;
 
-    // ѕубличный доступ только на чтение
-    public int Wood => wood;
-    public int Gold => gold;
-    public int Meat => meat;
-
-    private void Awake()
+    /// <summary>
+    /// ¬озвращает текущее количество конкретного ресурса
+    /// </summary>
+    public int GetAmount(ResourceType resourceType)
     {
-        if (Instance != null && Instance != this)
+        return resourceType switch
         {
-            Destroy(gameObject);
+            ResourceType.Wood => _wood,
+            ResourceType.Gold => _gold,
+            ResourceType.Meat => _meat,
+            _ => 0
+        };
+    }
+
+    /// <summary>
+    /// ƒобавл€ет ресурс в хранилище
+    /// </summary>
+    public void AddResource(ResourceType resourceType, int amount)
+    {
+        if (amount <= 0)
             return;
+
+        bool changed = true;
+
+        switch (resourceType)
+        {
+            case ResourceType.Wood:
+                _wood += amount;
+                break;
+
+            case ResourceType.Gold:
+                _gold += amount;
+                break;
+
+            case ResourceType.Meat:
+                _meat += amount;
+                break;
+
+            case ResourceType.None:
+            default:
+                changed = false;
+                Debug.LogWarning($"{name}: попытка добавить неизвестный ресурс {resourceType}.", this);
+                break;
         }
 
-        Instance = this;
-
-        wood = Mathf.Max(0, wood);
-        gold = Mathf.Max(0, gold);
-        meat = Mathf.Max(0, meat);
-    }
-
-    private void Start()
-    {
-        OnResourcesChanged?.Invoke();
-    }
-
-    public void AddWood(int amount)
-    {
-        if (amount <= 0)
-            return;
-
-        wood += amount;
-        OnResourcesChanged?.Invoke();
-    }
-
-    public void AddGold(int amount)
-    {
-        if (amount <= 0)
-            return;
-
-        gold += amount;
-        OnResourcesChanged?.Invoke();
-    }
-
-    public void AddMeat(int amount)
-    {
-        if (amount <= 0)
-            return;
-
-        meat += amount;
-        OnResourcesChanged?.Invoke();
+        if (changed)
+            NotifyResourcesChanged();
     }
 
     /// <summary>
-    /// ѕровер€ет, хватает ли дерева и золота на действие
+    /// ѕровер€ет хватает ли ресурсов
     /// </summary>
-    public bool HasResources(int requiredWood, int requiredGold)
+    public bool HasResources(int woodCost, int goldCost, int meatCost)
     {
-        requiredWood = Mathf.Max(0, requiredWood);
-        requiredGold = Mathf.Max(0, requiredGold);
-
-        return wood >= requiredWood && gold >= requiredGold;
-    }
-
-    /// <summary>
-    /// ѕытаетс€ списать дерево и золото
-    /// </summary>
-    public bool TrySpendResources(int spendWood, int spendGold)
-    {
-        spendWood = Mathf.Max(0, spendWood);
-        spendGold = Mathf.Max(0, spendGold);
-
-        if (!HasResources(spendWood, spendGold))
+        if (woodCost < 0 || goldCost < 0 || meatCost < 0)
             return false;
 
-        wood -= spendWood;
-        gold -= spendGold;
-        OnResourcesChanged?.Invoke();
+        return _wood >= woodCost &&
+               _gold >= goldCost &&
+               _meat >= meatCost;
+    }
+
+    /// <summary>
+    /// списывает ресурсы
+    /// </summary>
+    public bool TrySpendResources(int woodCost, int goldCost, int meatCost)
+    {
+        if (!HasResources(woodCost, goldCost, meatCost))
+            return false;
+
+        _wood -= woodCost;
+        _gold -= goldCost;
+        _meat -= meatCost;
+
+        NotifyResourcesChanged();
         return true;
     }
 
-    /// <summary>
-    /// ѕолностью устанавливает новые значени€ ресурсов
-    /// ѕолезно дл€ отладки, тестов или загрузки сохранений
-    /// </summary>
-    public void SetResources(int newWood, int newGold, int newMeat)
+    private void NotifyResourcesChanged()
     {
-        wood = Mathf.Max(0, newWood);
-        gold = Mathf.Max(0, newGold);
-        meat = Mathf.Max(0, newMeat);
-        OnResourcesChanged?.Invoke();
+        ResourcesChanged?.Invoke();
     }
 }
-

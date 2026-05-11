@@ -1,81 +1,202 @@
-using UnityEngine;
-using UnityEngine.InputSystem.EnhancedTouch;
 using Cinemachine;
-using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
+using UnityEngine;
+using Zenject;
 
 /// <summary>
-///  онтроллер follow-фокуса камеры.
-/// ”правл€ет тем, за каким target должна следовать Cinemachine-камера,
-/// и снимает фокус, если игрок начинает вручную двигать камеру.
+/// ”правл€ет focus режимом камеры
 /// </summary>
-public class CameraFocusController : MonoBehaviour
+public sealed class CameraFocusController : ValidatedMonoBehaviour
 {
-    [SerializeField] private CinemachineVirtualCamera virtualCamera;
-    [SerializeField] private CameraController cameraController;
+    [SerializeField] private CinemachineVirtualCamera _virtualCamera;
+    [SerializeField] private CameraController _cameraController;
+    [SerializeField] private Transform _defaultFollowTarget;
+    [SerializeField] private bool _cancelFocusOnManualDrag = true;
 
-    public bool HasFocus => virtualCamera != null && virtualCamera.Follow != null;
+    private SelectionSystem _selectionSystem;
 
-    private void Awake()
+    private Transform _currentFocusTarget;
+    private bool _hasFocus;
+    private bool _isSubscribed;
+
+    public bool HasFocus => _hasFocus;
+    public Transform CurrentFocusTarget => _currentFocusTarget;
+
+    [Inject]
+    private void Construct(SelectionSystem selectionSystem)
     {
-        ResolveReferences();
+        _selectionSystem = selectionSystem;
     }
 
-    private void OnValidate()
+    protected override void Awake()
     {
-        ResolveReferences();
+        CacheDefaultFollowTargetIfNeeded();
+
+        base.Awake();
     }
-    /// <summary>
-    /// ѕытаетс€ восстановить отсутствующие ссылки.
-    /// </summary>
-    private void ResolveReferences()
+
+    private void OnEnable()
     {
-        if (cameraController == null)
-            cameraController = FindObjectOfType<CameraController>(true);
+        Subscribe();
     }
 
     private void Update()
     {
-        // ≈сли игрок вручную двигает камеру по игровому миру,
-        // считаем это €вным выходом из режима follow-фокуса
-        if (cameraController != null && cameraController.IsDragging && !IsPointerOverUI())
-            CancelFocus();
+        if (!_hasFocus)
+            return;
+
+        if (!_cancelFocusOnManualDrag)
+            return;
+
+        if (!_cameraController.IsDragging)
+            return;
+
+        CancelFocus();
     }
 
-    /// <summary>
-    /// ѕереводит камеру в режим follow на указанную цель.
-    /// </summary>
+    private void OnDisable()
+    {
+        Unsubscribe();
+    }
+
+    private void OnValidate()
+    {
+        CacheDefaultFollowTargetIfNeeded();
+    }
+
+    protected override bool ValidateInternal()
+    {
+        bool valid = true;
+
+        valid &= ValidationUtility.IsAssigned(this, _virtualCamera, nameof(_virtualCamera));
+        valid &= ValidationUtility.IsAssigned(this, _cameraController, nameof(_cameraController));
+        valid &= ValidationUtility.IsAssigned(this, _defaultFollowTarget, nameof(_defaultFollowTarget));
+
+        return valid;
+    }
+
     public void FocusOn(Transform target)
     {
-        if (virtualCamera == null || target == null)
+        if (target == null)
             return;
 
-        virtualCamera.Follow = target;
+        _currentFocusTarget = target;
+        _hasFocus = true;
+
+        _virtualCamera.Follow = target;
     }
-    /// <summary>
-    /// ѕереводит камеру в режим follow на указанную цель.
-    /// </summary>
+
     public void CancelFocus()
     {
-        if (virtualCamera == null)
+        if (!_hasFocus)
             return;
 
-        virtualCamera.Follow = null;
-    }
-    /// <summary>
-    /// ѕровер€ет, находитс€ ли хот€ бы одно активное касание поверх UI.
-    /// ≈сли да, drag по UI не должен отмен€ть фокус камеры.
-    /// </summary>
-    private bool IsPointerOverUI()
-    {
-        if (Touch.activeTouches.Count == 0)
-            return false;
+        SyncDefaultTargetWithCameraPosition();
 
-        foreach (var touch in Touch.activeTouches)
+        _currentFocusTarget = null;
+        _hasFocus = false;
+
+        _virtualCamera.Follow = _defaultFollowTarget;
+    }
+
+    private void Subscribe()
+    {
+        if (_isSubscribed)
+            return;
+
+        if (_selectionSystem == null)
+            return;
+
+        _selectionSystem.SelectionChanged += HandleSelectionChanged;
+        _selectionSystem.SelectionCleared += HandleSelectionCleared;
+
+        _isSubscribed = true;
+
+        RefreshFromCurrentSelection();
+    }
+
+    private void Unsubscribe()
+    {
+        if (!_isSubscribed)
+            return;
+
+        if (_selectionSystem != null)
         {
-            if (TouchUtility.IsPointerOverUI(touch))
-                return true;
+            _selectionSystem.SelectionChanged -= HandleSelectionChanged;
+            _selectionSystem.SelectionCleared -= HandleSelectionCleared;
         }
 
-        return false;
+        _isSubscribed = false;
+    }
+
+    private void RefreshFromCurrentSelection()
+    {
+        if (_selectionSystem == null)
+        {
+            CancelFocus();
+            return;
+        }
+
+        UnitSelectable currentSelection = _selectionSystem.CurrentSelection;
+
+        if (currentSelection == null)
+        {
+            CancelFocus();
+            return;
+        }
+
+        HandleSelectionChanged(currentSelection);
+    }
+
+    private void HandleSelectionChanged(UnitSelectable selectable)
+    {
+        if (selectable == null)
+        {
+            CancelFocus();
+            return;
+        }
+
+        Worker worker = FindWorkerNearSelectable(selectable);
+
+        if (worker == null)
+        {
+            CancelFocus();
+            return;
+        }
+
+        FocusOn(worker.transform);
+    }
+
+    private void HandleSelectionCleared()
+    {
+        CancelFocus();
+    }
+
+    private Worker FindWorkerNearSelectable(UnitSelectable selectable)
+    {
+        if (selectable == null)
+            return null;
+
+        return selectable.GetComponent<Worker>();
+    }
+
+    private void SyncDefaultTargetWithCameraPosition()
+    {
+        Vector3 cameraPosition = _virtualCamera.transform.position;
+
+        _defaultFollowTarget.position = new Vector3(
+            cameraPosition.x,
+            cameraPosition.y,
+            _defaultFollowTarget.position.z);
+    }
+
+    private void CacheDefaultFollowTargetIfNeeded()
+    {
+        if (_defaultFollowTarget != null)
+            return;
+
+        if (_virtualCamera == null)
+            return;
+
+        _defaultFollowTarget = _virtualCamera.Follow;
     }
 }

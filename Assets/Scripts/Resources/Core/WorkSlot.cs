@@ -1,44 +1,42 @@
 using UnityEngine;
 
 /// <summary>
-/// Рабочий слот у ресурса
-/// Позволяет одному worker зарезервировать точку для подхода и работы
+/// Рабочий слот у ресурсной точки
 /// </summary>
-public class WorkSlot : MonoBehaviour
+public sealed class WorkSlot : MonoBehaviour
 {
-    private Worker reservedBy;  // Worker, который сейчас владеет этим слотом
+    private Worker _reservedBy;
 
-    public bool IsFree   // Свободен ли слот
-    {
-        get { return reservedBy == null; }
-    }
-    public Vector2 Position => transform.position;  // Свободен ли слот.
+    public bool IsFree => _reservedBy == null;
+    public Vector2 Position => transform.position;
 
-    /// <summary>
-    /// Пытается зарезервировать слот за worker
-    /// Возвращает true, если слот свободен или уже принадлежит этому worker
-    /// </summary>
     public bool TryReserve(Worker worker)
     {
-        if (reservedBy == null)
+        if (worker == null)
+            return false;
+
+        if (_reservedBy == null)
         {
-            reservedBy = worker;
+            _reservedBy = worker;
             return true;
         }
 
-        return reservedBy == worker;
+        return _reservedBy == worker;
     }
 
-    // Проверяет, принадлежит ли слот конкретному worker
     public bool IsReservedBy(Worker worker)
     {
-        return reservedBy == worker;
+        return worker != null && _reservedBy == worker;
     }
 
-    // Освобождает слот, если его вызывает текущий владелец
     public void Release(Worker worker)
     {
-        if (reservedBy == worker)
-            reservedBy = null;
+        if (worker == null)
+            return;
+
+        if (_reservedBy != worker)
+            return;
+
+        _reservedBy = null;
     }
 }

@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc87717ca49cc1048916e69c20e0da99, type: 3}
   m_Name: House Config
   m_EditorClassIdentifier: 
-  maxWorkers: 5
-  startWorkers: 1
-  baseWoodCost: 5
-  baseGoldCost: 2
-  woodIncreasePerWorker: 2
-  goldIncreasePerWorker: 1
+  _startWorkers: 1
+  _maxWorkers: 5
+  _baseWoodCost: 10
+  _baseGoldCost: 10
+  _woodIncreasePerWorker: 2
+  _goldIncreasePerWorker: 2

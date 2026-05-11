@@ -3,30 +3,28 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// Конкретная реализация золотого ресурса
-/// Золото растёт со временем, а размер влияет на награду
+/// Ресурсная точка золота
 /// </summary>
-public class GoldResource : ResourceNodeBase
+[RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(SpriteRenderer))]
+public sealed class GoldResource : ResourceNodeBase
 {
-    [Header("Config")]
-    [SerializeField] private GoldResourceConfig config;
+    private static readonly int SizeHash = Animator.StringToHash("Size");
 
-    private Animator animator;
-    private SpriteRenderer sprite;
-    private ResourceSize size = ResourceSize.Tiny;
-    private Coroutine growRoutine;
+    [SerializeField] private GoldResourceConfig _config;
 
-    public override float Priority => config != null ? config.priority : 8f;
-    public override Vector2 WorkPosition => GetWorkPosition(null);
+    private Animator _animator;
+    private SpriteRenderer _spriteRenderer;
+
+    private ResourceSize _size = ResourceSize.Tiny;
+    private Coroutine _growRoutine;
+    private Coroutine _workRoutine;
 
     protected override void Awake()
     {
-        base.Awake();
-        sprite = GetComponent<SpriteRenderer>();
-        animator = GetComponent<Animator>();
+        ResolveReferences();
 
-        if (config == null)
-            Debug.LogError($"GoldResource {name}: GoldResourceConfig не назначен.", this);
+        base.Awake();
 
         UpdateVisual();
     }
@@ -34,78 +32,160 @@ public class GoldResource : ResourceNodeBase
     protected override void Start()
     {
         base.Start();
-        growRoutine = StartCoroutine(GrowRoutine());
+
+        StartGrowRoutine();
     }
 
-    /// <summary>
-    /// Запускает рутину добычи золота
-    /// Перед началом добычи останавливает рост ресурса
-    /// </summary>
+    protected override void OnDestroy()
+    {
+        StopGrowRoutine();
+        StopWorkRoutine();
+
+        base.OnDestroy();
+    }
+
+    protected override bool ValidateInternal()
+    {
+        bool valid = base.ValidateInternal();
+
+        valid &= ValidationUtility.IsAssigned(this, _config, nameof(_config));
+        valid &= ValidationUtility.IsAssigned(this, _animator, nameof(_animator));
+        valid &= ValidationUtility.IsAssigned(this, _spriteRenderer, nameof(_spriteRenderer));
+
+        if (_config != null && !_config.IsValid())
+        {
+            Debug.LogError($"{name}: GoldResourceConfig некорректный.", this);
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    public override void CancelWork(Worker worker)
+    {
+        StopWorkRoutine();
+
+        SetAvailable(true);
+
+        base.CancelWork(worker);
+
+        SetVisible(true);
+        UpdateVisual();
+        StartGrowRoutine();
+    }
+
     protected override void StartWorkRoutine(Action<int> onFinished)
     {
-        if (growRoutine != null)
-            StopCoroutine(growRoutine);
+        StopGrowRoutine();
+        StopWorkRoutine();
 
-        StartCoroutine(MineRoutine(onFinished));
+        if (_config == null || !_config.IsValid())
+        {
+            SetAvailable(true);
+            onFinished?.Invoke(0);
+            return;
+        }
+
+        _workRoutine = StartCoroutine(WorkRoutine(onFinished));
     }
 
-    /// <summary>
-    /// Запускает рутину добычи золота
-    /// Перед началом добычи останавливает рост ресурса
-    /// </summary>
-    private IEnumerator MineRoutine(Action<int> callback)
+    private IEnumerator WorkRoutine(Action<int> onFinished)
     {
-        float mineTime = config != null ? config.mineTime : 3f;
-        float respawnTime = config != null ? config.respawnTime : 15f;
+        yield return new WaitForSeconds(_config.WorkTime);
 
-        yield return new WaitForSeconds(mineTime);
+        int amount = Mathf.Max(1, (int)_size);
 
-        int amount = (int)size;
+        SetVisible(false);
 
-        if (sprite != null)
-            sprite.enabled = false;
+        onFinished?.Invoke(amount);
 
-        callback?.Invoke(amount);
-
-        yield return new WaitForSeconds(respawnTime);
+        yield return new WaitForSeconds(_config.RespawnTime);
 
         Respawn();
     }
 
-    // Возвращает золото в исходное состояние и снова запускает рост
-    private void Respawn()
-    {
-        available = true;
-        size = ResourceSize.Tiny;
-
-        sprite.enabled = true;
-        UpdateVisual();
-        growRoutine = StartCoroutine(GrowRoutine());
-    }
-
-    // Постепенно увеличивает размер золота, пока ресурс доступен
     private IEnumerator GrowRoutine()
     {
-        float growInterval = config != null ? config.growInterval : 5f;
-
-        while (available)
+        while (IsAvailable)
         {
-            yield return new WaitForSeconds(growInterval);
+            yield return new WaitForSeconds(_config.GrowInterval);
 
-            if (size < ResourceSize.Giant)
-            {
-                size++;
-                UpdateVisual();
-            }
+            if (_size >= ResourceSize.Giant)
+                continue;
+
+            _size++;
+            UpdateVisual();
         }
+
+        _growRoutine = null;
     }
 
-    // Постепенно увеличивает размер золота, пока ресурс доступен
+    private void Respawn()
+    {
+        SetAvailable(true);
+
+        _size = ResourceSize.Tiny;
+        _workRoutine = null;
+
+        SetVisible(true);
+        UpdateVisual();
+        StartGrowRoutine();
+    }
+
+    private void StartGrowRoutine()
+    {
+        StopGrowRoutine();
+
+        if (_config == null || !_config.IsValid())
+            return;
+
+        if (!IsAvailable)
+            return;
+
+        _growRoutine = StartCoroutine(GrowRoutine());
+    }
+
+    private void StopGrowRoutine()
+    {
+        if (_growRoutine == null)
+            return;
+
+        StopCoroutine(_growRoutine);
+        _growRoutine = null;
+    }
+
+    private void StopWorkRoutine()
+    {
+        if (_workRoutine == null)
+            return;
+
+        StopCoroutine(_workRoutine);
+        _workRoutine = null;
+    }
+
     private void UpdateVisual()
     {
-        int index = Mathf.Max(0, (int)size - 1);
+        int sizeIndex = Mathf.Max(0, (int)_size - 1);
 
-        if (animator != null)
-            animator.SetInteger("Size", index);
+        _animator.SetInteger(SizeHash, sizeIndex);
+    }
+
+    private void SetVisible(bool value)
+    {
+        _spriteRenderer.enabled = value;
+    }
+
+    private void ResolveReferences()
+    {
+        if (_animator == null)
+            _animator = GetComponent<Animator>();
+
+        if (_spriteRenderer == null)
+            _spriteRenderer = GetComponent<SpriteRenderer>();
+    }
+
+    private void OnValidate()
+    {
+        ResolveReferences();
     }
 }

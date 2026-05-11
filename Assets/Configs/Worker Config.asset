@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a731f25519ed4f479f00b3b8ae50055, type: 3}
   m_Name: Worker Config
   m_EditorClassIdentifier: 
-  reachResourceDistance: 0.3
-  maxWorkDistance: 0.35
+  _reachResourceDistance: 0.5
+  _maxWorkDistance: 0.5

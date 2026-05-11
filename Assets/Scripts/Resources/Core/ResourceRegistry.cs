@@ -2,43 +2,73 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Общий реестр всех ресурсов на сцене
-/// Позволяет worker-системе находить доступные ресурсы через единый список
+/// Реестр всех  ресурсных точек на сцене
 /// </summary>
-public class ResourceRegistry : MonoBehaviour
+public sealed class ResourceRegistry : MonoBehaviour
 {
-    public static ResourceRegistry Instance { get; private set; }
+    private readonly List<ResourceNodeBase> _nodes = new();
 
-    private readonly List<IResourceNode> nodes = new();  // Внутренний список зарегистрированных ресурсов
-    public IReadOnlyList<IResourceNode> Nodes => nodes;  // Публичный доступ к списку ресурсов только для чтения
+    public IReadOnlyList<ResourceNodeBase> Nodes => _nodes;
+    public int Count => _nodes.Count;
 
-    private void Awake()
+    public void Register(ResourceNodeBase node)
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
+        if (node == null)
             return;
+
+        if (_nodes.Contains(node))
+            return;
+
+        _nodes.Add(node);
+    }
+
+    public void Unregister(ResourceNodeBase node)
+    {
+        if (node == null)
+            return;
+
+        _nodes.Remove(node);
+    }
+
+    /// <summary>
+    /// Ищет ближайший доступный ресурс конкретного типа
+    /// </summary>
+    public T FindBest<T>(Vector2 from) where T : ResourceNodeBase
+    {
+        T bestResource = null;
+        float bestSqrDistance = float.MaxValue;
+
+        for (int i = 0; i < _nodes.Count; i++)
+        {
+            ResourceNodeBase node = _nodes[i];
+
+            if (node == null)
+                continue;
+
+            if (node is not T resource)
+                continue;
+
+            if (!resource.IsAvailable)
+                continue;
+
+            if (!resource.HasFreeSlot())
+                continue;
+
+            float sqrDistance = GetSqrDistanceToResource(resource, from);
+
+            if (sqrDistance >= bestSqrDistance)
+                continue;
+
+            bestSqrDistance = sqrDistance;
+            bestResource = resource;
         }
 
-        Instance = this;
+        return bestResource;
     }
 
-    // Регистрирует ресурс в общем списке
-    public void Register(IResourceNode node)
+    private static float GetSqrDistanceToResource(ResourceNodeBase resource, Vector2 from)
     {
-        if (node == null)
-            return;
-
-        if (!nodes.Contains(node))
-            nodes.Add(node);
-    }
-
-    // Регистрирует ресурс в общем списке
-    public void Unregister(IResourceNode node)
-    {
-        if (node == null)
-            return;
-
-        nodes.Remove(node);
+        Vector2 workPosition = resource.GetWorkPosition(null);
+        return (workPosition - from).sqrMagnitude;
     }
 }
