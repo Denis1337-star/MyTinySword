@@ -1,212 +1,564 @@
 # MyTinySword
 
-RTS-подобная игра на Unity (Android), в которой реализована система рабочих (Worker AI), добычи ресурсов и базовой экономики.
+![Unity](https://img.shields.io/badge/Unity-2D%20RTS-black?style=for-the-badge&logo=unity)
+![C#](https://img.shields.io/badge/C%23-Gameplay%20Architecture-68217A?style=for-the-badge&logo=csharp)
+![Android](https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android)
+![Zenject](https://img.shields.io/badge/DI-Zenject%20%2F%20Extenject-blue?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Active%20Prototype-orange?style=for-the-badge)
 
-Проект сфокусирован не на контенте, а на **архитектуре, масштабируемости и чистоте кода**.  
-Основная цель — продемонстрировать навыки построения игровых систем и работы с паттернами проектирования.
+**MyTinySword** — 2D RTS-прототип на Unity под Android.
 
-![WorldMap](Docs/WorldMap.jpg)
----
-## Геймплей
+Проект разрабатывается с нуля с упором на **архитектуру игровых систем**, **масштабируемость**, **чистый C# код**, разделение ответственности и постепенный переход к production-like структуре через **Zenject / Extenject**, фабрики, реестры, ScriptableObject-конфиги и событийное обновление UI.
 
-Игрок управляет рабочими (Worker), которые:
-
-- находят ресурсы (дерево, золото, овцы)
-- добывают их
-- переносят на базу
-- участвуют в экономике
-
-Цикл поведения рабочего:
-
-Idle → FindResource → GoToResource → Work → Carry → Unload → Idle
-
-https://github.com/user-attachments/assets/5bcb050b-01f7-4155-8b7e-e9263924de65
+В проекте реализованы рабочие юниты, добыча ресурсов, строительство зданий, производство армии, выбор объектов, команды движения и атаки, базовая боевая система, UI-панели, управление камерой и внедрение зависимостей.
 
 ---
 
-# Скриншоты
+## Содержание
 
-![Screenshot](Docs/NavMeshMap.jpg)
-
-![Screenshot](Docs/Hierarchy.jpg)
-
----
-
-##  Архитектура проекта
-
-Ниже представлена архитектурная схема, отражающая основные системы и их взаимодействие:
-
-![Architecture](./Docs/arhitectury.jpg)
-
-Проект построен на принципах:
-
-- разделения ответственности (SRP)
-- композиции вместо наследования
-- слабой связанности систем
-- расширяемости без изменения существующего кода
-
-###  Общая идея архитектуры
-
-В центре системы находится `Worker` — основная игровая сущность, которая координирует поведение, перемещение и взаимодействие с игровым миром.
-
-Архитектура построена на разделении ответственности и композиции, где каждая подсистема отвечает за свою узкую задачу.
+- [Краткое описание геймплея](#краткое-описание-геймплея)
+- [Технологии](#технологии)
+- [Общая архитектура](#общая-архитектура)
+- [Архитектурные блоки](#архитектурные-блоки)
+  - [1. Config / Data](#1-config--data)
+  - [2. Input / Selection](#2-input--selection)
+  - [3. Camera](#3-camera)
+  - [4. Resource](#4-resource)
+  - [5. Worker](#5-worker)
+  - [6. Buildings](#6-buildings)
+  - [7. Army](#7-army)
+  - [8. Combat](#8-combat)
+  - [9. UI](#9-ui)
+  - [10. Installer / Zenject](#10-installer--zenject)
+- [Используемые архитектурные подходы](#используемые-архитектурные-подходы)
+- [Android / Performance](#android--performance)
+- [Реализовано сейчас](#реализовано-сейчас)
+- [Структура проекта](#структура-проекта)
+- [Статус проекта](#статус-проекта)
 
 ---
 
-###  Внутреннее устройство Worker
 
-Worker не является монолитным классом и состоит из набора компонентов:
+## Краткое описание геймплея
 
-- `WorkerStateMachine` — управляет текущим состоянием  
-- `WorkerBrain` — принимает решения и выбирает поведение  
-- `UnitMovement` — отвечает за перемещение  
-- `WorkerInventory` — хранит переносимые ресурсы  
-- `WorkerAnimator` — синхронизирует визуальное состояние  
+Игрок может:
 
-Такой подход упрощает поддержку и делает систему расширяемой.
-
----
-
-###  Система состояний (State Machine)
-
-Поведение Worker разбито на независимые состояния:
-
-- Idle  
-- FindResource  
-- GoToResource  
-- Work  
-- Carry  
-- Unload  
-
-Каждое состояние отвечает только за одну фазу поведения, что соответствует принципу Single Responsibility.
+- выбирать рабочих, здания, строительные слоты и боевых юнитов;
+- назначать рабочим задачи: рубка дерева, добыча золота, охота за мясом;
+- собирать ресурсы и доставлять их в базу;
+- строить здания через строительные слоты;
+- нанимать рабочих в доме;
+- производить боевых юнитов в производственных зданиях;
+- выбирать группу армии;
+- отдавать армии команды движения и атаки;
+- сражаться с врагами через melee, ranged, healer и tower-логику.
 
 ---
 
-###  Job System (Strategy)
+## Технологии
 
-Логика работы вынесена в отдельные классы:
-
-- ChopWoodJob  
-- MineGoldJob  
-- HuntMeatJob  
-
-Worker не содержит логики добычи — он использует `IWorkerJob`, что позволяет легко добавлять новые типы работ без изменения существующего кода.
-
----
-
-###  Взаимодействие с ресурсами
-
-Worker взаимодействует с миром через `ResourceSystem`:
-
-- поиск подходящего ресурса  
-- резервирование `WorkSlot`  
-- выполнение работы  
-
-Система слотов предотвращает ситуацию, когда несколько worker’ов работают с одним и тем же ресурсом.
+| Область | Используется |
+|---|---|
+| Engine | Unity |
+| Язык | C# |
+| Платформа | Android |
+| Dependency Injection | Zenject / Extenject |
+| Реактивность / события | UniRx, C# events |
+| Навигация | NavMesh / NavMeshPlus |
+| Камера | Cinemachine |
+| Уровень | Tilemap / RuleTiles |
+| UI | Unity UI, TextMeshPro |
+| Контроль версий | Git / GitHub |
 
 ---
 
-###  Экономика и перенос ресурсов
+## Общая архитектура
 
-Процесс передачи ресурсов разделён на этапы:
+Проект разделён на независимые игровые блоки:
 
-1. Worker добывает ресурс  
-2. Сохраняет его в `WorkerInventory`  
-3. Передаёт через `ResourceDepositService`  
-4. Ресурс попадает в `ResourceStorage`  
+```text
+Config / Data
+Input / Selection
+Camera
+Resource
+Worker
+Buildings
+Army
+Combat
+UI
+Installer / Zenject
+```
 
-Worker не знает, куда именно складываются ресурсы — это инкапсулировано в сервисе.
+Каждый блок отвечает за свою область и взаимодействует с другими системами через:
 
----
+- события;
+- интерфейсы;
+- реестры;
+- фабрики;
+- ScriptableObject-конфиги;
+- внедрение зависимостей через Zenject / Extenject.
 
-###  Инфраструктурный слой
-
-Дополнительные системы обеспечивают работу архитектуры:
-
-- `GameServices` — доступ к глобальным системам  
-- `WorkerRegistry` — хранит всех worker’ов  
-- `ResourceRegistry` — хранит ресурсы на сцене  
-- `Configs & Validation` — конфигурация и защита от ошибок  
-
----
-
-###  Итог
-
-Такая архитектура позволяет:
-
-- легко добавлять новые типы ресурсов и работ  
-- масштабировать поведение worker’ов  
-- поддерживать код без усложнения логики  
-- изолировать системы друг от друга  
+![Общая архитектура](Docs/Game_architecture.png)
 
 ---
 
-##  Использованные паттерны
-
-### State Pattern
-Используется в WorkerStateMachine  
-Разделяет поведение на независимые состояния.
-
-### Strategy Pattern
-Используется в IWorkerJob  
-Позволяет менять поведение без изменения системы.
-
-### Service Locator
-Реализован через GameServices  
-Обеспечивает доступ к глобальным системам.
-
-### Registry Pattern
-Используется для хранения сущностей (Worker, Resource)
+## Архитектурные блоки
 
 ---
 
-##  Принципы ООП
+## 1. Config / Data
 
-### Single Responsibility Principle
-Каждый класс отвечает за одну задачу:
-- State → поведение
-- Job → логика работы
-- Worker → координация
+Данные игры вынесены в ScriptableObject-конфиги.  
+Runtime-классы не хранят баланс напрямую, а читают параметры из конфигов.
 
-### Open/Closed Principle
-Можно добавлять новые Job или Resource без изменения существующего кода.
+Основные классы:
 
-### Encapsulation
-Внутренние детали Worker скрыты за методами:
-- StartFindingResource()
-- EnterWorkState()
+- `BaseConfig`
+- `WorkerConfig`
+- `HouseConfig`
+- `BuildingConfig`
+- `UnitConfig`
+- `MeleeUnitConfig`
+- `RangedUnitConfig`
+- `HealerUnitConfig`
+- `ResourceConfig`
+- `TreeResourceConfig`
+- `GoldResourceConfig`
+- `SheepResourceConfig`
 
-### Composition over Inheritance
-Worker собирается из компонентов, а не наследуется.
+Такой подход позволяет менять баланс игры через Inspector без изменения gameplay-кода.
 
----
-
-##  Оптимизация (Android)
-
-- использование NavMeshAgent (2D режим)
-- минимизация Update логики
-- разделение логики по состояниям
-- контроль перерасчёта пути (repath timer)
+![Config Architecture](Docs/Config_architecture.png)
 
 ---
 
-##  Recent Improvements
+## 2. Input / Selection
 
-- проведён полный рефакторинг Worker AI
-- разделены State и Job системы
-- добавлена система WorkSlot (резервация)
-- введён Service Layer для экономики
-- улучшена стабильность поведения worker’ов
-- добавлена валидация компонентов
+Блок ввода отвечает за touch-input, фильтрацию UI, выбор объектов и выдачу команд армии.
+
+Основные классы:
+
+- `TouchUtility`
+- `GameplayInputController`
+- `SelectionSystem`
+- `UnitSelectable`
+- `CommandSystem`
+- `SelectionUiPresenter`
+
+Основной поток:
+
+```text
+Tap
+→ UI Check
+→ Select Object
+→ Command Army
+→ Update UI / Camera Focus
+```
+
+`GameplayInputController` является центральной точкой обработки touch-ввода.  
+`SelectionSystem` хранит текущий выбор, а `CommandSystem` отдаёт выбранной армии команды движения или атаки.
+
+![Input Architecture](Docs/Input_architecture.png)
 
 ---
 
-##  Цель проекта
+## 3. Camera
 
-Продемонстрировать:
+Блок камеры отвечает за ручное перемещение, zoom и фокус на выбранных объектах.
 
-- архитектурное мышление
-- умение строить масштабируемые системы
-- знание паттернов проектирования
-- чистый и поддерживаемый код
+Основные классы:
 
+- `CameraController`
+- `CameraFocusController`
+
+Особенности:
+
+- ручной drag камеры;
+- масштабирование камеры;
+- ограничение zoom;
+- фокус на выбранном объекте;
+- отмена auto-follow при ручном перемещении камеры;
+- использование Cinemachine.
+
+![Camera Architecture](Docs/Camera_architecture.png)
+
+---
+
+## 4. Resource
+
+Ресурсная система отвечает за хранение ресурсов, ресурсные точки, поиск доступного ресурса, резерв рабочих мест и обновление UI.
+
+Основные классы:
+
+- `ResourceStorage`
+- `ResourceStorageView`
+- `ResourceRegistry`
+- `ResourceNodeBase`
+- `TreeResource`
+- `GoldResource`
+- `SheepResource`
+- `WorkSlot`
+- `WorkerResourceSelector`
+
+Ресурсы:
+
+```text
+Wood
+Gold
+Meat
+```
+
+Основной поток добычи:
+
+```text
+Worker получает job
+→ ищет ресурс через ResourceRegistry
+→ резервирует WorkSlot
+→ идёт к ресурсу
+→ добывает ресурс
+→ кладёт ресурс в WorkerInventory
+→ несёт ресурс домой
+→ добавляет ресурс в ResourceStorage
+→ UI обновляется
+```
+
+![Resource Architecture](Docs/Resource_architecture.png)
+
+---
+
+## 5. Worker
+
+Рабочий построен не как один большой монолитный класс, а как набор связанных компонентов:
+
+- сущность рабочего;
+- мозг;
+- state machine;
+- inventory;
+- jobs;
+- animator;
+- selector ресурсов.
+
+Основные классы:
+
+- `Worker`
+- `WorkerBrain`
+- `WorkerStateMachine`
+- `WorkerInventory`
+- `WorkerAnimator`
+- `WorkerResourceSelector`
+- `IWorkerJob`
+- `ChopWoodJob`
+- `MineGoldJob`
+- `HuntMeatJob`
+
+Состояния рабочего:
+
+```text
+Idle
+FindResource
+GoToResource
+Work
+Carry
+```
+
+Цикл поведения:
+
+```text
+Idle
+→ FindResource
+→ GoToResource
+→ Work
+→ Carry
+→ Idle / FindResource
+```
+
+Работы реализованы через Strategy-подход:
+
+```text
+IWorkerJob
+├── ChopWoodJob
+├── MineGoldJob
+└── HuntMeatJob
+```
+
+Это позволяет добавлять новые типы работ без переписывания всей логики рабочего.
+
+![Worker Architecture](Docs/Worker_architecture.png)
+
+---
+
+## 6. Buildings
+
+Блок зданий отвечает за строительство, базовые здания, производственные здания, дом, башню и правила уникальных построек.
+
+Основные классы:
+
+- `BuildingBase`
+- `BuildingConfig`
+- `ConstructionSlot`
+- `ConstructionSite`
+- `BuildingFactory`
+- `BuildingRegistry`
+- `House`
+- `ProductionBuildingBase`
+- `Castle`
+- `Tower`
+
+Основной поток строительства:
+
+```text
+Игрок выбирает ConstructionSlot
+→ открывается ConstructionPanel
+→ выбирается BuildingConfig
+→ списываются ресурсы
+→ создаётся ConstructionSite
+→ идёт прогресс строительства
+→ BuildingFactory создаёт готовое здание
+→ BuildingRegistry обновляет состояние здания
+```
+
+`BuildingRegistry` следит за уникальными зданиями, чтобы нельзя было построить больше одного здания с ограничением `UniqueBuilding`.
+
+![Buildings Architecture](Docs/Buildings_architecture.png)
+
+---
+
+## 7. Army
+
+Блок армии отвечает за создание боевых юнитов, регистрацию армии, выбор группы, движение и поведение юнитов.
+
+Основные классы:
+
+- `ArmyUnit`
+- `ArmyUnitBrain`
+- `ArmyTargetFinder`
+- `ArmyUnitCombat`
+- `ArmyUnitFactory`
+- `ArmyUnitRegistry`
+- `UnitMovement`
+- `UnitAnimatorBridge`
+
+Типы юнитов:
+
+```text
+Warrior
+Archer
+Healer
+```
+
+Конфиги юнитов:
+
+- `MeleeUnitConfig`
+- `RangedUnitConfig`
+- `HealerUnitConfig`
+
+Основной поток:
+
+```text
+ProductionBuildingBase ставит юнита в очередь
+→ ArmyUnitFactory создаёт ArmyUnit
+→ ArmyUnit регистрируется в ArmyUnitRegistry
+→ SelectionSystem выбирает армию
+→ CommandSystem отдаёт приказ
+→ ArmyUnitBrain выполняет поведение
+→ ArmyUnitCombat атакует или лечит
+```
+
+![Army Architecture](Docs/Army_architecture.png)
+
+---
+
+## 8. Combat
+
+Боевая система отвечает за здоровье, урон, лечение, поиск целей, приоритеты, снаряды, башни и результат боя.
+
+Основные классы:
+
+- `Health`
+- `IDamageable`
+- `FactionMember`
+- `CombatTargetInfo`
+- `TargetPriorityType`
+- `ArmyTargetFinder`
+- `ArmyUnitCombat`
+- `ProjectileArrow`
+- `Tower`
+- `GameResultController`
+- `GameResultPanel`
+
+Боевая логика поддерживает:
+
+- melee-атаку;
+- ranged-атаку через `ProjectileArrow`;
+- лечение союзников;
+- авто-поиск целей;
+- приоритет целей;
+- tower-атаку;
+- победу / поражение через уничтожение Castle.
+
+Основной поток боя:
+
+```text
+Search Target
+→ Validate Faction / Priority
+→ Attack or Heal
+→ Projectile / Direct Hit
+→ Health Update
+→ Death Event
+→ UI / Game Result
+```
+
+![Combat Architecture](Docs/Combat_architecture.png)
+
+---
+
+## 9. UI
+
+UI отделён от основной gameplay-логики.  
+Он реагирует на состояние игры, выбор объектов и события систем.
+
+Основные классы:
+
+- `SelectionUiPresenter`
+- `ResourceStorageView`
+- `WorkerCommandPanel`
+- `HousePanel`
+- `WorkerListPanel`
+- `WorkerListItem`
+- `ProductionBuildingPanel`
+- `ArmySelectionPanel`
+- `ArmySelectionItem`
+- `ConstructionPanel`
+- `ConstructionOptionItem`
+- `GameResultPanel`
+- `HealthBarSpawner`
+- `HealthBarView`
+- `WorldHealthBarAnchor`
+- `MainMenuController`
+
+`SelectionUiPresenter` выступает как UI-router:
+
+```text
+Worker selected → WorkerCommandPanel
+House selected → HousePanel
+ProductionBuildingBase selected → ProductionBuildingPanel
+Army selected → ArmySelectionPanel
+ConstructionSlot selected → ConstructionPanel
+```
+
+UI не управляет игровой логикой напрямую.  
+Он показывает данные и отправляет команды в соответствующие gameplay-системы.
+
+![UI Architecture](Docs/UI_architecture.png)
+
+---
+
+## 10. Installer / Zenject
+
+Проект использует Zenject / Extenject для настройки зависимостей между системами.
+
+Основной класс:
+
+- `GameSceneInstaller`
+
+Через Installer связываются:
+
+- `ResourceStorage`
+- `WorkerRegistry`
+- `ResourceRegistry`
+- `BuildingRegistry`
+- `ArmyUnitRegistry`
+- `SelectionSystem`
+- `CommandSystem`
+- `CameraFocusController`
+- `WorkerListPanel`
+- `SelectionUiPresenter`
+- `WorkerFactory`
+- `BuildingFactory`
+- `ArmyUnitFactory`
+
+Фабрики создают runtime-объекты через DI-контейнер:
+
+```text
+WorkerFactory → Worker
+BuildingFactory → ConstructionSite / Building
+ArmyUnitFactory → ArmyUnit
+```
+
+Это позволяет создаваемым объектам получать зависимости через `[Inject]`.
+
+
+---
+
+## Используемые архитектурные подходы
+
+| Подход | Где используется |
+|---|---|
+| State Machine | Поведение Worker и ArmyUnit |
+| Strategy | Работы рабочего через `IWorkerJob` |
+| Factory | Создание Worker, Building, ArmyUnit |
+| Registry | Учёт Worker, ResourceNode, Building, ArmyUnit |
+| Dependency Injection | Zenject / Extenject |
+| Event-driven UI | Обновление UI через события |
+| Composition | Сущности собраны из маленьких компонентов |
+| ScriptableObject Data | Баланс и настройки вынесены в конфиги |
+
+---
+
+## Android / Performance
+
+Проект учитывает мобильную платформу:
+
+- touch-first input;
+- фильтрация UI перед gameplay-вводом;
+- `NonAlloc` physics queries для выбора и поиска целей;
+- кэширование ссылок;
+- отказ от лишних `FindObjectOfType`;
+- реестры вместо хаотичного поиска объектов;
+- фабрики для контролируемого создания runtime-объектов;
+- разделение логики по состояниям;
+- контроль лишних runtime-зависимостей;
+- уменьшение лишних аллокаций в часто вызываемых местах.
+
+---
+
+## Реализовано сейчас
+
+- Touch-input под Android
+- Выбор объектов,рабочих, зданий, строительных слотов, армии
+- Команды движения,атаки армии
+- Worker AI через state machine
+- Добыча дерева, золота и охота на овец
+- Инвентарь рабочего и доставка ресурсов домой
+- Центральное хранилище ресурсов
+- HUD ресурсов
+- Найм рабочих
+- Строительство зданий
+- Производство боевых юнитов
+- Реестр, лимит армии
+- Melee, Ranged, Healer, Tower combat
+- Health system
+- HP bars над объектами
+- Победа / поражение
+- Camera drag / zoom ,focus
+- Zenject installer
+- Runtime factories
+- ScriptableObject configs
+
+---
+
+## Статус проекта
+
+Планируемые улучшения:
+
+- добавить звуковое сопровождение в игре;
+- сделать первый уровень Tutorial;
+- добавить больше уровней
+- сделать дерево развития
+- квестовую историю 
+- улучшить визуальный feedback;
+- расширить типы зданий и юнитов;
+- улучшить enemy AI;
+- добавить wave-систему;
+
+---
