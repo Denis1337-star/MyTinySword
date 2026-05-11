@@ -1,11 +1,5 @@
 # MyTinySword
 
-![Unity](https://img.shields.io/badge/Unity-2D%20RTS-black?style=for-the-badge&logo=unity)
-![C#](https://img.shields.io/badge/C%23-Gameplay%20Architecture-68217A?style=for-the-badge&logo=csharp)
-![Android](https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android)
-![Zenject](https://img.shields.io/badge/DI-Zenject%20%2F%20Extenject-blue?style=for-the-badge)
-![Status](https://img.shields.io/badge/Status-Active%20Prototype-orange?style=for-the-badge)
-
 **MyTinySword** — 2D RTS-прототип на Unity под Android.
 
 Проект разрабатывается с нуля с упором на **архитектуру игровых систем**, **масштабируемость**, **чистый C# код**, разделение ответственности и постепенный переход к production-like структуре через **Zenject / Extenject**, фабрики, реестры, ScriptableObject-конфиги и событийное обновление UI.
@@ -180,7 +174,7 @@ Tap
 - отмена auto-follow при ручном перемещении камеры;
 - использование Cinemachine.
 
-![Camera Architecture](Docs/Camera_architecture.png)
+![Camera Architecture](Docs/сamera_architecture.png)
 
 ---
 
@@ -319,7 +313,7 @@ IWorkerJob
 
 `BuildingRegistry` следит за уникальными зданиями, чтобы нельзя было построить больше одного здания с ограничением `UniqueBuilding`.
 
-![Buildings Architecture](Docs/Buildings_architecture.png)
+![Buildings Architecture](Docs/Buldings_architecture.png)
 
 ---
 
