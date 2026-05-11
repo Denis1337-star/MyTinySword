@@ -1,3 +1,4 @@
+
 # MyTinySword
 
 **MyTinySword** — 2D RTS-прототип на Unity под Android.
@@ -35,6 +36,8 @@
 
 ## Краткое описание геймплея
 
+https://github.com/user-attachments/assets/56568f65-4bf9-42af-8910-d71f75036c83
+
 Игрок может:
 
 - выбирать рабочих, здания, строительные слоты и боевых юнитов;
@@ -46,6 +49,8 @@
 - выбирать группу армии;
 - отдавать армии команды движения и атаки;
 - сражаться с врагами через melee, ranged, healer и tower-логику.
+
+https://github.com/user-attachments/assets/60037a2c-d134-4689-ad30-3ab36f1206bd
 
 ---
 
