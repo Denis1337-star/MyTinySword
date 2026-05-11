@@ -174,7 +174,7 @@ Tap
 - отмена auto-follow при ручном перемещении камеры;
 - использование Cinemachine.
 
-![Camera Architecture](Docs/сamera_architecture.png)
+![Camera Architecture](Docs/camera_architecture.png)
 
 ---
 
