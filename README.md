@@ -38,10 +38,6 @@
 
 https://github.com/user-attachments/assets/56568f65-4bf9-42af-8910-d71f75036c83
 
-
-https://github.com/user-attachments/assets/cacc9978-b922-4e4b-ab6c-f3f548f39105
-
-
 Игрок может:
 
 - выбирать рабочих, здания, строительные слоты и боевых юнитов;
@@ -55,6 +51,7 @@ https://github.com/user-attachments/assets/cacc9978-b922-4e4b-ab6c-f3f548f39105
 - сражаться с врагами через melee, ranged, healer и tower-логику.
 
 https://github.com/user-attachments/assets/60037a2c-d134-4689-ad30-3ab36f1206bd
+
 ---
 
 ## Технологии
