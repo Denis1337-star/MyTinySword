@@ -69,7 +69,7 @@ https://github.com/user-attachments/assets/60037a2c-d134-4689-ad30-3ab36f1206bd
 | UI | Unity UI, TextMeshPro |
 | Контроль версий | Git / GitHub |
 
-!GameMap](Docs/MapGame.png)
+![GameMap](Docs/MapGame.png)
 
 ---
 
