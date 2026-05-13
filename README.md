@@ -69,6 +69,8 @@ https://github.com/user-attachments/assets/60037a2c-d134-4689-ad30-3ab36f1206bd
 | UI | Unity UI, TextMeshPro |
 | Контроль версий | Git / GitHub |
 
+![GameMap](Docs/MapGame.png)
+
 ---
 
 ## Общая архитектура
@@ -518,6 +520,8 @@ ArmyUnitFactory → ArmyUnit
 - разделение логики по состояниям;
 - контроль лишних runtime-зависимостей;
 - уменьшение лишних аллокаций в часто вызываемых местах.
+
+  ![HierachyUnity](Docs/HierachyUnity.png)
 
 ---
 
