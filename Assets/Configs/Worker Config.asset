@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Worker Config
   m_EditorClassIdentifier: 
   _reachResourceDistance: 0.5
-  _maxWorkDistance: 0.5
+  _maxWorkDistance: 1.5
