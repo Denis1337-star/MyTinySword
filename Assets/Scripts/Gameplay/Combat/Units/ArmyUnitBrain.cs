@@ -145,32 +145,13 @@ public sealed class ArmyUnitBrain : MonoBehaviour
 
     private void UpdateMove()
     {
-        if (_unit.Config.UnitType == ArmyUnitType.Healer)
-        {
-            Health ally = _targetFinder.FindLowestHealthAllyUnit();
+        if (_unit.Movement.HasTarget)
+            return;
 
-            if (ally != null)
-            {
-                StartHeal(ally, true);
-                return;
-            }
-        }
-        else
-        {
-            Health enemy = _targetFinder.FindNearestEnemyTarget();
+        _hasCommandedMoveTarget = false;
+        _returnToMoveAfterCombat = false;
 
-            if (enemy != null)
-            {
-                StartAttack(enemy, true);
-                return;
-            }
-        }
-
-        if (!_unit.Movement.HasTarget)
-        {
-            _hasCommandedMoveTarget = false;
-            _state = BrainState.Idle;
-        }
+        _state = BrainState.Idle;
     }
 
     private void UpdateAttack()

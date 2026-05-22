@@ -131,7 +131,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 2, y: 3}
+    oldSize: {x: 2, y: 4}
     newSize: {x: 2, y: 3}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -170,7 +170,7 @@ MonoBehaviour:
   factionMember: {fileID: 1435012739113869488}
   health: {fileID: 7606855515729946697}
   selectable: {fileID: 7192985443726976149}
-  _houseConfig: {fileID: 11400000, guid: e578381acf1390e47bd9bd49568a46e3, type: 2}
+  _houseConfig: {fileID: 11400000, guid: 74dc8a191090ec149bc2b2a3b4eee769, type: 2}
   _spawnPoint: {fileID: 1492884252047116931}
   _dropPoint: {fileID: 1924322427756946528}
   _idlePointsRoot: {fileID: 9043028756338710659}

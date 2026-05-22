@@ -22,11 +22,6 @@ public sealed class WorkerCommandPanel : ValidatedMonoBehaviour
     protected override void Awake()
     {
         base.Awake();
-
-        if (!enabled)
-            return;
-
-        gameObject.SetActive(false);
     }
 
     protected override bool ValidateInternal()

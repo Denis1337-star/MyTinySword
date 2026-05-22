@@ -12,34 +12,37 @@ public sealed class HousePanel : ValidatedMonoBehaviour
     [SerializeField] private TMP_Text _workersLimitText;
     [SerializeField] private TMP_Text _hireCostText;
     [SerializeField] private Button _hireButton;
+    [SerializeField] private Button _demolishButton;
 
     private House _currentHouse;
     private WorkerListPanel _workerListPanel;
+    private SelectionSystem _selectionSystem;
 
     [Inject]
-    private void Construct(WorkerListPanel workerListPanel)
+    private void Construct(
+        WorkerListPanel workerListPanel,
+        SelectionSystem selectionSystem)
     {
         _workerListPanel = workerListPanel;
+        _selectionSystem = selectionSystem;
     }
 
     protected override void Awake()
     {
         base.Awake();
-
-        if (!enabled)
-            return;
-
-        Hide();
     }
 
     private void OnEnable()
     {
         _hireButton.onClick.AddListener(HireWorker);
+        _demolishButton.onClick.AddListener(DemolishHouse);
     }
 
     private void OnDisable()
     {
         _hireButton.onClick.RemoveListener(HireWorker);
+        _demolishButton.onClick.RemoveListener(DemolishHouse);
+
         UnsubscribeFromHouse();
     }
 
@@ -51,6 +54,7 @@ public sealed class HousePanel : ValidatedMonoBehaviour
         valid &= ValidationUtility.IsAssigned(this, _workersLimitText, nameof(_workersLimitText));
         valid &= ValidationUtility.IsAssigned(this, _hireCostText, nameof(_hireCostText));
         valid &= ValidationUtility.IsAssigned(this, _hireButton, nameof(_hireButton));
+        valid &= ValidationUtility.IsAssigned(this, _demolishButton, nameof(_demolishButton));
 
         return valid;
     }
@@ -90,7 +94,8 @@ public sealed class HousePanel : ValidatedMonoBehaviour
 
         _workerListPanel?.Hide();
 
-        _root.SetActive(false);
+        ClearText();
+        HideRoot();
     }
 
     private void HireWorker()
@@ -100,6 +105,21 @@ public sealed class HousePanel : ValidatedMonoBehaviour
 
         _currentHouse.HireWorker();
         Refresh();
+    }
+
+    private void DemolishHouse()
+    {
+        if (_currentHouse == null)
+            return;
+
+        House house = _currentHouse;
+
+        if (_selectionSystem != null)
+            _selectionSystem.ClearSelection();
+        else
+            Hide();
+
+        house.Demolish();
     }
 
     private void Refresh()
@@ -117,18 +137,26 @@ public sealed class HousePanel : ValidatedMonoBehaviour
             $"Стоимость: Дерево {_currentHouse.CurrentWoodCost} / Золото {_currentHouse.CurrentGoldCost}";
 
         _hireButton.interactable = _currentHouse.CanHire();
+        _demolishButton.interactable = true;
     }
 
     private void ClearText()
     {
         _workersLimitText.text = "Нанято: 0/0";
         _hireCostText.text = "Стоимость: -";
+
         _hireButton.interactable = false;
+        _demolishButton.interactable = false;
     }
 
     private void ShowRoot()
     {
         _root.SetActive(true);
+    }
+
+    private void HideRoot()
+    {
+        _root.SetActive(false);
     }
 
     private void UnsubscribeFromHouse()

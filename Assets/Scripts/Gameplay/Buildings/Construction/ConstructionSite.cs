@@ -19,8 +19,10 @@ public sealed class ConstructionSite : MonoBehaviour
     public float Progress01 => _buildTime > 0f ? Mathf.Clamp01(_progress / _buildTime) : 1f;
     public BuildingConfig Config => _config;
 
-    public void Initialize(ConstructionSlot slot,
-       BuildingConfig config,BuildingRegistry buildingRegistry,
+    public void Initialize(
+        ConstructionSlot slot,
+        BuildingConfig config,
+        BuildingRegistry buildingRegistry,
         BuildingFactory buildingFactory)
     {
         _slot = slot;
@@ -28,7 +30,7 @@ public sealed class ConstructionSite : MonoBehaviour
         _buildingRegistry = buildingRegistry;
         _buildingFactory = buildingFactory;
 
-        _buildTime =  config.BuildTime;
+        _buildTime = config.BuildTime;
         _progress = 0f;
         _finished = false;
         _completionAttempted = false;
@@ -64,23 +66,45 @@ public sealed class ConstructionSite : MonoBehaviour
 
         _completionAttempted = true;
 
-
         GameObject building = _buildingFactory.CreateBuilding(
-            _config.BuildingPrefab,
-            transform.position,
-            Quaternion.identity);
+            _config.BuildingPrefab,transform.position, Quaternion.identity);
 
         if (building == null)
         {
-            Debug.LogError($"{name}: не удалось создать здание из BuildingConfig \"{_config.name}\".", this);
+            Debug.LogError(
+                $"{name}: не удалось создать здание из BuildingConfig \"{_config.name}\".",
+                this);
+
             return;
         }
+
+        AttachSlotToBuilding(building);
 
         _finished = true;
 
         _buildingRegistry?.RegisterBuilt(_config);
 
         NotifySlotAndDestroy();
+    }
+
+    private void AttachSlotToBuilding(GameObject building)
+    {
+        if (building == null)
+            return;
+
+        BuildingBase buildingBase = building.GetComponent<BuildingBase>();
+
+        if (buildingBase == null)
+        {
+            Debug.LogError(
+                $"{name}: созданное здание \"{building.name}\" не имеет BuildingBase. " +
+                "Слот не сможет вернуться после сноса здания.",
+                building);
+
+            return;
+        }
+
+        buildingBase.AttachConstructionSlot(_slot);
     }
 
     private void NotifySlotAndDestroy()

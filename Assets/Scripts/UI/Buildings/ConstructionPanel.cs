@@ -34,11 +34,6 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
     protected override void Awake()
     {
         base.Awake();
-
-        if (!enabled)
-            return;
-
-        Hide();
     }
 
     private void OnEnable()
@@ -96,7 +91,7 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
         ClearOptions();
         ClearInfo();
 
-        _root.SetActive(false);
+        HideRoot();
     }
 
     private void BuildOptions(IReadOnlyList<BuildingConfig> configs)
@@ -167,12 +162,29 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
         _descriptionText.text = _selectedConfig.Description;
         _buildTimeText.text = $"Строится: {_selectedConfig.BuildTime:0.#} секунд";
 
+        RefreshCostText();
+
+        _previewImage.sprite = _selectedConfig.Icon;
+    }
+
+    private void RefreshCostText()
+    {
+        if (_selectedConfig == null)
+        {
+            _costText.text = "Стоимость: -";
+            return;
+        }
+
+        if (_currentSlot != null && _currentSlot.IsUniqueBuildingBlocked(_selectedConfig))
+        {
+            _costText.text = $"{_selectedConfig.DisplayName} уже построено";
+            return;
+        }
+
         _costText.text =
             $"Стоимость\n" +
             $"Wood: {_resourceStorage.Wood}/{_selectedConfig.WoodCost}\n" +
             $"Gold: {_resourceStorage.Gold}/{_selectedConfig.GoldCost}";
-
-        _previewImage.sprite = _selectedConfig.Icon;
     }
 
     private void RefreshBuildButton()
@@ -239,5 +251,10 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
     private void ShowRoot()
     {
         _root.SetActive(true);
+    }
+
+    private void HideRoot()
+    {
+        _root.SetActive(false);
     }
 }

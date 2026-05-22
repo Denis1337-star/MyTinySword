@@ -17,6 +17,9 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
     [SerializeField] protected UnitSelectable selectable;
 
     private BuildingRegistry _buildingRegistry;
+    private ConstructionSlot _sourceSlot;
+
+    private bool _isDestroying;
 
     public BuildingConfig Config => config;
     public FactionMember FactionMember => factionMember;
@@ -75,9 +78,25 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
         return valid;
     }
 
+    public void AttachConstructionSlot(ConstructionSlot slot)
+    {
+        _sourceSlot = slot;
+    }
+
+    public void Demolish()
+    {
+        HandleDeath();
+    }
+
     protected virtual void HandleDeath()
     {
+        if (_isDestroying)
+            return;
+
+        _isDestroying = true;
+
         UnregisterUniqueBuilding();
+        RestoreSourceSlot();
 
         Destroy(gameObject);
     }
@@ -96,20 +115,24 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
 
     private void ApplyConfig()
     {
-        if (config == null || health == null)
-            return;
 
         health.Initialize(config.MaxHealth);
     }
 
     private void UnregisterUniqueBuilding()
     {
-        if (config == null)
-            return;
-
         if (!config.UniqueBuilding)
             return;
 
         _buildingRegistry?.UnregisterBuilt(config);
+    }
+
+    private void RestoreSourceSlot()
+    {
+        if (_sourceSlot == null)
+            return;
+
+        _sourceSlot.Restore();
+        _sourceSlot = null;
     }
 }

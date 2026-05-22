@@ -354,12 +354,12 @@ MonoBehaviour:
   factionMember: {fileID: 3524884102509011108}
   health: {fileID: 8677523627141579955}
   selectable: {fileID: 748494553534682044}
-  _attackRange: 0.1
-  _attackCooldown: 0.1
-  _damage: 0
-  _arrowPrefab: {fileID: 0}
-  _arrowSpeed: 0.1
-  _shootPoint: {fileID: 0}
+  _attackRange: 7
+  _attackCooldown: 1
+  _damage: 50
+  _arrowPrefab: {fileID: 6472706310641818473, guid: 320f7acb16abced41bc445b4db6a34de, type: 3}
+  _arrowSpeed: 5
+  _shootPoint: {fileID: 2792711758207421911}
 --- !u!114 &3817347480993764764
 MonoBehaviour:
   m_ObjectHideFlags: 0

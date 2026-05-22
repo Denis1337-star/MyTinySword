@@ -10,6 +10,7 @@ public sealed class CommandSystem : MonoBehaviour
     private const int MaxTargetHits = 32;
 
     [SerializeField] private LayerMask _targetLayerMask = ~0;
+    [SerializeField] private MoveCommandIndicator _moveCommandIndicator;
 
     private readonly Collider2D[] _targetHits = new Collider2D[MaxTargetHits];
 
@@ -62,11 +63,15 @@ public sealed class CommandSystem : MonoBehaviour
 
         Vector2 worldPosition = TouchUtility.ScreenToWorld(_mainCamera, screenPosition);
 
-        return IssueMoveCommand(selectedUnits, worldPosition);
+        bool commandIssued = IssueMoveCommand(selectedUnits, worldPosition);
+
+        if (commandIssued)
+            ShowMoveCommandIndicator(worldPosition);
+
+        return commandIssued;
     }
 
-    private bool IssueAttackCommand(
-        IReadOnlyList<UnitSelectable> selectedUnits,
+    private bool IssueAttackCommand(IReadOnlyList<UnitSelectable> selectedUnits,
         IDamageable target)
     {
         if (selectedUnits == null || target == null)
@@ -86,8 +91,7 @@ public sealed class CommandSystem : MonoBehaviour
         return commandIssued;
     }
 
-    private bool IssueMoveCommand(
-        IReadOnlyList<UnitSelectable> selectedUnits,
+    private bool IssueMoveCommand(IReadOnlyList<UnitSelectable> selectedUnits,
         Vector2 worldPosition)
     {
         if (selectedUnits == null)
@@ -107,17 +111,22 @@ public sealed class CommandSystem : MonoBehaviour
         return commandIssued;
     }
 
-    private IDamageable FindEnemyDamageableAt(
-        Vector2 worldPosition,
+    private void ShowMoveCommandIndicator(Vector2 worldPosition)
+    {
+        if (_moveCommandIndicator == null)
+            return;
+
+        _moveCommandIndicator.Show(worldPosition);
+    }
+
+    private IDamageable FindEnemyDamageableAt(Vector2 worldPosition,
         FactionMember selectedArmyFaction)
     {
         if (selectedArmyFaction == null)
             return null;
 
         int hitCount = Physics2D.OverlapPointNonAlloc(
-            worldPosition,
-            _targetHits,
-            _targetLayerMask);
+            worldPosition,_targetHits, _targetLayerMask);
 
         for (int i = 0; i < hitCount; i++)
         {
@@ -150,8 +159,7 @@ public sealed class CommandSystem : MonoBehaviour
             return damageable;
     }
 
-    private bool IsValidEnemyTarget(
-        IDamageable damageable,
+    private bool IsValidEnemyTarget(IDamageable damageable,
         FactionMember selectedArmyFaction)
     {
         if (damageable == null || damageable.IsDead)

@@ -29,11 +29,6 @@ public sealed class WorkerListPanel : ValidatedMonoBehaviour
     protected override void Awake()
     {
         base.Awake();
-
-        if (!enabled)
-            return;
-
-        Hide();
     }
 
     protected override bool ValidateInternal()
