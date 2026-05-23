@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c2ba9bf8aa4f7449aa22ad2947e1fea, type: 3}
+  m_Name: AudioConfig
+  m_EditorClassIdentifier: 
+  _audioMixer: {fileID: 24100000, guid: 593ea9c0083476f40a6a280853500403, type: 2}
+  _musicMixerGroup: {fileID: 8234684629984015991, guid: 593ea9c0083476f40a6a280853500403, type: 2}
+  _sfxMixerGroup: {fileID: 7385036537920325403, guid: 593ea9c0083476f40a6a280853500403, type: 2}
+  _musicVolumeParameter: MusicVolume
+  _sfxVolumeParameter: SfxVolume
+  _defaultMusicVolume: 0.8
+  _defaultSfxVolume: 0.8
+  _sceneMusic:
+  - _sceneName: MainMenu
+    _musicClip: {fileID: 8300000, guid: ebfaad64e0955a1498ba06fdaefe92c2, type: 3}
+  - _sceneName: Level_1
+    _musicClip: {fileID: 8300000, guid: 71d635f19ddeba0469c71507559c1252, type: 3}
+  _sounds:
+  - _id: 10
+    _clips:
+    - {fileID: 8300000, guid: 495ea5b40413eb14cbc31f2b5bd01f18, type: 3}
+    _volume: 1
+    _randomPitch: 0
+  - _id: 11
+    _clips:
+    - {fileID: 8300000, guid: 495ea5b40413eb14cbc31f2b5bd01f18, type: 3}
+    _volume: 1
+    _randomPitch: 0
+  - _id: 300
+    _clips:
+    - {fileID: 8300000, guid: c653969730c22634f9063a82f7520aed, type: 3}
+    _volume: 1
+    _randomPitch: 0
+  - _id: 301
+    _clips:
+    - {fileID: 8300000, guid: 9578b5e7bf51d74428cc327d47811f62, type: 3}
+    _volume: 1
+    _randomPitch: 0
+  - _id: 302
+    _clips:
+    - {fileID: 8300000, guid: ec80467cb1e258840b32d91ae96a09b2, type: 3}
+    _volume: 1
+    _randomPitch: 0
+  - _id: 100
+    _clips:
+    - {fileID: 8300000, guid: d214c1958c26d45418388f9d69dcbc65, type: 3}
+    _volume: 1
+    _randomPitch: 0
+  - _id: 101
+    _clips:
+    - {fileID: 8300000, guid: 702c90c190e0faf419724fdaf1ec1f37, type: 3}
+    _volume: 1
+    _randomPitch: 0
+  - _id: 101
+    _clips:
+    - {fileID: 8300000, guid: 702c90c190e0faf419724fdaf1ec1f37, type: 3}
+    _volume: 1
+    _randomPitch: 0
+  _worldSfxPoolSize: 16
+  _worldMinDistance: 2
+  _worldMaxDistance: 14
