@@ -85,6 +85,7 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
 
     public void Demolish()
     {
+        PlayDemolishSound();
         HandleDeath();
     }
 
@@ -134,5 +135,14 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
 
         _sourceSlot.Restore();
         _sourceSlot = null;
+    }
+    private void PlayDemolishSound()
+    {
+        GameAudioService audioService = GameAudioService.Instance;
+
+        if (audioService == null)
+            return;
+
+        audioService.PlayWorldSound(SoundId.BuildingDemolished, transform.position);
     }
 }

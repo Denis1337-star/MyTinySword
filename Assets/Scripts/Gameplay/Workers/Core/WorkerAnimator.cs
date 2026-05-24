@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -11,6 +12,10 @@ public sealed class WorkerAnimator : MonoBehaviour
     private static readonly int IsWorkingHash = Animator.StringToHash("IsWorking");
     private static readonly int EquipmentHash = Animator.StringToHash("Equipment");
 
+    [Header("Work Audio")]
+    [SerializeField] private Transform _workSoundOrigin;
+    [SerializeField] private EquipmentWorkSound[] _workSounds;
+
     private Animator _animator;
     private UnitMovement _movement;
 
@@ -18,10 +23,13 @@ public sealed class WorkerAnimator : MonoBehaviour
     private bool _lastIsMoving;
     private EquipmentType _currentEquipment = EquipmentType.None;
 
+
     private void Awake()
     {
         _animator = GetComponent<Animator>();
         _movement = GetComponent<UnitMovement>();
+
+        _workSoundOrigin = transform;
     }
 
     private void Update()
@@ -48,7 +56,7 @@ public sealed class WorkerAnimator : MonoBehaviour
     }
 
     /// <summary>
-    /// Меняет визуальный инструмент или переносимый груз worker.
+    /// Меняет визуальный инструмент или переносимый груз worker
     /// </summary>
     public void SetEquipment(EquipmentType equipment)
     {
@@ -68,5 +76,60 @@ public sealed class WorkerAnimator : MonoBehaviour
 
         _lastIsMoving = isMoving;
         _animator.SetBool(IsMovingHash, isMoving);
+    }
+    /// <summary>
+    /// Вызывается Animation Event на кадре удара/работы
+    /// </summary>
+    public void PlayWorkFrameSound()
+    {
+        if (!_isWorking)
+            return;
+
+        SoundId soundId = GetWorkSoundId(_currentEquipment);
+
+        if (soundId == SoundId.None)
+            return;
+
+        GameAudioService audioService = GameAudioService.Instance;
+
+        if (audioService == null)
+            return;
+
+        audioService.PlayWorldSound(soundId, GetWorkSoundPosition());
+    }
+    private SoundId GetWorkSoundId(EquipmentType equipment)
+    {
+        if (_workSounds == null || _workSounds.Length == 0)
+            return SoundId.None;
+
+        for (int i = 0; i < _workSounds.Length; i++)
+        {
+            EquipmentWorkSound workSound = _workSounds[i];
+
+            if (workSound.Equipment != equipment)
+                continue;
+
+            return workSound.SoundId;
+        }
+
+        return SoundId.None;
+    }
+
+    private Vector3 GetWorkSoundPosition()
+    {
+        if (_workSoundOrigin != null)
+            return _workSoundOrigin.position;
+
+        return transform.position;
+    }
+
+    [System.Serializable]
+    private sealed class EquipmentWorkSound
+    {
+        [SerializeField] private EquipmentType _equipment;
+        [SerializeField] private SoundId _soundId = SoundId.None;
+
+        public EquipmentType Equipment => _equipment;
+        public SoundId SoundId => _soundId;
     }
 }

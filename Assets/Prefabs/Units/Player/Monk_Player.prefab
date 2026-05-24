@@ -150,6 +150,7 @@ GameObject:
   - component: {fileID: 801126465291340924}
   - component: {fileID: 6447242096697287991}
   - component: {fileID: 2811560095626168135}
+  - component: {fileID: 7792622985401931406}
   m_Layer: 9
   m_Name: Monk_Player
   m_TagString: Untagged
@@ -436,3 +437,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c86445684a13284885ce177b8646311, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &7792622985401931406
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7523805815854949293}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c4ac245385f05e4c8023386d748261f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _health: {fileID: 760204953070162733}
+  _soundOrigin: {fileID: 7101548476794337762}
+  _damageSoundId: 200
+  _deathSoundId: 201
+  _playDamageSound: 1
+  _playDeathSound: 1
+  _damageSoundCooldown: 0.08

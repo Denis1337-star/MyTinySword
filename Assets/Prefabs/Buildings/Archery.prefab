@@ -48,6 +48,7 @@ GameObject:
   - component: {fileID: 4768252895606956369}
   - component: {fileID: 1784093843276824935}
   - component: {fileID: 2287996097431727651}
+  - component: {fileID: 3025509017706012499}
   m_Layer: 9
   m_Name: Archery
   m_TagString: Untagged
@@ -161,7 +162,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 3, y: 4}
+    oldSize: {x: 4, y: 4}
     newSize: {x: 5, y: 4}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -264,6 +265,25 @@ MonoBehaviour:
   _maxQueue: 5
   _spawnRadius: 0.8
   _spawnNavMeshSearchRadius: 1.5
+--- !u!114 &3025509017706012499
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3979921759978543857}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c4ac245385f05e4c8023386d748261f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _health: {fileID: 664985930419080328}
+  _soundOrigin: {fileID: 3204795982989324622}
+  _damageSoundId: 200
+  _deathSoundId: 101
+  _playDamageSound: 1
+  _playDeathSound: 1
+  _damageSoundCooldown: 0.08
 --- !u!1 &4160027971234194486
 GameObject:
   m_ObjectHideFlags: 0

@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 1435012739113869488}
   - component: {fileID: 7606855515729946697}
   - component: {fileID: -9171239762790172264}
+  - component: {fileID: 2931756123346556886}
   m_Layer: 9
   m_Name: House
   m_TagString: Untagged
@@ -222,6 +223,25 @@ MonoBehaviour:
   _showWhenSelected: 0
   _showWhenDamaged: 1
   _fallbackOffset: {x: 0, y: 1.5, z: 0}
+--- !u!114 &2931756123346556886
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 148874888745276253}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c4ac245385f05e4c8023386d748261f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _health: {fileID: 7606855515729946697}
+  _soundOrigin: {fileID: 8352707285718713207}
+  _damageSoundId: 200
+  _deathSoundId: 101
+  _playDamageSound: 1
+  _playDeathSound: 1
+  _damageSoundCooldown: 0.08
 --- !u!1 &2306703238688880557
 GameObject:
   m_ObjectHideFlags: 0

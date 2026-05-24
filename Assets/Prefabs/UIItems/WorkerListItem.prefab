@@ -147,6 +147,7 @@ GameObject:
   - component: {fileID: 6284572292197551415}
   - component: {fileID: 7612430497183785632}
   - component: {fileID: 890557187616097699}
+  - component: {fileID: 7373019258052144134}
   m_Layer: 5
   m_Name: WorkerListItem
   m_TagString: Untagged
@@ -271,6 +272,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &7373019258052144134
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5211567931960901985}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6f3ea486b6dcd24fb87f910b4efef9d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _button: {fileID: 890557187616097699}
+  _soundId: 10
+  _playOnlyWhenInteractable: 1
 --- !u!1 &5414775349414143298
 GameObject:
   m_ObjectHideFlags: 0

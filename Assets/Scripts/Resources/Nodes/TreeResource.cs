@@ -47,9 +47,6 @@ public sealed class TreeResource : ResourceNodeBase
         return valid;
     }
 
-    /// <summary>
-    /// Отменяет добычу дерева
-    /// </summary>
     public override void CancelWork(Worker worker)
     {
         StopWorkRoutine();

@@ -27,44 +27,42 @@ MonoBehaviour:
   _sounds:
   - _id: 10
     _clips:
-    - {fileID: 8300000, guid: 495ea5b40413eb14cbc31f2b5bd01f18, type: 3}
-    _volume: 1
+    - {fileID: 8300000, guid: 90e5349809f09c846a05ac0c1a02dde4, type: 3}
+    _volume: 0.1
     _randomPitch: 0
-  - _id: 11
+  - _id: 13
     _clips:
-    - {fileID: 8300000, guid: 495ea5b40413eb14cbc31f2b5bd01f18, type: 3}
-    _volume: 1
+    - {fileID: 8300000, guid: 79a96c208590222419f33a15b8c88cdc, type: 3}
+    _volume: 0.1
     _randomPitch: 0
   - _id: 300
     _clips:
-    - {fileID: 8300000, guid: c653969730c22634f9063a82f7520aed, type: 3}
-    _volume: 1
-    _randomPitch: 0
+    - {fileID: 8300000, guid: 67bd14e044e55934baace8a32520a0c1, type: 3}
+    - {fileID: 8300000, guid: 52b42f7b53b00cf41a05dfa074ceef42, type: 3}
+    _volume: 0.7
+    _randomPitch: 0.3
   - _id: 301
     _clips:
-    - {fileID: 8300000, guid: 9578b5e7bf51d74428cc327d47811f62, type: 3}
-    _volume: 1
-    _randomPitch: 0
+    - {fileID: 8300000, guid: 6fb154c36c8d06c4e941461387b4abfa, type: 3}
+    - {fileID: 8300000, guid: 72a5d9a23688ef640bb0a839ce880db6, type: 3}
+    - {fileID: 8300000, guid: e6efea84a7d22c849bbf701ad4a4c062, type: 3}
+    _volume: 0.7
+    _randomPitch: 0.3
   - _id: 302
     _clips:
     - {fileID: 8300000, guid: ec80467cb1e258840b32d91ae96a09b2, type: 3}
-    _volume: 1
-    _randomPitch: 0
+    _volume: 0.7
+    _randomPitch: 0.3
   - _id: 100
     _clips:
     - {fileID: 8300000, guid: d214c1958c26d45418388f9d69dcbc65, type: 3}
-    _volume: 1
+    _volume: 0.7
     _randomPitch: 0
   - _id: 101
     _clips:
     - {fileID: 8300000, guid: 702c90c190e0faf419724fdaf1ec1f37, type: 3}
-    _volume: 1
-    _randomPitch: 0
-  - _id: 101
-    _clips:
-    - {fileID: 8300000, guid: 702c90c190e0faf419724fdaf1ec1f37, type: 3}
-    _volume: 1
+    _volume: 0.7
     _randomPitch: 0
   _worldSfxPoolSize: 16
-  _worldMinDistance: 2
+  _worldMinDistance: 4
   _worldMaxDistance: 14

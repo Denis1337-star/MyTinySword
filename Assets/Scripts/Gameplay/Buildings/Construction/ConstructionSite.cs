@@ -67,7 +67,9 @@ public sealed class ConstructionSite : MonoBehaviour
         _completionAttempted = true;
 
         GameObject building = _buildingFactory.CreateBuilding(
-            _config.BuildingPrefab,transform.position, Quaternion.identity);
+            _config.BuildingPrefab,
+            transform.position,
+            Quaternion.identity);
 
         if (building == null)
         {
@@ -79,6 +81,8 @@ public sealed class ConstructionSite : MonoBehaviour
         }
 
         AttachSlotToBuilding(building);
+
+        PlayBuiltSound();
 
         _finished = true;
 
@@ -105,6 +109,15 @@ public sealed class ConstructionSite : MonoBehaviour
         }
 
         buildingBase.AttachConstructionSlot(_slot);
+    }
+    private void PlayBuiltSound()
+    {
+        GameAudioService audioService = GameAudioService.Instance;
+
+        if (audioService == null)
+            return;
+
+        audioService.PlayWorldSound(SoundId.BuildingBuilt, transform.position);
     }
 
     private void NotifySlotAndDestroy()

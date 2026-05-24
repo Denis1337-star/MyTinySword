@@ -176,6 +176,7 @@ GameObject:
   - component: {fileID: 9103432618469951615}
   - component: {fileID: 3817347480993764764}
   - component: {fileID: 3205719259800034687}
+  - component: {fileID: 5834526705948085684}
   m_Layer: 9
   m_Name: Tower
   m_TagString: Untagged
@@ -393,3 +394,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetPriority: 80
+--- !u!114 &5834526705948085684
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8906665872515809482}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c4ac245385f05e4c8023386d748261f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _health: {fileID: 8677523627141579955}
+  _soundOrigin: {fileID: 3358430958397957972}
+  _damageSoundId: 200
+  _deathSoundId: 101
+  _playDamageSound: 1
+  _playDeathSound: 1
+  _damageSoundCooldown: 0.08
