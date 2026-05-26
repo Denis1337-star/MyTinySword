@@ -11,16 +11,9 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
     private const float MinVolume = 0.0001f;
     private const float MutedDb = -80f;
 
-    public static GameAudioService Instance { get; private set; }
-
-    [Header("Config")]
     [SerializeField] private AudioConfig _config;
-
-    [Header("Sources")]
     [SerializeField] private AudioSource _musicSource;
     [SerializeField] private AudioSource _uiSfxSource;
-
-    [Header("World SFX Root")]
     [SerializeField] private Transform _worldSfxRoot;
 
     private readonly List<AudioSource> _worldSources = new();
@@ -41,20 +34,7 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
 
     protected override void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
-
-        DontDestroyOnLoad(gameObject);
-
         base.Awake();
-
-        if (!enabled)
-            return;
 
         InitializeSources();
         InitializeVolumes();
@@ -79,8 +59,7 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
 
     private void OnDestroy()
     {
-        if (Instance == this)
-            Instance = null;
+        ClearWorldSfxPool();
     }
 
     protected override bool ValidateInternal()
@@ -92,16 +71,19 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
         valid &= ValidationUtility.IsAssigned(this, _uiSfxSource, nameof(_uiSfxSource));
         valid &= ValidationUtility.IsAssigned(this, _worldSfxRoot, nameof(_worldSfxRoot));
 
-        if (_config != null)
-        {
-            valid &= ValidationUtility.IsAssigned(this, _config.AudioMixer, nameof(_config.AudioMixer));
-            valid &= ValidationUtility.IsAssigned(this, _config.MusicMixerGroup, nameof(_config.MusicMixerGroup));
-            valid &= ValidationUtility.IsAssigned(this, _config.SfxMixerGroup, nameof(_config.SfxMixerGroup));
-        }
+        if (_config == null)
+            return false;
+
+        valid &= ValidationUtility.IsAssigned(this, _config.AudioMixer, nameof(_config.AudioMixer));
+        valid &= ValidationUtility.IsAssigned(this, _config.MusicMixerGroup, nameof(_config.MusicMixerGroup));
+        valid &= ValidationUtility.IsAssigned(this, _config.SfxMixerGroup, nameof(_config.SfxMixerGroup));
 
         return valid;
     }
 
+    /// <summary>
+    /// Меняет громкость музыки
+    /// </summary>
     public void SetMusicVolume(float volume)
     {
         MusicVolume = Mathf.Clamp01(volume);
@@ -121,6 +103,9 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
         SettingsChanged?.Invoke();
     }
 
+    /// <summary>
+    /// Меняет громкость SFX
+    /// </summary>
     public void SetSfxVolume(float volume)
     {
         SfxVolume = Mathf.Clamp01(volume);
@@ -140,6 +125,9 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
         SettingsChanged?.Invoke();
     }
 
+    /// <summary>
+    /// Включает или выключает mute музыки
+    /// </summary>
     public void SetMusicMuted(bool muted)
     {
         if (muted)
@@ -162,6 +150,9 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
         SettingsChanged?.Invoke();
     }
 
+    /// <summary>
+    /// Включает или выключает mute SFX
+    /// </summary>
     public void SetSfxMuted(bool muted)
     {
         if (muted)
@@ -184,6 +175,9 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
         SettingsChanged?.Invoke();
     }
 
+    /// <summary>
+    /// Проигрывает UI звук
+    /// </summary>
     public void PlayUiSound(SoundId id)
     {
         if (!CanPlaySfx())
@@ -203,11 +197,17 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
         _uiSfxSource.PlayOneShot(clip, entry.Volume);
     }
 
+    /// <summary>
+    /// Проигрывает world звук в указанной 2D позиции
+    /// </summary>
     public void PlayWorldSound(SoundId id, Vector2 worldPosition)
     {
         PlayWorldSound(id, new Vector3(worldPosition.x, worldPosition.y, 0f));
     }
 
+    /// <summary>
+    /// Проигрывает world звук в указанной позиции
+    /// </summary>
     public void PlayWorldSound(SoundId id, Vector3 worldPosition)
     {
         if (!CanPlaySfx())
@@ -240,6 +240,9 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
         source.Play();
     }
 
+    /// <summary>
+    /// Включает музыку для указанной сцены
+    /// </summary>
     public void PlayMusicForScene(string sceneName)
     {
         AudioClip clip = _config.GetMusicForScene(sceneName);
@@ -258,11 +261,11 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
         _musicSource.Play();
     }
 
+    /// <summary>
+    /// Останавливает текущую музыку
+    /// </summary>
     public void StopMusic()
     {
-        if (_musicSource == null)
-            return;
-
         _musicSource.Stop();
         _musicSource.clip = null;
     }
@@ -291,8 +294,13 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
         MusicVolume = Mathf.Clamp01(_config.DefaultMusicVolume);
         SfxVolume = Mathf.Clamp01(_config.DefaultSfxVolume);
 
-        _lastNonZeroMusicVolume = MusicVolume > MinVolume ? MusicVolume : 1f;
-        _lastNonZeroSfxVolume = SfxVolume > MinVolume ? SfxVolume : 1f;
+        _lastNonZeroMusicVolume = MusicVolume > MinVolume
+            ? MusicVolume
+            : 1f;
+
+        _lastNonZeroSfxVolume = SfxVolume > MinVolume
+            ? SfxVolume
+            : 1f;
 
         IsMusicMuted = MusicVolume <= MinVolume;
         IsSfxMuted = SfxVolume <= MinVolume;
@@ -310,7 +318,7 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
         for (int i = 0; i < poolSize; i++)
         {
             GameObject sourceObject = new GameObject($"WorldSfxSource_{i + 1}");
-            sourceObject.transform.SetParent(_worldSfxRoot);
+            sourceObject.transform.SetParent(_worldSfxRoot, false);
 
             AudioSource source = sourceObject.AddComponent<AudioSource>();
             ConfigureWorldSource(source);
@@ -325,8 +333,10 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
         {
             AudioSource source = _worldSources[i];
 
-            if (source != null)
-                Destroy(source.gameObject);
+            if (source == null)
+                continue;
+
+            Destroy(source.gameObject);
         }
 
         _worldSources.Clear();
@@ -339,7 +349,6 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
         source.loop = false;
 
         source.spatialBlend = 1f;
-
         source.rolloffMode = AudioRolloffMode.Linear;
         source.minDistance = _config.WorldMinDistance;
         source.maxDistance = _config.WorldMaxDistance;
@@ -375,9 +384,6 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
 
     private void SetMixerVolume(string parameterName, float volume, bool muted)
     {
-        if (_config.AudioMixer == null)
-            return;
-
         float db = muted || volume <= MinVolume
             ? MutedDb
             : Mathf.Log10(volume) * 20f;

@@ -17,6 +17,7 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
     [SerializeField] protected UnitSelectable selectable;
 
     private BuildingRegistry _buildingRegistry;
+    private GameAudioService _audioService;
     private ConstructionSlot _sourceSlot;
 
     private bool _isDestroying;
@@ -30,19 +31,16 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
     public FactionType Faction => factionMember.Faction;
 
     [Inject]
-    private void Construct(BuildingRegistry buildingRegistry)
+    private void Construct(
+        BuildingRegistry buildingRegistry,
+        GameAudioService audioService)
     {
         _buildingRegistry = buildingRegistry;
-    }
-
-    protected virtual void OnValidate()
-    {
-        ResolveReferences();
+        _audioService = audioService;
     }
 
     protected override void Awake()
     {
-        ResolveReferences();
         ApplyConfig();
 
         base.Awake();
@@ -50,14 +48,15 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
 
     protected virtual void OnEnable()
     {
-        if (health != null)
             health.OnDied += HandleDeath;
     }
 
     protected virtual void OnDisable()
     {
-        if (health != null)
             health.OnDied -= HandleDeath;
+    }
+    protected virtual void OnValidate()
+    {
     }
 
     protected override bool ValidateInternal()
@@ -77,6 +76,7 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
 
         return valid;
     }
+
 
     public void AttachConstructionSlot(ConstructionSlot slot)
     {
@@ -102,17 +102,6 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
         Destroy(gameObject);
     }
 
-    protected void ResolveReferences()
-    {
-        if (factionMember == null)
-            factionMember = GetComponent<FactionMember>();
-
-        if (health == null)
-            health = GetComponent<Health>();
-
-        if (selectable == null)
-            selectable = GetComponent<UnitSelectable>();
-    }
 
     private void ApplyConfig()
     {
@@ -120,12 +109,18 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
         health.Initialize(config.MaxHealth);
     }
 
+    private void PlayDemolishSound()
+    {
+        _audioService.PlayWorldSound(SoundId.BuildingDemolished, transform.position);
+    }
+
     private void UnregisterUniqueBuilding()
     {
+
         if (!config.UniqueBuilding)
             return;
 
-        _buildingRegistry?.UnregisterBuilt(config);
+        _buildingRegistry.UnregisterBuilt(config);
     }
 
     private void RestoreSourceSlot()
@@ -135,14 +130,5 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
 
         _sourceSlot.Restore();
         _sourceSlot = null;
-    }
-    private void PlayDemolishSound()
-    {
-        GameAudioService audioService = GameAudioService.Instance;
-
-        if (audioService == null)
-            return;
-
-        audioService.PlayWorldSound(SoundId.BuildingDemolished, transform.position);
     }
 }

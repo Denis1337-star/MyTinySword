@@ -1,26 +1,23 @@
 using UnityEngine;
+using Zenject;
 
 /// <summary>
 /// Проигрывает UI звук при открытии панели
 /// </summary>
 public sealed class UiPanelOpenSound : MonoBehaviour
 {
-    [Header("Sound")]
     [SerializeField] private SoundId _soundId = SoundId.PanelOpen;
 
-    [Tooltip("Если включено, звук не проиграется при самом первом OnEnable после загрузки сцены")]
-    [SerializeField] private bool _skipFirstEnable = true;
+    private GameAudioService _audioService;
 
-    private bool _wasEnabledOnce;
+    [Inject]
+    private void Construct(GameAudioService audioService)
+    {
+        _audioService = audioService;
+    }
 
     private void OnEnable()
     {
-        if (_skipFirstEnable && !_wasEnabledOnce)
-        {
-            _wasEnabledOnce = true;
-            return;
-        }
-
         PlayOpenSound();
     }
 
@@ -29,11 +26,6 @@ public sealed class UiPanelOpenSound : MonoBehaviour
         if (_soundId == SoundId.None)
             return;
 
-        GameAudioService audioService = GameAudioService.Instance;
-
-        if (audioService == null)
-            return;
-
-        audioService.PlayUiSound(_soundId);
+        _audioService.PlayUiSound(_soundId);
     }
 }

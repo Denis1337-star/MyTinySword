@@ -1,4 +1,5 @@
 using UnityEngine;
+using Zenject;
 
 /// <summary>
 /// Объект стройки
@@ -9,6 +10,7 @@ public sealed class ConstructionSite : MonoBehaviour
     private BuildingConfig _config;
     private BuildingRegistry _buildingRegistry;
     private BuildingFactory _buildingFactory;
+    private GameAudioService _audioService;
 
     private float _progress;
     private float _buildTime;
@@ -18,6 +20,12 @@ public sealed class ConstructionSite : MonoBehaviour
 
     public float Progress01 => _buildTime > 0f ? Mathf.Clamp01(_progress / _buildTime) : 1f;
     public BuildingConfig Config => _config;
+
+    [Inject]
+    private void Construct(GameAudioService audioService)
+    {
+        _audioService = audioService;
+    }
 
     public void Initialize(
         ConstructionSlot slot,
@@ -81,7 +89,6 @@ public sealed class ConstructionSite : MonoBehaviour
         }
 
         AttachSlotToBuilding(building);
-
         PlayBuiltSound();
 
         _finished = true;
@@ -93,31 +100,14 @@ public sealed class ConstructionSite : MonoBehaviour
 
     private void AttachSlotToBuilding(GameObject building)
     {
-        if (building == null)
-            return;
-
         BuildingBase buildingBase = building.GetComponent<BuildingBase>();
-
-        if (buildingBase == null)
-        {
-            Debug.LogError(
-                $"{name}: созданное здание \"{building.name}\" не имеет BuildingBase. " +
-                "Слот не сможет вернуться после сноса здания.",
-                building);
-
-            return;
-        }
 
         buildingBase.AttachConstructionSlot(_slot);
     }
+
     private void PlayBuiltSound()
     {
-        GameAudioService audioService = GameAudioService.Instance;
-
-        if (audioService == null)
-            return;
-
-        audioService.PlayWorldSound(SoundId.BuildingBuilt, transform.position);
+        _audioService.PlayWorldSound(SoundId.BuildingBuilt, transform.position);
     }
 
     private void NotifySlotAndDestroy()

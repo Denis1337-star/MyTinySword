@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using Zenject;
 
 /// <summary>
 /// Управляет animator параметрами worker
@@ -12,24 +13,25 @@ public sealed class WorkerAnimator : MonoBehaviour
     private static readonly int IsWorkingHash = Animator.StringToHash("IsWorking");
     private static readonly int EquipmentHash = Animator.StringToHash("Equipment");
 
-    [Header("Work Audio")]
-    [SerializeField] private Transform _workSoundOrigin;
     [SerializeField] private EquipmentWorkSound[] _workSounds;
 
     private Animator _animator;
     private UnitMovement _movement;
-
+    private GameAudioService _audioService;
     private bool _isWorking;
     private bool _lastIsMoving;
     private EquipmentType _currentEquipment = EquipmentType.None;
 
+    [Inject]
+    private void Construct(GameAudioService audioService)
+    {
+        _audioService = audioService;
+    }
 
     private void Awake()
     {
         _animator = GetComponent<Animator>();
         _movement = GetComponent<UnitMovement>();
-
-        _workSoundOrigin = transform;
     }
 
     private void Update()
@@ -56,7 +58,7 @@ public sealed class WorkerAnimator : MonoBehaviour
     }
 
     /// <summary>
-    /// Меняет визуальный инструмент или переносимый груз worker
+    /// Меняет визуальный инструмент 
     /// </summary>
     public void SetEquipment(EquipmentType equipment)
     {
@@ -67,16 +69,6 @@ public sealed class WorkerAnimator : MonoBehaviour
         _animator.SetFloat(EquipmentHash, (float)equipment);
     }
 
-    private void UpdateMovingState()
-    {
-        bool isMoving = _movement.IsMoving && !_isWorking;
-
-        if (_lastIsMoving == isMoving)
-            return;
-
-        _lastIsMoving = isMoving;
-        _animator.SetBool(IsMovingHash, isMoving);
-    }
     /// <summary>
     /// Вызывается Animation Event на кадре удара/работы
     /// </summary>
@@ -90,13 +82,20 @@ public sealed class WorkerAnimator : MonoBehaviour
         if (soundId == SoundId.None)
             return;
 
-        GameAudioService audioService = GameAudioService.Instance;
+        _audioService.PlayWorldSound(soundId, transform.position);
+    }
 
-        if (audioService == null)
+    private void UpdateMovingState()
+    {
+        bool isMoving = _movement.IsMoving && !_isWorking;
+
+        if (_lastIsMoving == isMoving)
             return;
 
-        audioService.PlayWorldSound(soundId, GetWorkSoundPosition());
+        _lastIsMoving = isMoving;
+        _animator.SetBool(IsMovingHash, isMoving);
     }
+
     private SoundId GetWorkSoundId(EquipmentType equipment)
     {
         if (_workSounds == null || _workSounds.Length == 0)
@@ -113,14 +112,6 @@ public sealed class WorkerAnimator : MonoBehaviour
         }
 
         return SoundId.None;
-    }
-
-    private Vector3 GetWorkSoundPosition()
-    {
-        if (_workSoundOrigin != null)
-            return _workSoundOrigin.position;
-
-        return transform.position;
     }
 
     [System.Serializable]

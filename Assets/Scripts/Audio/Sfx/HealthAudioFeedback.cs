@@ -1,17 +1,13 @@
 using UnityEngine;
+using Zenject;
 
 /// <summary>
-/// Проигрывает world-звуки урона и смерти для объекта с Health.
-/// Звук исходит из позиции объекта, поэтому громкость зависит от расстояния до камеры/AudioListener.
+/// Проигрывает world звуки урона и смерти для объекта с Health
 /// </summary>
-[RequireComponent(typeof(Health))]
 public sealed class HealthAudioFeedback : ValidatedMonoBehaviour
 {
     [Header("Components")]
     [SerializeField] private Health _health;
-
-    [Tooltip("Точка, из которой будет исходить звук. Если не назначена — используется transform объекта.")]
-    [SerializeField] private Transform _soundOrigin;
 
     [Header("Sounds")]
     [SerializeField] private SoundId _damageSoundId = SoundId.UnitDamaged;
@@ -21,27 +17,23 @@ public sealed class HealthAudioFeedback : ValidatedMonoBehaviour
     [SerializeField] private bool _playDamageSound = true;
     [SerializeField] private bool _playDeathSound = true;
 
-    [Tooltip("Минимальная пауза между звуками урона, чтобы частый урон не создавал звуковую кашу.")]
+    [Tooltip("Минимальная пауза между звуками урона")]
     [SerializeField, Min(0f)] private float _damageSoundCooldown = 0.08f;
+
+    private GameAudioService _audioService;
 
     private int _lastHealth;
     private float _nextDamageSoundTime;
-    private bool _isInitialized;
 
-    protected override void Awake()
+    [Inject]
+    private void Construct(GameAudioService audioService)
     {
-        ResolveReferences();
-
-        base.Awake();
+        _audioService = audioService;
     }
 
     private void OnEnable()
     {
-        if (_health == null)
-            return;
-
         _lastHealth = _health.CurrentHealth;
-        _isInitialized = true;
 
         _health.OnHealthChanged += HandleHealthChanged;
         _health.OnDied += HandleDied;
@@ -49,9 +41,6 @@ public sealed class HealthAudioFeedback : ValidatedMonoBehaviour
 
     private void OnDisable()
     {
-        if (_health == null)
-            return;
-
         _health.OnHealthChanged -= HandleHealthChanged;
         _health.OnDied -= HandleDied;
     }
@@ -61,30 +50,8 @@ public sealed class HealthAudioFeedback : ValidatedMonoBehaviour
         return ValidationUtility.IsAssigned(this, _health, nameof(_health));
     }
 
-    private void Reset()
-    {
-        ResolveReferences();
-    }
-
-    private void OnValidate()
-    {
-        ResolveReferences();
-    }
-
-    private void ResolveReferences()
-    {
-        if (_health == null)
-            _health = GetComponent<Health>();
-
-        if (_soundOrigin == null)
-            _soundOrigin = transform;
-    }
-
     private void HandleHealthChanged(int currentHealth, int maxHealth)
     {
-        if (!_isInitialized || _health == null)
-            return;
-
         if (currentHealth < _lastHealth)
             TryPlayDamageSound(currentHealth);
 
@@ -104,8 +71,6 @@ public sealed class HealthAudioFeedback : ValidatedMonoBehaviour
         if (!IsDamageSoundAllowed())
             return;
 
-        // Если урон смертельный, не играем damage-звук.
-        // Смерть проиграет отдельный death-звук через OnDied.
         if (currentHealth <= 0 || _health.IsDead)
             return;
 
@@ -141,15 +106,6 @@ public sealed class HealthAudioFeedback : ValidatedMonoBehaviour
 
     private void PlayWorldSound(SoundId soundId)
     {
-        GameAudioService audioService = GameAudioService.Instance;
-
-        if (audioService == null)
-            return;
-
-        Vector3 position = _soundOrigin != null
-            ? _soundOrigin.position
-            : transform.position;
-
-        audioService.PlayWorldSound(soundId, position);
+        _audioService.PlayWorldSound(soundId, transform.position);
     }
 }

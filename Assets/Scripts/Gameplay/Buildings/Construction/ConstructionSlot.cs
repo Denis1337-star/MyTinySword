@@ -49,9 +49,6 @@ public sealed class ConstructionSlot : ValidatedMonoBehaviour
 
     public string GetBuildBlockReason(BuildingConfig config)
     {
-        if (config == null)
-            return "Здание не выбрано";
-
         if (_currentConstruction != null)
             return "Уже строится";
 

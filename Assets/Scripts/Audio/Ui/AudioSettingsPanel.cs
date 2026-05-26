@@ -1,24 +1,32 @@
 using UnityEngine;
 using UnityEngine.UI;
+using Zenject;
 
 /// <summary>
 /// UI панель настроек звука
 /// </summary>
 public sealed class AudioSettingsPanel : ValidatedMonoBehaviour
 {
-    [Header("Root")]
     [SerializeField] private GameObject _root;
-
-    [Header("Sliders")]
     [SerializeField] private Slider _musicSlider;
     [SerializeField] private Slider _sfxSlider;
-
-    [Header("Mute Toggles")]
     [SerializeField] private Toggle _musicMuteToggle;
     [SerializeField] private Toggle _sfxMuteToggle;
 
     private GameAudioService _audioService;
+
     private bool _isRefreshingUi;
+    private bool _uiSubscribed;
+    private bool _audioServiceSubscribed;
+
+    [Inject]
+    private void Construct(GameAudioService audioService)
+    {
+        _audioService = audioService;
+
+        TrySubscribeToAudioService();
+        RefreshFromService();
+    }
 
     protected override void Awake()
     {
@@ -27,22 +35,15 @@ public sealed class AudioSettingsPanel : ValidatedMonoBehaviour
 
     private void OnEnable()
     {
-        _audioService = GameAudioService.Instance;
-
         SubscribeUi();
-
-        if (_audioService != null)
-            _audioService.SettingsChanged += RefreshFromService;
-
+        TrySubscribeToAudioService();
         RefreshFromService();
     }
 
     private void OnDisable()
     {
         UnsubscribeUi();
-
-        if (_audioService != null)
-            _audioService.SettingsChanged -= RefreshFromService;
+        UnsubscribeFromAudioService();
     }
 
     protected override bool ValidateInternal()
@@ -69,6 +70,7 @@ public sealed class AudioSettingsPanel : ValidatedMonoBehaviour
         HideRoot();
     }
 
+
     public void Toggle()
     {
         if (_root.activeSelf)
@@ -82,27 +84,54 @@ public sealed class AudioSettingsPanel : ValidatedMonoBehaviour
 
     private void SubscribeUi()
     {
+        if (_uiSubscribed)
+            return;
+
         _musicSlider.onValueChanged.AddListener(OnMusicSliderChanged);
         _sfxSlider.onValueChanged.AddListener(OnSfxSliderChanged);
 
         _musicMuteToggle.onValueChanged.AddListener(OnMusicMuteToggleChanged);
         _sfxMuteToggle.onValueChanged.AddListener(OnSfxMuteToggleChanged);
+
+        _uiSubscribed = true;
     }
 
     private void UnsubscribeUi()
     {
+        if (!_uiSubscribed)
+            return;
+
         _musicSlider.onValueChanged.RemoveListener(OnMusicSliderChanged);
         _sfxSlider.onValueChanged.RemoveListener(OnSfxSliderChanged);
 
         _musicMuteToggle.onValueChanged.RemoveListener(OnMusicMuteToggleChanged);
         _sfxMuteToggle.onValueChanged.RemoveListener(OnSfxMuteToggleChanged);
+
+        _uiSubscribed = false;
+    }
+
+    private void TrySubscribeToAudioService()
+    {
+        if (_audioServiceSubscribed)
+            return;
+
+        _audioService.SettingsChanged += RefreshFromService;
+        _audioServiceSubscribed = true;
+    }
+
+    private void UnsubscribeFromAudioService()
+    {
+        if (!_audioServiceSubscribed)
+            return;
+
+        if (_audioService != null)
+            _audioService.SettingsChanged -= RefreshFromService;
+
+        _audioServiceSubscribed = false;
     }
 
     private void RefreshFromService()
     {
-        if (_audioService == null)
-            return;
-
         _isRefreshingUi = true;
 
         _musicSlider.SetValueWithoutNotify(_audioService.MusicVolume);
@@ -119,18 +148,12 @@ public sealed class AudioSettingsPanel : ValidatedMonoBehaviour
         if (_isRefreshingUi)
             return;
 
-        if (_audioService == null)
-            return;
-
         _audioService.SetMusicVolume(value);
     }
 
     private void OnSfxSliderChanged(float value)
     {
         if (_isRefreshingUi)
-            return;
-
-        if (_audioService == null)
             return;
 
         _audioService.SetSfxVolume(value);
@@ -141,18 +164,12 @@ public sealed class AudioSettingsPanel : ValidatedMonoBehaviour
         if (_isRefreshingUi)
             return;
 
-        if (_audioService == null)
-            return;
-
         _audioService.SetMusicMuted(muted);
     }
 
     private void OnSfxMuteToggleChanged(bool muted)
     {
         if (_isRefreshingUi)
-            return;
-
-        if (_audioService == null)
             return;
 
         _audioService.SetSfxMuted(muted);
