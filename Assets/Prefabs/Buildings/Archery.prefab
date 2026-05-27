@@ -278,8 +278,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _health: {fileID: 664985930419080328}
-  _soundOrigin: {fileID: 3204795982989324622}
-  _damageSoundId: 200
+  _damageSoundId: 102
   _deathSoundId: 101
   _playDamageSound: 1
   _playDeathSound: 1

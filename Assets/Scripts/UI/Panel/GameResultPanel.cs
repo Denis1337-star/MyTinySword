@@ -10,6 +10,7 @@ public sealed class GameResultPanel : ValidatedMonoBehaviour
 {
     [SerializeField] private TMP_Text _resultText;
     [SerializeField] private Button _restartButton;
+    [SerializeField] private Button _mainMenuButton;
 
     protected override void Awake()
     {
@@ -23,11 +24,13 @@ public sealed class GameResultPanel : ValidatedMonoBehaviour
     private void OnEnable()
     {
         _restartButton.onClick.AddListener(RestartLevel);
+        _mainMenuButton.onClick.AddListener(MainMenu);
     }
 
     private void OnDisable()
     {
         _restartButton.onClick.RemoveListener(RestartLevel);
+        _mainMenuButton.onClick.RemoveListener(MainMenu);
     }
 
     protected override bool ValidateInternal()
@@ -36,6 +39,7 @@ public sealed class GameResultPanel : ValidatedMonoBehaviour
 
         valid &= ValidationUtility.IsAssigned(this, _resultText, nameof(_resultText));
         valid &= ValidationUtility.IsAssigned(this, _restartButton, nameof(_restartButton));
+        valid &= ValidationUtility.IsAssigned(this, _mainMenuButton, nameof(_mainMenuButton));
 
         return valid;
     }
@@ -60,5 +64,9 @@ public sealed class GameResultPanel : ValidatedMonoBehaviour
     {
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+    private void MainMenu()
+    {
+        SceneManager.LoadScene("MainMenu");
     }
 }

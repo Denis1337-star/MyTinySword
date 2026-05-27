@@ -9,15 +9,20 @@ public sealed class UiPanelOpenSound : MonoBehaviour
     [SerializeField] private SoundId _soundId = SoundId.PanelOpen;
 
     private GameAudioService _audioService;
+    private bool _isConstructed;
 
     [Inject]
     private void Construct(GameAudioService audioService)
     {
         _audioService = audioService;
+        _isConstructed = true;
     }
 
     private void OnEnable()
     {
+        if (!_isConstructed)
+            return;
+
         PlayOpenSound();
     }
 

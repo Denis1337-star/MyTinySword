@@ -113,6 +113,10 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
     {
         _audioService.PlayWorldSound(SoundId.BuildingDemolished, transform.position);
     }
+    protected void PlayWorldSound(SoundId soundId, Vector3 position)
+    {
+        _audioService.PlayWorldSound(soundId, position);
+    }
 
     private void UnregisterUniqueBuilding()
     {

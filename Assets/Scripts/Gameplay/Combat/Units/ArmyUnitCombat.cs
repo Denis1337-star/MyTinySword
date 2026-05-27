@@ -7,11 +7,15 @@ public sealed class ArmyUnitCombat
 {
     private readonly ArmyUnit _unit;
     private readonly Transform _origin;
+    private readonly GameAudioService _audioService;
 
-    public ArmyUnitCombat(ArmyUnit unit, Transform origin)
+
+    public ArmyUnitCombat( ArmyUnit unit,
+        Transform origin,GameAudioService audioService)
     {
         _unit = unit;
         _origin = origin;
+        _audioService = audioService;
     }
 
     public void PerformAttack(Health target)
@@ -30,6 +34,7 @@ public sealed class ArmyUnitCombat
             return;
         }
 
+        PlayAttackSound(SoundId.MeleeHit);
         target.TakeDamage(_unit.Config.Damage);
     }
 
@@ -42,6 +47,8 @@ public sealed class ArmyUnitCombat
             return;
 
         _unit.AnimatorBridge.PlayAttack();
+
+        PlayAttackSound(SoundId.Heal);
         target.Heal(_unit.Config.HealAmount);
     }
 
@@ -52,8 +59,6 @@ public sealed class ArmyUnitCombat
 
         Collider2D targetCollider = target.GetComponent<Collider2D>();
 
-        if (targetCollider == null)
-            targetCollider = target.GetComponentInChildren<Collider2D>();
 
         if (_unit.BodyCollider != null && targetCollider != null)
         {
@@ -75,6 +80,13 @@ public sealed class ArmyUnitCombat
             target,
             _unit.Config.Damage,
             _unit.Config.ArrowSpeed);
+
+        PlayAttackSound(SoundId.ArrowShoot);
+    }
+
+    private void PlayAttackSound(SoundId soundId)
+    {
+        _audioService.PlayWorldSound(soundId, _origin.position);
     }
 
     private bool CanAct()

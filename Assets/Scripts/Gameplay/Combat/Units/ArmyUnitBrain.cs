@@ -1,4 +1,5 @@
 using UnityEngine;
+using Zenject;
 
 /// <summary>
 /// ”правл€ет поведением боевого юнита
@@ -8,6 +9,7 @@ public sealed class ArmyUnitBrain : MonoBehaviour
     private ArmyUnit _unit;
     private ArmyTargetFinder _targetFinder;
     private ArmyUnitCombat _combat;
+    private GameAudioService _audioService;
 
     private BrainState _state;
     private Health _currentTarget;
@@ -28,11 +30,21 @@ public sealed class ArmyUnitBrain : MonoBehaviour
         Heal
     }
 
+    [Inject]
+    private void Construct(GameAudioService audioService)
+    {
+        _audioService = audioService;
+    }
+
     private void Awake()
     {
         _unit = GetComponent<ArmyUnit>();
         _targetFinder = new ArmyTargetFinder(_unit, transform);
-        _combat = new ArmyUnitCombat(_unit, transform);
+    }
+    private void Start()
+    {
+        _combat = new ArmyUnitCombat(_unit,
+            transform, _audioService);
     }
 
     private void Update()

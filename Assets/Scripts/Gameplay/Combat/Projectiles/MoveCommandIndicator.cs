@@ -1,4 +1,5 @@
 using UnityEngine;
+using Zenject;
 
 /// <summary>
 /// Визуальный индикатор команды движения армии
@@ -15,6 +16,13 @@ public sealed class MoveCommandIndicator : MonoBehaviour
     private Color _startColor;
     private float _timer;
     private bool _isPlaying;
+    private GameAudioService _audioService;
+
+    [Inject]
+    private void Construct(GameAudioService audioService)
+    {
+        _audioService = audioService;
+    }
 
     private void Awake()
     {
@@ -47,9 +55,7 @@ public sealed class MoveCommandIndicator : MonoBehaviour
     /// </summary>
     public void Show(Vector2 worldPosition)
     {
-        transform.position = new Vector3(
-            worldPosition.x,
-            worldPosition.y,
+        transform.position = new Vector3( worldPosition.x, worldPosition.y,
             transform.position.z);
 
         _timer = _lifeTime;
@@ -59,6 +65,8 @@ public sealed class MoveCommandIndicator : MonoBehaviour
 
         _spriteRenderer.color = _startColor;
         _spriteRenderer.enabled = true;
+
+        PlayMoveCommandSound();
     }
 
     private void UpdateScale(float normalizedTime)
@@ -83,5 +91,12 @@ public sealed class MoveCommandIndicator : MonoBehaviour
 
         if (_spriteRenderer != null)
             _spriteRenderer.enabled = false;
+    }
+    private void PlayMoveCommandSound()
+    {
+        if (_audioService == null)
+            return;
+
+        _audioService.PlayWorldSound(SoundId.MoveCommand, transform.position);
     }
 }

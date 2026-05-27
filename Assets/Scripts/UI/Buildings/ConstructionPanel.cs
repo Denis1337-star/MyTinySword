@@ -24,11 +24,13 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
     private ResourceStorage _resourceStorage;
     private ConstructionSlot _currentSlot;
     private BuildingConfig _selectedConfig;
+    private DiContainer _container;
 
     [Inject]
-    private void Construct(ResourceStorage resourceStorage)
+    private void Construct(ResourceStorage resourceStorage, DiContainer container)
     {
         _resourceStorage = resourceStorage;
+        _container = container;
     }
 
     protected override void Awake()
@@ -117,7 +119,9 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
 
     private ConstructionOptionItem CreateItem()
     {
-        return Instantiate(_optionPrefab, _contentRoot);
+        return _container.InstantiatePrefabForComponent<ConstructionOptionItem>(
+       _optionPrefab,
+       _contentRoot);
     }
 
     private void SelectFirstAvailableConfig(IReadOnlyList<BuildingConfig> configs)
