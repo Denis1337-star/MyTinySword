@@ -1,4 +1,5 @@
 using UnityEngine;
+using Zenject;
 
 /// <summary>
 /// ”правл€ет поведением боевого юнита
@@ -8,6 +9,7 @@ public sealed class ArmyUnitBrain : MonoBehaviour
     private ArmyUnit _unit;
     private ArmyTargetFinder _targetFinder;
     private ArmyUnitCombat _combat;
+    private GameAudioService _audioService;
 
     private BrainState _state;
     private Health _currentTarget;
@@ -28,11 +30,21 @@ public sealed class ArmyUnitBrain : MonoBehaviour
         Heal
     }
 
+    [Inject]
+    private void Construct(GameAudioService audioService)
+    {
+        _audioService = audioService;
+    }
+
     private void Awake()
     {
         _unit = GetComponent<ArmyUnit>();
         _targetFinder = new ArmyTargetFinder(_unit, transform);
-        _combat = new ArmyUnitCombat(_unit, transform);
+    }
+    private void Start()
+    {
+        _combat = new ArmyUnitCombat(_unit,
+            transform, _audioService);
     }
 
     private void Update()
@@ -145,32 +157,13 @@ public sealed class ArmyUnitBrain : MonoBehaviour
 
     private void UpdateMove()
     {
-        if (_unit.Config.UnitType == ArmyUnitType.Healer)
-        {
-            Health ally = _targetFinder.FindLowestHealthAllyUnit();
+        if (_unit.Movement.HasTarget)
+            return;
 
-            if (ally != null)
-            {
-                StartHeal(ally, true);
-                return;
-            }
-        }
-        else
-        {
-            Health enemy = _targetFinder.FindNearestEnemyTarget();
+        _hasCommandedMoveTarget = false;
+        _returnToMoveAfterCombat = false;
 
-            if (enemy != null)
-            {
-                StartAttack(enemy, true);
-                return;
-            }
-        }
-
-        if (!_unit.Movement.HasTarget)
-        {
-            _hasCommandedMoveTarget = false;
-            _state = BrainState.Idle;
-        }
+        _state = BrainState.Idle;
     }
 
     private void UpdateAttack()

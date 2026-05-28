@@ -1,0 +1,416 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+/// <summary>
+/// Главный сервис звука
+/// </summary>
+public sealed class GameAudioService : ValidatedMonoBehaviour
+{
+    private const float MinVolume = 0.0001f;
+    private const float MutedDb = -80f;
+
+    [SerializeField] private AudioConfig _config;
+    [SerializeField] private AudioSource _musicSource;
+    [SerializeField] private AudioSource _uiSfxSource;
+    [SerializeField] private Transform _worldSfxRoot;
+
+    private readonly List<AudioSource> _worldSources = new();
+
+    private AudioListener _audioListener;
+    private int _nextWorldSourceIndex;
+
+    private float _lastNonZeroMusicVolume = 1f;
+    private float _lastNonZeroSfxVolume = 1f;
+
+    public float MusicVolume { get; private set; }
+    public float SfxVolume { get; private set; }
+
+    public bool IsMusicMuted { get; private set; }
+    public bool IsSfxMuted { get; private set; }
+
+    public event Action SettingsChanged;
+
+    protected override void Awake()
+    {
+        base.Awake();
+
+        InitializeSources();
+        InitializeVolumes();
+        BuildWorldSfxPool();
+        RefreshAudioListener();
+    }
+
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += HandleSceneLoaded;
+    }
+
+    private void Start()
+    {
+        PlayMusicForScene(SceneManager.GetActiveScene().name);
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= HandleSceneLoaded;
+    }
+
+    private void OnDestroy()
+    {
+        ClearWorldSfxPool();
+    }
+
+    protected override bool ValidateInternal()
+    {
+        bool valid = true;
+
+        valid &= ValidationUtility.IsAssigned(this, _config, nameof(_config));
+        valid &= ValidationUtility.IsAssigned(this, _musicSource, nameof(_musicSource));
+        valid &= ValidationUtility.IsAssigned(this, _uiSfxSource, nameof(_uiSfxSource));
+        valid &= ValidationUtility.IsAssigned(this, _worldSfxRoot, nameof(_worldSfxRoot));
+
+        if (_config == null)
+            return false;
+
+        valid &= ValidationUtility.IsAssigned(this, _config.AudioMixer, nameof(_config.AudioMixer));
+        valid &= ValidationUtility.IsAssigned(this, _config.MusicMixerGroup, nameof(_config.MusicMixerGroup));
+        valid &= ValidationUtility.IsAssigned(this, _config.SfxMixerGroup, nameof(_config.SfxMixerGroup));
+
+        return valid;
+    }
+
+    /// <summary>
+    /// Меняет громкость музыки
+    /// </summary>
+    public void SetMusicVolume(float volume)
+    {
+        MusicVolume = Mathf.Clamp01(volume);
+
+        if (MusicVolume > MinVolume)
+        {
+            IsMusicMuted = false;
+            _lastNonZeroMusicVolume = MusicVolume;
+        }
+        else
+        {
+            MusicVolume = 0f;
+            IsMusicMuted = true;
+        }
+
+        ApplyMusicVolume();
+        SettingsChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// Меняет громкость SFX
+    /// </summary>
+    public void SetSfxVolume(float volume)
+    {
+        SfxVolume = Mathf.Clamp01(volume);
+
+        if (SfxVolume > MinVolume)
+        {
+            IsSfxMuted = false;
+            _lastNonZeroSfxVolume = SfxVolume;
+        }
+        else
+        {
+            SfxVolume = 0f;
+            IsSfxMuted = true;
+        }
+
+        ApplySfxVolume();
+        SettingsChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// Включает или выключает mute музыки
+    /// </summary>
+    public void SetMusicMuted(bool muted)
+    {
+        if (muted)
+        {
+            if (MusicVolume > MinVolume)
+                _lastNonZeroMusicVolume = MusicVolume;
+
+            MusicVolume = 0f;
+            IsMusicMuted = true;
+        }
+        else
+        {
+            IsMusicMuted = false;
+
+            if (MusicVolume <= MinVolume)
+                MusicVolume = Mathf.Clamp01(_lastNonZeroMusicVolume);
+        }
+
+        ApplyMusicVolume();
+        SettingsChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// Включает или выключает mute SFX
+    /// </summary>
+    public void SetSfxMuted(bool muted)
+    {
+        if (muted)
+        {
+            if (SfxVolume > MinVolume)
+                _lastNonZeroSfxVolume = SfxVolume;
+
+            SfxVolume = 0f;
+            IsSfxMuted = true;
+        }
+        else
+        {
+            IsSfxMuted = false;
+
+            if (SfxVolume <= MinVolume)
+                SfxVolume = Mathf.Clamp01(_lastNonZeroSfxVolume);
+        }
+
+        ApplySfxVolume();
+        SettingsChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// Проигрывает UI звук
+    /// </summary>
+    public void PlayUiSound(SoundId id)
+    {
+        if (!CanPlaySfx())
+            return;
+
+        SoundEntry entry = _config.GetSound(id);
+
+        if (entry == null)
+            return;
+
+        AudioClip clip = entry.GetClip();
+
+        if (clip == null)
+            return;
+
+        _uiSfxSource.pitch = entry.GetPitch();
+        _uiSfxSource.PlayOneShot(clip, entry.Volume);
+    }
+
+    /// <summary>
+    /// Проигрывает world звук в указанной 2D позиции
+    /// </summary>
+    public void PlayWorldSound(SoundId id, Vector2 worldPosition)
+    {
+        PlayWorldSound(id, new Vector3(worldPosition.x, worldPosition.y, 0f));
+    }
+
+    /// <summary>
+    /// Проигрывает world звук в указанной позиции
+    /// </summary>
+    public void PlayWorldSound(SoundId id, Vector3 worldPosition)
+    {
+        if (!CanPlaySfx())
+            return;
+
+        SoundEntry entry = _config.GetSound(id);
+
+        if (entry == null)
+            return;
+
+        AudioClip clip = entry.GetClip();
+
+        if (clip == null)
+            return;
+
+        AudioSource source = GetNextWorldSource();
+
+        if (source == null)
+            return;
+
+        Vector3 soundPosition = worldPosition;
+        soundPosition.z = GetListenerZ();
+
+        source.transform.position = soundPosition;
+        source.clip = clip;
+        source.volume = entry.Volume;
+        source.pitch = entry.GetPitch();
+
+        source.Stop();
+        source.Play();
+    }
+
+    /// <summary>
+    /// Включает музыку для указанной сцены
+    /// </summary>
+    public void PlayMusicForScene(string sceneName)
+    {
+        AudioClip clip = _config.GetMusicForScene(sceneName);
+
+        if (clip == null)
+        {
+            StopMusic();
+            return;
+        }
+
+        if (_musicSource.clip == clip && _musicSource.isPlaying)
+            return;
+
+        _musicSource.clip = clip;
+        _musicSource.loop = true;
+        _musicSource.Play();
+    }
+
+    /// <summary>
+    /// Останавливает текущую музыку
+    /// </summary>
+    public void StopMusic()
+    {
+        _musicSource.Stop();
+        _musicSource.clip = null;
+    }
+
+    private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        RefreshAudioListener();
+        PlayMusicForScene(scene.name);
+    }
+
+    private void InitializeSources()
+    {
+        _musicSource.playOnAwake = false;
+        _musicSource.loop = true;
+        _musicSource.spatialBlend = 0f;
+        _musicSource.outputAudioMixerGroup = _config.MusicMixerGroup;
+
+        _uiSfxSource.playOnAwake = false;
+        _uiSfxSource.loop = false;
+        _uiSfxSource.spatialBlend = 0f;
+        _uiSfxSource.outputAudioMixerGroup = _config.SfxMixerGroup;
+    }
+
+    private void InitializeVolumes()
+    {
+        MusicVolume = Mathf.Clamp01(_config.DefaultMusicVolume);
+        SfxVolume = Mathf.Clamp01(_config.DefaultSfxVolume);
+
+        _lastNonZeroMusicVolume = MusicVolume > MinVolume
+            ? MusicVolume
+            : 1f;
+
+        _lastNonZeroSfxVolume = SfxVolume > MinVolume
+            ? SfxVolume
+            : 1f;
+
+        IsMusicMuted = MusicVolume <= MinVolume;
+        IsSfxMuted = SfxVolume <= MinVolume;
+
+        ApplyMusicVolume();
+        ApplySfxVolume();
+    }
+
+    private void BuildWorldSfxPool()
+    {
+        ClearWorldSfxPool();
+
+        int poolSize = Mathf.Max(1, _config.WorldSfxPoolSize);
+
+        for (int i = 0; i < poolSize; i++)
+        {
+            GameObject sourceObject = new GameObject($"WorldSfxSource_{i + 1}");
+            sourceObject.transform.SetParent(_worldSfxRoot, false);
+
+            AudioSource source = sourceObject.AddComponent<AudioSource>();
+            ConfigureWorldSource(source);
+
+            _worldSources.Add(source);
+        }
+    }
+
+    private void ClearWorldSfxPool()
+    {
+        for (int i = 0; i < _worldSources.Count; i++)
+        {
+            AudioSource source = _worldSources[i];
+
+            if (source == null)
+                continue;
+
+            Destroy(source.gameObject);
+        }
+
+        _worldSources.Clear();
+        _nextWorldSourceIndex = 0;
+    }
+
+    private void ConfigureWorldSource(AudioSource source)
+    {
+        source.playOnAwake = false;
+        source.loop = false;
+
+        source.spatialBlend = 1f;
+        source.rolloffMode = AudioRolloffMode.Linear;
+        source.minDistance = _config.WorldMinDistance;
+        source.maxDistance = _config.WorldMaxDistance;
+        source.dopplerLevel = 0f;
+
+        source.outputAudioMixerGroup = _config.SfxMixerGroup;
+    }
+
+    private AudioSource GetNextWorldSource()
+    {
+        if (_worldSources.Count == 0)
+            return null;
+
+        AudioSource source = _worldSources[_nextWorldSourceIndex];
+
+        _nextWorldSourceIndex++;
+
+        if (_nextWorldSourceIndex >= _worldSources.Count)
+            _nextWorldSourceIndex = 0;
+
+        return source;
+    }
+
+    private void ApplyMusicVolume()
+    {
+        SetMixerVolume(_config.MusicVolumeParameter, MusicVolume, IsMusicMuted);
+    }
+
+    private void ApplySfxVolume()
+    {
+        SetMixerVolume(_config.SfxVolumeParameter, SfxVolume, IsSfxMuted);
+    }
+
+    private void SetMixerVolume(string parameterName, float volume, bool muted)
+    {
+        float db = muted || volume <= MinVolume
+            ? MutedDb
+            : Mathf.Log10(volume) * 20f;
+
+        _config.AudioMixer.SetFloat(parameterName, db);
+    }
+
+    private bool CanPlaySfx()
+    {
+        return !IsSfxMuted && SfxVolume > MinVolume;
+    }
+
+    private void RefreshAudioListener()
+    {
+        _audioListener = FindObjectOfType<AudioListener>();
+    }
+
+    private float GetListenerZ()
+    {
+        if (_audioListener != null)
+            return _audioListener.transform.position.z;
+
+        Camera mainCamera = Camera.main;
+
+        if (mainCamera != null)
+            return mainCamera.transform.position.z;
+
+        return transform.position.z;
+    }
+}

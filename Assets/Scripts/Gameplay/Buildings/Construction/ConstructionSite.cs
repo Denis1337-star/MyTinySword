@@ -1,4 +1,5 @@
 using UnityEngine;
+using Zenject;
 
 /// <summary>
 /// Объект стройки
@@ -9,6 +10,7 @@ public sealed class ConstructionSite : MonoBehaviour
     private BuildingConfig _config;
     private BuildingRegistry _buildingRegistry;
     private BuildingFactory _buildingFactory;
+    private GameAudioService _audioService;
 
     private float _progress;
     private float _buildTime;
@@ -19,8 +21,16 @@ public sealed class ConstructionSite : MonoBehaviour
     public float Progress01 => _buildTime > 0f ? Mathf.Clamp01(_progress / _buildTime) : 1f;
     public BuildingConfig Config => _config;
 
-    public void Initialize(ConstructionSlot slot,
-       BuildingConfig config,BuildingRegistry buildingRegistry,
+    [Inject]
+    private void Construct(GameAudioService audioService)
+    {
+        _audioService = audioService;
+    }
+
+    public void Initialize(
+        ConstructionSlot slot,
+        BuildingConfig config,
+        BuildingRegistry buildingRegistry,
         BuildingFactory buildingFactory)
     {
         _slot = slot;
@@ -28,7 +38,7 @@ public sealed class ConstructionSite : MonoBehaviour
         _buildingRegistry = buildingRegistry;
         _buildingFactory = buildingFactory;
 
-        _buildTime =  config.BuildTime;
+        _buildTime = config.BuildTime;
         _progress = 0f;
         _finished = false;
         _completionAttempted = false;
@@ -64,7 +74,6 @@ public sealed class ConstructionSite : MonoBehaviour
 
         _completionAttempted = true;
 
-
         GameObject building = _buildingFactory.CreateBuilding(
             _config.BuildingPrefab,
             transform.position,
@@ -72,15 +81,33 @@ public sealed class ConstructionSite : MonoBehaviour
 
         if (building == null)
         {
-            Debug.LogError($"{name}: не удалось создать здание из BuildingConfig \"{_config.name}\".", this);
+            Debug.LogError(
+                $"{name}: не удалось создать здание из BuildingConfig \"{_config.name}\".",
+                this);
+
             return;
         }
+
+        AttachSlotToBuilding(building);
+        PlayBuiltSound();
 
         _finished = true;
 
         _buildingRegistry?.RegisterBuilt(_config);
 
         NotifySlotAndDestroy();
+    }
+
+    private void AttachSlotToBuilding(GameObject building)
+    {
+        BuildingBase buildingBase = building.GetComponent<BuildingBase>();
+
+        buildingBase.AttachConstructionSlot(_slot);
+    }
+
+    private void PlayBuiltSound()
+    {
+        _audioService.PlayWorldSound(SoundId.BuildingBuilt, transform.position);
     }
 
     private void NotifySlotAndDestroy()

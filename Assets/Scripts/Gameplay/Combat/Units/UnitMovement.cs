@@ -92,6 +92,11 @@ public sealed class UnitMovement : MonoBehaviour
         _agent.stoppingDistance = _stoppingDistance;
         _agent.radius = _agentRadius;
 
+        _agent.acceleration = 80f;
+        _agent.angularSpeed = 720f;
+        _agent.autoBraking = true;
+        _agent.autoRepath = true;
+
         _agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
         _agent.avoidancePriority = UnityEngine.Random.Range(30, 70);
     }

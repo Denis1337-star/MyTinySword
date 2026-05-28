@@ -150,6 +150,7 @@ GameObject:
   - component: {fileID: 801126465291340924}
   - component: {fileID: 6447242096697287991}
   - component: {fileID: 2811560095626168135}
+  - component: {fileID: 7792622985401931406}
   m_Layer: 9
   m_Name: Monk_Player
   m_TagString: Untagged
@@ -258,17 +259,17 @@ NavMeshAgent:
   m_AgentTypeID: 0
   m_Radius: 0.3
   m_Speed: 3.5
-  m_Acceleration: 20
+  m_Acceleration: 100
   avoidancePriority: 50
   m_AngularSpeed: 0.3
   m_StoppingDistance: 0.2
   m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 0
-  m_AutoRepath: 0
+  m_AutoBraking: 1
+  m_AutoRepath: 1
   m_Height: 1.2
   m_BaseOffset: 0.6
   m_WalkableMask: 1
-  m_ObstacleAvoidanceType: 3
+  m_ObstacleAvoidanceType: 4
 --- !u!114 &4494363855455706420
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -378,7 +379,7 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 0.4
+  m_Radius: 1
 --- !u!114 &8095704669564625008
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -436,3 +437,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c86445684a13284885ce177b8646311, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &7792622985401931406
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7523805815854949293}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c4ac245385f05e4c8023386d748261f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _health: {fileID: 760204953070162733}
+  _soundOrigin: {fileID: 7101548476794337762}
+  _damageSoundId: 200
+  _deathSoundId: 201
+  _playDamageSound: 1
+  _playDeathSound: 1
+  _damageSoundCooldown: 0.08

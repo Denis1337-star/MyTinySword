@@ -18,27 +18,25 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
     [SerializeField] private Button _buildButton;
     [SerializeField] private Transform _contentRoot;
     [SerializeField] private ConstructionOptionItem _optionPrefab;
+    [SerializeField] private SimplePanelTween _panelTween;
 
     private readonly List<ConstructionOptionItem> _optionItems = new();
 
     private ResourceStorage _resourceStorage;
     private ConstructionSlot _currentSlot;
     private BuildingConfig _selectedConfig;
+    private DiContainer _container;
 
     [Inject]
-    private void Construct(ResourceStorage resourceStorage)
+    private void Construct(ResourceStorage resourceStorage, DiContainer container)
     {
         _resourceStorage = resourceStorage;
+        _container = container;
     }
 
     protected override void Awake()
     {
         base.Awake();
-
-        if (!enabled)
-            return;
-
-        Hide();
     }
 
     private void OnEnable()
@@ -84,7 +82,7 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
         BuildOptions(slot.AvailableBuildings);
         SelectFirstAvailableConfig(slot.AvailableBuildings);
 
-        ShowRoot();
+        _panelTween.Show();
         Refresh();
     }
 
@@ -96,7 +94,7 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
         ClearOptions();
         ClearInfo();
 
-        _root.SetActive(false);
+        _panelTween.Hide();
     }
 
     private void BuildOptions(IReadOnlyList<BuildingConfig> configs)
@@ -122,7 +120,9 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
 
     private ConstructionOptionItem CreateItem()
     {
-        return Instantiate(_optionPrefab, _contentRoot);
+        return _container.InstantiatePrefabForComponent<ConstructionOptionItem>(
+       _optionPrefab,
+       _contentRoot);
     }
 
     private void SelectFirstAvailableConfig(IReadOnlyList<BuildingConfig> configs)
@@ -167,12 +167,29 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
         _descriptionText.text = _selectedConfig.Description;
         _buildTimeText.text = $"Строится: {_selectedConfig.BuildTime:0.#} секунд";
 
+        RefreshCostText();
+
+        _previewImage.sprite = _selectedConfig.Icon;
+    }
+
+    private void RefreshCostText()
+    {
+        if (_selectedConfig == null)
+        {
+            _costText.text = "Стоимость: -";
+            return;
+        }
+
+        if (_currentSlot != null && _currentSlot.IsUniqueBuildingBlocked(_selectedConfig))
+        {
+            _costText.text = $"{_selectedConfig.DisplayName} уже построено";
+            return;
+        }
+
         _costText.text =
             $"Стоимость\n" +
             $"Wood: {_resourceStorage.Wood}/{_selectedConfig.WoodCost}\n" +
             $"Gold: {_resourceStorage.Gold}/{_selectedConfig.GoldCost}";
-
-        _previewImage.sprite = _selectedConfig.Icon;
     }
 
     private void RefreshBuildButton()
@@ -234,10 +251,5 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
         }
 
         _optionItems.Clear();
-    }
-
-    private void ShowRoot()
-    {
-        _root.SetActive(true);
     }
 }

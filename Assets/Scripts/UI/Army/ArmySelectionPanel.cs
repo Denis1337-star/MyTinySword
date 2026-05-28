@@ -35,11 +35,6 @@ public sealed class ArmySelectionPanel : ValidatedMonoBehaviour
     protected override void Awake()
     {
         base.Awake();
-
-        if (!enabled)
-            return;
-
-        SetPanelActive(false);
     }
 
     private void OnEnable()

@@ -17,6 +17,10 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
     [SerializeField] protected UnitSelectable selectable;
 
     private BuildingRegistry _buildingRegistry;
+    private GameAudioService _audioService;
+    private ConstructionSlot _sourceSlot;
+
+    private bool _isDestroying;
 
     public BuildingConfig Config => config;
     public FactionMember FactionMember => factionMember;
@@ -27,19 +31,16 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
     public FactionType Faction => factionMember.Faction;
 
     [Inject]
-    private void Construct(BuildingRegistry buildingRegistry)
+    private void Construct(
+        BuildingRegistry buildingRegistry,
+        GameAudioService audioService)
     {
         _buildingRegistry = buildingRegistry;
-    }
-
-    protected virtual void OnValidate()
-    {
-        ResolveReferences();
+        _audioService = audioService;
     }
 
     protected override void Awake()
     {
-        ResolveReferences();
         ApplyConfig();
 
         base.Awake();
@@ -47,14 +48,15 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
 
     protected virtual void OnEnable()
     {
-        if (health != null)
             health.OnDied += HandleDeath;
     }
 
     protected virtual void OnDisable()
     {
-        if (health != null)
             health.OnDied -= HandleDeath;
+    }
+    protected virtual void OnValidate()
+    {
     }
 
     protected override bool ValidateInternal()
@@ -75,41 +77,62 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
         return valid;
     }
 
+
+    public void AttachConstructionSlot(ConstructionSlot slot)
+    {
+        _sourceSlot = slot;
+    }
+
+    public void Demolish()
+    {
+        PlayDemolishSound();
+        HandleDeath();
+    }
+
     protected virtual void HandleDeath()
     {
+        if (_isDestroying)
+            return;
+
+        _isDestroying = true;
+
         UnregisterUniqueBuilding();
+        RestoreSourceSlot();
 
         Destroy(gameObject);
     }
 
-    protected void ResolveReferences()
-    {
-        if (factionMember == null)
-            factionMember = GetComponent<FactionMember>();
-
-        if (health == null)
-            health = GetComponent<Health>();
-
-        if (selectable == null)
-            selectable = GetComponent<UnitSelectable>();
-    }
 
     private void ApplyConfig()
     {
-        if (config == null || health == null)
-            return;
 
         health.Initialize(config.MaxHealth);
     }
 
+    private void PlayDemolishSound()
+    {
+        _audioService.PlayWorldSound(SoundId.BuildingDemolished, transform.position);
+    }
+    protected void PlayWorldSound(SoundId soundId, Vector3 position)
+    {
+        _audioService.PlayWorldSound(soundId, position);
+    }
+
     private void UnregisterUniqueBuilding()
     {
-        if (config == null)
-            return;
 
         if (!config.UniqueBuilding)
             return;
 
-        _buildingRegistry?.UnregisterBuilt(config);
+        _buildingRegistry.UnregisterBuilt(config);
+    }
+
+    private void RestoreSourceSlot()
+    {
+        if (_sourceSlot == null)
+            return;
+
+        _sourceSlot.Restore();
+        _sourceSlot = null;
     }
 }

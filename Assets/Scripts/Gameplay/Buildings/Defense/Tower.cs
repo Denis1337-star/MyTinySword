@@ -40,7 +40,7 @@ public sealed class Tower : BuildingBase
 
     private void UpdateCombat()
     {
-        if (_currentTarget == null || _currentTarget.IsDead || !IsTargetInRange(_currentTarget))
+        if (!IsCurrentTargetValid())
             _currentTarget = FindBestTarget();
 
         if (_currentTarget == null)
@@ -54,6 +54,17 @@ public sealed class Tower : BuildingBase
         Shoot(_currentTarget);
         _attackTimer = _attackCooldown;
     }
+    private bool IsCurrentTargetValid()
+    {
+        if (_currentTarget == null)
+            return false;
+
+        if (_currentTarget.IsDead)
+            return false;
+
+        return IsTargetInRange(_currentTarget);
+    }
+
 
     private bool IsTargetInRange(Health target)
     {
@@ -85,42 +96,79 @@ public sealed class Tower : BuildingBase
         {
             Collider2D hit = _targetBuffer[i];
 
-            if (hit == null)
+            if (!TryGetValidTarget(hit, out Health targetHealth, out CombatTargetInfo targetInfo))
                 continue;
 
-            Health targetHealth = hit.GetComponentInParent<Health>();
+            int priority = GetTargetPriority(targetInfo);
+            float distanceSqr = GetDistanceSqrTo(targetHealth);
 
-            if (targetHealth == null || targetHealth.IsDead)
+            if (!IsBetterTarget(priority, distanceSqr, bestPriority, bestDistanceSqr))
                 continue;
 
-            if (targetHealth.gameObject == gameObject)
-                continue;
-
-            FactionMember targetFaction = targetHealth.GetComponentInParent<FactionMember>();
-
-            if (targetFaction == null || !FactionMember.IsEnemy(targetFaction))
-                continue;
-
-            CombatTargetInfo targetInfo = targetHealth.GetComponentInParent<CombatTargetInfo>();
-
-            int priority = targetInfo != null
-                ? (int)targetInfo.TargetPriority
-                : (int)TargetPriorityType.Building;
-
-            float distanceSqr = (targetHealth.transform.position - transform.position).sqrMagnitude;
-
-            bool betterPriority = priority > bestPriority;
-            bool samePriorityButCloser = priority == bestPriority && distanceSqr < bestDistanceSqr;
-
-            if (betterPriority || samePriorityButCloser)
-            {
-                bestPriority = priority;
-                bestDistanceSqr = distanceSqr;
-                bestTarget = targetHealth;
-            }
+            bestPriority = priority;
+            bestDistanceSqr = distanceSqr;
+            bestTarget = targetHealth;
         }
 
         return bestTarget;
+    }
+
+    private bool TryGetValidTarget(
+         Collider2D hit,
+         out Health targetHealth,
+         out CombatTargetInfo targetInfo)
+    {
+        targetHealth = null;
+        targetInfo = null;
+
+        if (hit == null)
+            return false;
+
+        if (!hit.TryGetComponent(out targetHealth))
+            return false;
+
+        if (targetHealth.IsDead)
+            return false;
+
+        if (targetHealth == Health)
+            return false;
+
+        if (!hit.TryGetComponent(out FactionMember targetFaction))
+            return false;
+
+        if (!FactionMember.IsEnemy(targetFaction))
+            return false;
+
+        hit.TryGetComponent(out targetInfo);
+        return true;
+    }
+
+    private int GetTargetPriority(CombatTargetInfo targetInfo)
+    {
+        if (targetInfo == null)
+            return (int)TargetPriorityType.Building;
+
+        return (int)targetInfo.TargetPriority;
+    }
+
+    private float GetDistanceSqrTo(Health target)
+    {
+        return (target.transform.position - transform.position).sqrMagnitude;
+    }
+
+    private bool IsBetterTarget(
+        int priority,
+        float distanceSqr,
+        int bestPriority,
+        float bestDistanceSqr)
+    {
+        if (priority > bestPriority)
+            return true;
+
+        if (priority < bestPriority)
+            return false;
+
+        return distanceSqr < bestDistanceSqr;
     }
 
     private void Shoot(Health target)
@@ -128,17 +176,25 @@ public sealed class Tower : BuildingBase
         if (target == null || target.IsDead)
             return;
 
-        Vector3 spawnPosition = _shootPoint != null ? _shootPoint.position : transform.position;
+        Vector3 spawnPosition = _shootPoint != null
+            ? _shootPoint.position
+            : transform.position;
+
+        PlayAttackSound(spawnPosition);
 
         if (_arrowPrefab != null)
         {
             ProjectileArrow arrow = Instantiate(_arrowPrefab, spawnPosition, Quaternion.identity);
             arrow.Initialize(target, _damage, _arrowSpeed);
+            return;
         }
-        else
-        {
-            target.TakeDamage(_damage);
-        }
+
+        target.TakeDamage(_damage);
+    }
+
+    private void PlayAttackSound(Vector3 position)
+    {
+        PlayWorldSound(SoundId.ArrowShoot, position);
     }
 
     private void OnDrawGizmosSelected()

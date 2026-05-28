@@ -7,14 +7,12 @@ using UnityEngine.UI;
 /// </summary>
 public sealed class WorkerCommandPanel : ValidatedMonoBehaviour
 {
-    [Header("Job Text")]
     [SerializeField] private TMP_Text _currentJobText;
     [SerializeField] private TMP_Text _pendingJobText;
-
-    [Header("Buttons")]
     [SerializeField] private Button _chopWoodButton;
     [SerializeField] private Button _mineGoldButton;
     [SerializeField] private Button _huntMeatButton;
+    [SerializeField] private SimplePanelTween _panelTween;
 
     private Worker _currentWorker;
     private Worker _subscribedWorker;
@@ -22,11 +20,6 @@ public sealed class WorkerCommandPanel : ValidatedMonoBehaviour
     protected override void Awake()
     {
         base.Awake();
-
-        if (!enabled)
-            return;
-
-        gameObject.SetActive(false);
     }
 
     protected override bool ValidateInternal()
@@ -72,8 +65,7 @@ public sealed class WorkerCommandPanel : ValidatedMonoBehaviour
                 SubscribeToCurrentWorker();
         }
 
-        if (!gameObject.activeSelf)
-            gameObject.SetActive(true);
+        _panelTween.Show();
 
         Refresh();
     }
@@ -87,8 +79,7 @@ public sealed class WorkerCommandPanel : ValidatedMonoBehaviour
         ClearText();
         RefreshButtons();
 
-        if (gameObject.activeSelf)
-            gameObject.SetActive(false);
+        _panelTween.Hide();
     }
 
     private void OnChopWoodClicked()

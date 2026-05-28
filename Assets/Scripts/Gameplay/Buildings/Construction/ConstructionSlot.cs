@@ -49,9 +49,6 @@ public sealed class ConstructionSlot : ValidatedMonoBehaviour
 
     public string GetBuildBlockReason(BuildingConfig config)
     {
-        if (config == null)
-            return "Здание не выбрано";
-
         if (_currentConstruction != null)
             return "Уже строится";
 
@@ -62,6 +59,16 @@ public sealed class ConstructionSlot : ValidatedMonoBehaviour
             return "Не хватает ресурсов";
 
         return string.Empty;
+    }
+    public bool IsUniqueBuildingBlocked(BuildingConfig config)
+    {
+        if (config == null)
+            return false;
+
+        if (!config.UniqueBuilding)
+            return false;
+
+        return _buildingRegistry.IsBuiltOrConstructing(config);
     }
 
     public bool StartConstruction(BuildingConfig config)
@@ -76,17 +83,13 @@ public sealed class ConstructionSlot : ValidatedMonoBehaviour
             return false;
 
         ConstructionSite site = _buildingFactory.CreateConstructionSite(
-            _constructionPrefab,
-            transform.position,
-            Quaternion.identity);
+            _constructionPrefab, transform.position,Quaternion.identity);
 
         if (site == null)
             return false;
 
         bool spent = _resourceStorage.TrySpendResources(
-            config.WoodCost,
-            config.GoldCost,
-            0);
+            config.WoodCost,config.GoldCost, 0);
 
         if (!spent)
         {
@@ -108,6 +111,11 @@ public sealed class ConstructionSlot : ValidatedMonoBehaviour
     public void OnConstructionFinished()
     {
         _currentConstruction = null;
-        Destroy(gameObject);
+    }
+
+    public void Restore()
+    {
+        _currentConstruction = null;
+        gameObject.SetActive(true);
     }
 }
