@@ -18,6 +18,7 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
     [SerializeField] private Button _buildButton;
     [SerializeField] private Transform _contentRoot;
     [SerializeField] private ConstructionOptionItem _optionPrefab;
+    [SerializeField] private SimplePanelTween _panelTween;
 
     private readonly List<ConstructionOptionItem> _optionItems = new();
 
@@ -81,7 +82,7 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
         BuildOptions(slot.AvailableBuildings);
         SelectFirstAvailableConfig(slot.AvailableBuildings);
 
-        ShowRoot();
+        _panelTween.Show();
         Refresh();
     }
 
@@ -93,7 +94,7 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
         ClearOptions();
         ClearInfo();
 
-        HideRoot();
+        _panelTween.Hide();
     }
 
     private void BuildOptions(IReadOnlyList<BuildingConfig> configs)
@@ -250,15 +251,5 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
         }
 
         _optionItems.Clear();
-    }
-
-    private void ShowRoot()
-    {
-        _root.SetActive(true);
-    }
-
-    private void HideRoot()
-    {
-        _root.SetActive(false);
     }
 }

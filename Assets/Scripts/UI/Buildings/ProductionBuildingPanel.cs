@@ -17,6 +17,7 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
     [SerializeField] private Button _hireButton;
     [SerializeField] private Button _demolishButton;
     [SerializeField] private Image _iconImage;
+    [SerializeField] private SimplePanelTween _panelTween;
 
     private ProductionBuildingBase _currentBuilding;
     private ProductionBuildingBase _subscribedBuilding;
@@ -93,7 +94,7 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
             SubscribeToCurrentBuilding();
         }
 
-        ShowRoot();
+        _panelTween.Show();
         Refresh();
     }
 
@@ -104,7 +105,7 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
         _currentBuilding = null;
 
         ClearText();
-        HideRoot();
+        _panelTween.Hide();
     }
 
     private void HireUnit()
@@ -196,15 +197,5 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
 
         _subscribedBuilding.OnQueueChanged -= Refresh;
         _subscribedBuilding = null;
-    }
-
-    private void ShowRoot()
-    {
-        _root.SetActive(true);
-    }
-
-    private void HideRoot()
-    {
-        _root.SetActive(false);
     }
 }

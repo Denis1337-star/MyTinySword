@@ -12,6 +12,7 @@ public sealed class AudioSettingsPanel : ValidatedMonoBehaviour
     [SerializeField] private Slider _sfxSlider;
     [SerializeField] private Toggle _musicMuteToggle;
     [SerializeField] private Toggle _sfxMuteToggle;
+    [SerializeField] private SimplePanelTween _panelTween;
 
     private GameAudioService _audioService;
 
@@ -55,25 +56,26 @@ public sealed class AudioSettingsPanel : ValidatedMonoBehaviour
         valid &= ValidationUtility.IsAssigned(this, _sfxSlider, nameof(_sfxSlider));
         valid &= ValidationUtility.IsAssigned(this, _musicMuteToggle, nameof(_musicMuteToggle));
         valid &= ValidationUtility.IsAssigned(this, _sfxMuteToggle, nameof(_sfxMuteToggle));
+        valid &= ValidationUtility.IsAssigned(this, _panelTween, nameof(_panelTween));
 
         return valid;
     }
 
     public void Show()
     {
-        ShowRoot();
+        _panelTween.Show();
         RefreshFromService();
     }
 
     public void Hide()
     {
-        HideRoot();
+        _panelTween.Hide();
     }
 
 
     public void Toggle()
     {
-        if (_root.activeSelf)
+        if (_panelTween.IsVisible)
         {
             Hide();
             return;
@@ -173,15 +175,5 @@ public sealed class AudioSettingsPanel : ValidatedMonoBehaviour
             return;
 
         _audioService.SetSfxMuted(muted);
-    }
-
-    private void ShowRoot()
-    {
-        _root.SetActive(true);
-    }
-
-    private void HideRoot()
-    {
-        _root.SetActive(false);
     }
 }
