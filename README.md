@@ -3,9 +3,9 @@
 
 **MyTinySword** — 2D RTS-прототип на Unity под Android.
 
-Проект разрабатывается с нуля с упором на **архитектуру игровых систем**, **масштабируемость**, **чистый C# код**, разделение ответственности и постепенный переход к production-like структуре через **Zenject / Extenject**, фабрики, реестры, ScriptableObject-конфиги и событийное обновление UI.
+Проект разрабатывается с нуля с упором на **архитектуру игровых систем**, **масштабируемость**, **чистый C# код**, разделение ответственности и постепенный переход к production структуре через **Zenject**, фабрики, реестры, ScriptableObject-конфиги и событийное обновление UI.
 
-В проекте реализованы рабочие юниты, добыча ресурсов, строительство зданий, производство армии, выбор объектов, команды движения и атаки, базовая боевая система, UI-панели, управление камерой и внедрение зависимостей.
+В проекте реализованы рабочие юниты/найм их, добыча 3 видов ресурсов, строительство зданийи и снос, производство армии, базовая боевая система, UI-панели, управление камерой и внедрение зависимостей и звук
 
 ---
 
@@ -24,7 +24,8 @@
   - [7. Army](#7-army)
   - [8. Combat](#8-combat)
   - [9. UI](#9-ui)
-  - [10. Installer / Zenject](#10-installer--zenject)
+  - [10. Audio](#10-Audio)
+  - [11. Installer / Zenject](#11-installer--zenject)
 - [Используемые архитектурные подходы](#используемые-архитектурные-подходы)
 - [Android / Performance](#android--performance)
 - [Реализовано сейчас](#реализовано-сейчас)
@@ -42,13 +43,13 @@ https://github.com/user-attachments/assets/56568f65-4bf9-42af-8910-d71f75036c83
 
 - выбирать рабочих, здания, строительные слоты и боевых юнитов;
 - назначать рабочим задачи: рубка дерева, добыча золота, охота за мясом;
-- собирать ресурсы и доставлять их в базу;
+- собирать ресурсы;
 - строить здания через строительные слоты;
 - нанимать рабочих в доме;
-- производить боевых юнитов в производственных зданиях;
+- производить боевых юнитов в зданиях;
 - выбирать группу армии;
 - отдавать армии команды движения и атаки;
-- сражаться с врагами через melee, ranged, healer и tower-логику.
+- сражаться с врагами .
 
 https://github.com/user-attachments/assets/60037a2c-d134-4689-ad30-3ab36f1206bd
 
@@ -110,7 +111,7 @@ Installer / Zenject
 ## 1. Config / Data
 
 Данные игры вынесены в ScriptableObject-конфиги.  
-Runtime-классы не хранят баланс напрямую, а читают параметры из конфигов.
+Runtime-классы  читают параметры из конфигов.
 
 Основные классы:
 
@@ -126,6 +127,7 @@ Runtime-классы не хранят баланс напрямую, а чит�
 - `TreeResourceConfig`
 - `GoldResourceConfig`
 - `SheepResourceConfig`
+- `AudioConfig`
 
 Такой подход позволяет менять баланс игры через Inspector без изменения gameplay-кода.
 
@@ -145,16 +147,6 @@ Runtime-классы не хранят баланс напрямую, а чит�
 - `UnitSelectable`
 - `CommandSystem`
 - `SelectionUiPresenter`
-
-Основной поток:
-
-```text
-Tap
-→ UI Check
-→ Select Object
-→ Command Army
-→ Update UI / Camera Focus
-```
 
 `GameplayInputController` является центральной точкой обработки touch-ввода.  
 `SelectionSystem` хранит текущий выбор, а `CommandSystem` отдаёт выбранной армии команды движения или атаки.
@@ -200,28 +192,6 @@ Tap
 - `SheepResource`
 - `WorkSlot`
 - `WorkerResourceSelector`
-
-Ресурсы:
-
-```text
-Wood
-Gold
-Meat
-```
-
-Основной поток добычи:
-
-```text
-Worker получает job
-→ ищет ресурс через ResourceRegistry
-→ резервирует WorkSlot
-→ идёт к ресурсу
-→ добывает ресурс
-→ кладёт ресурс в WorkerInventory
-→ несёт ресурс домой
-→ добавляет ресурс в ResourceStorage
-→ UI обновляется
-```
 
 ![Resource Architecture](Docs/Resource_architecture.png)
 
@@ -305,19 +275,6 @@ IWorkerJob
 - `Castle`
 - `Tower`
 
-Основной поток строительства:
-
-```text
-Игрок выбирает ConstructionSlot
-→ открывается ConstructionPanel
-→ выбирается BuildingConfig
-→ списываются ресурсы
-→ создаётся ConstructionSite
-→ идёт прогресс строительства
-→ BuildingFactory создаёт готовое здание
-→ BuildingRegistry обновляет состояние здания
-```
-
 `BuildingRegistry` следит за уникальными зданиями, чтобы нельзя было построить больше одного здания с ограничением `UniqueBuilding`.
 
 ![Buildings Architecture](Docs/Buldings_architecture.png)
@@ -345,24 +302,6 @@ IWorkerJob
 Warrior
 Archer
 Healer
-```
-
-Конфиги юнитов:
-
-- `MeleeUnitConfig`
-- `RangedUnitConfig`
-- `HealerUnitConfig`
-
-Основной поток:
-
-```text
-ProductionBuildingBase ставит юнита в очередь
-→ ArmyUnitFactory создаёт ArmyUnit
-→ ArmyUnit регистрируется в ArmyUnitRegistry
-→ SelectionSystem выбирает армию
-→ CommandSystem отдаёт приказ
-→ ArmyUnitBrain выполняет поведение
-→ ArmyUnitCombat атакует или лечит
 ```
 
 ![Army Architecture](Docs/Army_architecture.png)
@@ -397,18 +336,6 @@ ProductionBuildingBase ставит юнита в очередь
 - tower-атаку;
 - победу / поражение через уничтожение Castle.
 
-Основной поток боя:
-
-```text
-Search Target
-→ Validate Faction / Priority
-→ Attack or Heal
-→ Projectile / Direct Hit
-→ Health Update
-→ Death Event
-→ UI / Game Result
-```
-
 ![Combat Architecture](Docs/Combat_architecture.png)
 
 ---
@@ -439,22 +366,63 @@ UI отделён от основной gameplay-логики.
 
 `SelectionUiPresenter` выступает как UI-router:
 
-```text
-Worker selected → WorkerCommandPanel
-House selected → HousePanel
-ProductionBuildingBase selected → ProductionBuildingPanel
-Army selected → ArmySelectionPanel
-ConstructionSlot selected → ConstructionPanel
-```
-
 UI не управляет игровой логикой напрямую.  
 Он показывает данные и отправляет команды в соответствующие gameplay-системы.
 
 ![UI Architecture](Docs/UI_architecture.png)
 
 ---
+## 10. Audio
+UI, боевые системы, строительство, рабочие и индикаторы не проигрывают AudioClip напрямую.
 
-## 10. Installer / Zenject
+Все игровые объекты вызывают GameAudioService, а он уже решает:
+
+какой SoundEntry использовать;
+через какой канал проиграть звук;
+учитывать ли позицию на карте;
+какую громкость и mute-состояние применить.
+
+Основные классы:
+
+ProjectAudioInstaller
+GameAudioService
+AudioConfig
+SoundEntry
+SceneMusicEntry
+AudioSettingsPanel
+UiButtonSound
+UiPanelOpenSound
+HealthAudioFeedback
+WorkerAnimator
+MoveCommandIndicator
+ConstructionSite
+BuildingBase
+ArmyUnitCombat
+Tower
+
+ProjectAudioInstaller создаёт глобальный AudioRoot через ProjectContext.
+Благодаря этому GameAudioService существует между сценами, но настройки не сохраняются на устройство и сбрасываются после перезапуска игры.
+
+
+UI-звуки проигрываются через UiSfxSource и не зависят от позиции камеры.
+К ним относятся клики кнопок, открытие панелей, toggle и slider feedback.
+
+World-звуки проигрываются через позиционный пул AudioSource.
+К ним относятся звуки работы, атаки, получения урона, строительства, сноса здания и команды движения армии.
+Такие звуки зависят от расстояния до камеры: рядом слышно громко, далеко — тише.
+
+Музыка выбирается по имени активной сцены через AudioConfig.
+Для каждой сцены можно назначить свой AudioClip через SceneMusicEntry.
+
+AudioSettingsPanel управляет только UI-настройками громкости.
+Она не работает напрямую с AudioMixer и AudioSource, а отправляет команды в GameAudioService.
+
+Аудиосистема не управляет gameplay-логикой напрямую.
+Она получает события из UI и игровых систем, выбирает нужный SoundId и проигрывает звук через подходящий канал.
+
+![UAudio Architecture](Docs/Audio_architecture.png)
+
+## 11. Installer / Zenject
 
 Проект использует Zenject / Extenject для настройки зависимостей между системами.
 
@@ -514,7 +482,7 @@ ArmyUnitFactory → ArmyUnit
 - фильтрация UI перед gameplay-вводом;
 - `NonAlloc` physics queries для выбора и поиска целей;
 - кэширование ссылок;
-- отказ от лишних `FindObjectOfType`;
+- отказ от  `FindObjectOfType`;
 - реестры вместо хаотичного поиска объектов;
 - фабрики для контролируемого создания runtime-объектов;
 - разделение логики по состояниям;
@@ -536,13 +504,14 @@ ArmyUnitFactory → ArmyUnit
 - Центральное хранилище ресурсов
 - HUD ресурсов
 - Найм рабочих
-- Строительство зданий
+- Строительство зданий и их снос
 - Производство боевых юнитов
 - Реестр, лимит армии
-- Melee, Ranged, Healer, Tower combat
 - Health system
 - HP bars над объектами
 - Победа / поражение
+- MainMenu
+- Audio и ее настройка
 - Camera drag / zoom ,focus
 - Zenject installer
 - Runtime factories
@@ -554,7 +523,6 @@ ArmyUnitFactory → ArmyUnit
 
 Планируемые улучшения:
 
-- добавить звуковое сопровождение в игре;
 - сделать первый уровень Tutorial;
 - добавить больше уровней
 - сделать дерево развития
