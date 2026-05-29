@@ -65,7 +65,7 @@ public sealed class GameResultPanel : ValidatedMonoBehaviour
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
-    public void MainMenu()
+    private void MainMenu()
     {
         SceneManager.LoadScene("MainMenu");
     }
