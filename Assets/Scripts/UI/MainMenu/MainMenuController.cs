@@ -7,7 +7,7 @@ using UnityEngine.UI;
 /// </summary>
 public sealed class MainMenuController : ValidatedMonoBehaviour
 {
-    [SerializeField] private string _gameSceneName = "GameScene";
+    [SerializeField] private string _gameSceneName;
     [SerializeField] private Button _startButton;
 
     protected override void Awake()

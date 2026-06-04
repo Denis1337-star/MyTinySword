@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 /// <summary>
@@ -20,6 +21,8 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
 
     private AudioListener _audioListener;
     private int _nextWorldSourceIndex;
+    private bool _audioUnlocked;
+    private string _pendingMusicSceneName;
 
     private float _lastNonZeroMusicVolume = 1f;
     private float _lastNonZeroSfxVolume = 1f;
@@ -36,6 +39,7 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
     {
         base.Awake();
 
+        InitializeAudioUnlockState();
         InitializeSources();
         InitializeVolumes();
         BuildWorldSfxPool();
@@ -50,6 +54,10 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
     private void Start()
     {
         PlayMusicForScene(SceneManager.GetActiveScene().name);
+    }
+    private void Update()
+    {
+        TryUnlockAudioFromUserGesture();
     }
 
     private void OnDisable()
@@ -245,6 +253,15 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
     /// </summary>
     public void PlayMusicForScene(string sceneName)
     {
+        if (string.IsNullOrWhiteSpace(sceneName))
+            return;
+
+        if (!CanUseAudioNow())
+        {
+            _pendingMusicSceneName = sceneName;
+            return;
+        }
+
         AudioClip clip = _config.GetMusicForScene(sceneName);
 
         if (clip == null)
@@ -393,7 +410,7 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
 
     private bool CanPlaySfx()
     {
-        return !IsSfxMuted && SfxVolume > MinVolume;
+        return CanUseAudioNow() && !IsSfxMuted && SfxVolume > MinVolume;
     }
 
     private void RefreshAudioListener()
@@ -412,5 +429,64 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
             return mainCamera.transform.position.z;
 
         return transform.position.z;
+    }
+    private void InitializeAudioUnlockState()
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+    _audioUnlocked = false;
+#else
+        _audioUnlocked = true;
+#endif
+
+        _pendingMusicSceneName = null;
+    }
+
+    private bool CanUseAudioNow()
+    {
+        return _audioUnlocked;
+    }
+
+    private void TryUnlockAudioFromUserGesture()
+    {
+        if (_audioUnlocked)
+            return;
+
+        if (!HasUserGestureThisFrame())
+            return;
+
+        _audioUnlocked = true;
+
+        if (string.IsNullOrWhiteSpace(_pendingMusicSceneName))
+            return;
+
+        string sceneName = _pendingMusicSceneName;
+        _pendingMusicSceneName = null;
+
+        PlayMusicForScene(sceneName);
+    }
+
+    private bool HasUserGestureThisFrame()
+    {
+        Mouse mouse = Mouse.current;
+
+        if (mouse != null && mouse.leftButton.wasPressedThisFrame)
+            return true;
+
+        Keyboard keyboard = Keyboard.current;
+
+        if (keyboard != null && keyboard.anyKey.wasPressedThisFrame)
+            return true;
+
+        Touchscreen touchscreen = Touchscreen.current;
+
+        if (touchscreen != null && touchscreen.primaryTouch.press.wasPressedThisFrame)
+            return true;
+
+        Pen pen = Pen.current;
+
+        if (pen != null && pen.tip.wasPressedThisFrame)
+            return true;
+
+        return false;
     }
 }

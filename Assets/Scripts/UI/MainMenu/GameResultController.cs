@@ -63,14 +63,12 @@ public sealed class GameResultController : ValidatedMonoBehaviour
         if (destroyedCastle == _enemyCastle)
         {
             FinishGame(true);
-            return;
         }
     }
 
     private void FinishGame(bool victory)
     {
         _gameFinished = true;
-        Debug.Log("ава");
 
         if (victory)
             _resultPanel.ShowVictory();

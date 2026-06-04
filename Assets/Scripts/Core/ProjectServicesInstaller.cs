@@ -1,0 +1,30 @@
+using UnityEngine;
+using Zenject;
+
+/// <summary>
+/// Глобальный installer audio системы
+/// </summary>
+public sealed class ProjectAudioInstaller : MonoInstaller
+{
+    [SerializeField] private GameAudioService _audioServicePrefab;
+
+    public override void InstallBindings()
+    {
+        Container
+            .Bind<GameAudioService>()
+            .FromComponentInNewPrefab(_audioServicePrefab)
+            .AsSingle()
+            .NonLazy();
+
+        Container
+            .Bind<GamePauseService>()
+            .AsSingle()
+            .NonLazy();
+
+        Container
+            .Bind<IAdvertisementService>()
+            .To<YandexAdvertisementService>()
+            .AsSingle()
+            .NonLazy();
+    }
+}

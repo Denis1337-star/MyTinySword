@@ -1,14 +1,19 @@
 using Cinemachine;
 using UnityEngine;
-using UnityEngine.InputSystem.EnhancedTouch;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 /// <summary>
-/// ”правл€ет ручным перемещением и zoom камеры через touch input
+/// ”правл€ет ручным перемещением и zoom камеры
 /// </summary>
 public sealed class CameraController : ValidatedMonoBehaviour
 {
+    private const float MouseDragStartThreshold = 25f;
+    private const float MouseDragStartThresholdSqr = MouseDragStartThreshold * MouseDragStartThreshold;
+    private const float MinMouseWheelDelta = 0.01f;
+
     [SerializeField] private CinemachineVirtualCamera _virtualCamera;
     [SerializeField] private Transform _cameraTarget;
     [SerializeField] private float _moveSpeed = 0.001f;
@@ -17,6 +22,13 @@ public sealed class CameraController : ValidatedMonoBehaviour
     [SerializeField, Min(0.1f)] private float _maxZoom = 12f;
 
     private float _lastPinchDistance;
+
+    private Vector2 _mousePressScreenPosition;
+    private Vector2 _mousePreviousScreenPosition;
+
+    private bool _hasMousePress;
+    private bool _isMouseDragActive;
+    private bool _mousePressStartedOverUi;
 
     public bool IsDragging { get; private set; }
 
@@ -32,7 +44,7 @@ public sealed class CameraController : ValidatedMonoBehaviour
 
     private void Update()
     {
-        HandleTouchInput();
+        HandleInput();
     }
 
     private void OnValidate()
@@ -50,10 +62,24 @@ public sealed class CameraController : ValidatedMonoBehaviour
         return valid;
     }
 
-    private void HandleTouchInput()
+    private void HandleInput()
     {
         IsDragging = false;
 
+        if (Touch.activeTouches.Count > 0)
+        {
+            ResetMouseDragState();
+            HandleTouchInput();
+            return;
+        }
+
+        _lastPinchDistance = 0f;
+
+        HandleMouseInput();
+    }
+
+    private void HandleTouchInput()
+    {
         var activeTouches = Touch.activeTouches;
 
         if (activeTouches.Count == 1)
@@ -116,6 +142,84 @@ public sealed class CameraController : ValidatedMonoBehaviour
         ApplyZoom(distanceDelta);
     }
 
+    private void HandleMouseInput()
+    {
+        Mouse mouse = Mouse.current;
+
+        if (mouse == null)
+        {
+            ResetMouseDragState();
+            return;
+        }
+
+        Vector2 currentScreenPosition = mouse.position.ReadValue();
+
+        HandleMouseWheelZoom(mouse);
+
+        if (mouse.leftButton.wasPressedThisFrame)
+            BeginMouseDrag(currentScreenPosition);
+
+        if (mouse.leftButton.isPressed)
+            ContinueMouseDrag(currentScreenPosition);
+
+        if (mouse.leftButton.wasReleasedThisFrame)
+            ResetMouseDragState();
+    }
+
+    private void BeginMouseDrag(Vector2 screenPosition)
+    {
+        _mousePressScreenPosition = screenPosition;
+        _mousePreviousScreenPosition = screenPosition;
+
+        _hasMousePress = true;
+        _isMouseDragActive = false;
+        _mousePressStartedOverUi = IsMousePointerOverUI();
+    }
+
+    private void ContinueMouseDrag(Vector2 currentScreenPosition)
+    {
+        if (!_hasMousePress)
+            return;
+
+        if (_mousePressStartedOverUi)
+            return;
+
+        Vector2 movementFromPress = currentScreenPosition - _mousePressScreenPosition;
+
+        if (!_isMouseDragActive)
+        {
+            if (movementFromPress.sqrMagnitude <= MouseDragStartThresholdSqr)
+            {
+                _mousePreviousScreenPosition = currentScreenPosition;
+                return;
+            }
+
+            _isMouseDragActive = true;
+        }
+
+        Vector2 delta = currentScreenPosition - _mousePreviousScreenPosition;
+        _mousePreviousScreenPosition = currentScreenPosition;
+
+        if (delta.sqrMagnitude <= 0f)
+            return;
+
+        MoveCamera(delta);
+        IsDragging = true;
+    }
+
+    private void HandleMouseWheelZoom(Mouse mouse)
+    {
+        float scrollDelta = mouse.scroll.ReadValue().y;
+
+        if (Mathf.Abs(scrollDelta) <= MinMouseWheelDelta)
+            return;
+
+        if (IsMousePointerOverUI())
+            return;
+
+        ApplyZoom(scrollDelta);
+    }
+
     private void MoveCamera(Vector2 screenDelta)
     {
         float zoomMultiplier = GetCurrentZoom();
@@ -142,6 +246,24 @@ public sealed class CameraController : ValidatedMonoBehaviour
     private float GetCurrentZoom()
     {
         return _virtualCamera.m_Lens.OrthographicSize;
+    }
+
+    private bool IsMousePointerOverUI()
+    {
+        if (EventSystem.current == null)
+            return false;
+
+        return EventSystem.current.IsPointerOverGameObject();
+    }
+
+    private void ResetMouseDragState()
+    {
+        _hasMousePress = false;
+        _isMouseDragActive = false;
+        _mousePressStartedOverUi = false;
+
+        _mousePressScreenPosition = Vector2.zero;
+        _mousePreviousScreenPosition = Vector2.zero;
     }
 
     private void ClampZoomValues()

@@ -8,29 +8,22 @@ using UnityEngine.UI;
 /// </summary>
 public sealed class GameResultPanel : ValidatedMonoBehaviour
 {
+    private const string MainMenuSceneName = "MainMenu";
+
     [SerializeField] private TMP_Text _resultText;
     [SerializeField] private Button _restartButton;
     [SerializeField] private Button _mainMenuButton;
 
-    protected override void Awake()
-    {
-        base.Awake();
-
-        if (!enabled)
-            return;
-
-    }
-
     private void OnEnable()
     {
         _restartButton.onClick.AddListener(RestartLevel);
-        _mainMenuButton.onClick.AddListener(MainMenu);
+        _mainMenuButton.onClick.AddListener(LoadMainMenu);
     }
 
     private void OnDisable()
     {
         _restartButton.onClick.RemoveListener(RestartLevel);
-        _mainMenuButton.onClick.RemoveListener(MainMenu);
+        _mainMenuButton.onClick.RemoveListener(LoadMainMenu);
     }
 
     protected override bool ValidateInternal()
@@ -46,18 +39,20 @@ public sealed class GameResultPanel : ValidatedMonoBehaviour
 
     public void ShowVictory()
     {
-        _resultText.text = "œŒ¡≈ƒ¿";
-        gameObject.SetActive(true);
-        Time.timeScale = 0;
-
+        ShowResult("œŒ¡≈ƒ¿");
     }
 
     public void ShowDefeat()
     {
-        _resultText.text = "œŒ–¿∆≈Õ»≈";
-        gameObject.SetActive(true);
-        Time.timeScale = 0;
+        ShowResult("œŒ–¿∆≈Õ»≈");
+    }
 
+    private void ShowResult(string resultText)
+    {
+        _resultText.text = resultText;
+        gameObject.SetActive(true);
+
+        Time.timeScale = 0f;
     }
 
     private void RestartLevel()
@@ -65,8 +60,10 @@ public sealed class GameResultPanel : ValidatedMonoBehaviour
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
-    public void MainMenu()
+
+    public void LoadMainMenu()
     {
-        SceneManager.LoadScene("MainMenu");
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(MainMenuSceneName);
     }
 }

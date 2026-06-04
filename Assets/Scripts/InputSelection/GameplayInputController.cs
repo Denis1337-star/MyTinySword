@@ -2,10 +2,8 @@ using UnityEngine;
 using UnityEngine.InputSystem.EnhancedTouch;
 using Zenject;
 
-using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
-
 /// <summary>
-/// Центральная точка обработки gameplay touch input
+/// Центральная точка обработки gameplay pointer input
 /// </summary>
 public sealed class GameplayInputController : MonoBehaviour
 {
@@ -38,26 +36,26 @@ public sealed class GameplayInputController : MonoBehaviour
 
     private void HandleInput()
     {
-        if (!TouchUtility.TryGetEndedTap(out Touch touch))
+        if (!GameplayPointerUtility.TryGetEndedTap(out GameplayPointer pointer))
             return;
 
-        if (TouchUtility.IsPointerOverUI(touch))
+        if (GameplayPointerUtility.IsPointerOverUI(pointer))
             return;
 
-        HandleGameplayTap(touch.screenPosition);
+        HandleGameplayTap(pointer.ScreenPosition);
     }
 
     private void HandleGameplayTap(Vector2 screenPosition)
     {
-        // Если выбрана армия и игрок тапнул по врагу — это команда атаки
+        // Если выбрана армия и игрок нажал по врагу — это команда атаки
         if (_commandSystem.TryAttackSelectedArmyAtScreenPosition(screenPosition))
             return;
 
-        // Если под tap есть selectable объект — выбирает его
+        // Если под нажатием есть selectable объект — выбираем его
         if (_selectionSystem.TrySelectAtScreenPosition(screenPosition))
             return;
 
-        // Если selectable объекта нет но выбрана армия — двигает армию в точку
+        // Если selectable объекта нет но выбрана армия — двигаем армию в точку
         if (_commandSystem.TryMoveSelectedArmyAtScreenPosition(screenPosition))
             return;
 
