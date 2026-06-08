@@ -4,14 +4,18 @@ using UnityEngine.UI;
 using Zenject;
 
 /// <summary>
-/// Тестовая rewarded-кнопка: посмотреть рекламу и получить дерево.
-/// Позже заменим на универсальную систему RewardDefinition.
+/// Универсальная rewarded кнопка для выдачи ресурсов
 /// </summary>
-public sealed class RewardedWoodButton : ValidatedMonoBehaviour
+public sealed class RewardedResourceAdButton : ValidatedMonoBehaviour
 {
+    [Header("Reward")]
+    [SerializeField] private string _rewardId = "wood_40";
+    [SerializeField] private ResourceType _resourceType = ResourceType.Wood;
+    [SerializeField, Min(1)] private int _amount = 40;
+
+    [Header("UI")]
     [SerializeField] private Button _button;
     [SerializeField] private TMP_Text _label;
-    [SerializeField, Min(1)] private int _woodAmount = 40;
 
     private IAdvertisementService _advertisementService;
     private ResourceStorage _resourceStorage;
@@ -43,6 +47,18 @@ public sealed class RewardedWoodButton : ValidatedMonoBehaviour
         valid &= ValidationUtility.IsAssigned(this, _button, nameof(_button));
         valid &= ValidationUtility.IsAssigned(this, _label, nameof(_label));
 
+        if (string.IsNullOrWhiteSpace(_rewardId))
+        {
+            Debug.LogError($"{name}: Reward Id не задан.", this);
+            valid = false;
+        }
+
+        if (_amount <= 0)
+        {
+            Debug.LogError($"{name}: количество награды должно быть больше 0.", this);
+            valid = false;
+        }
+
         return valid;
     }
 
@@ -54,6 +70,7 @@ public sealed class RewardedWoodButton : ValidatedMonoBehaviour
         RefreshView(true);
 
         _advertisementService.ShowRewardedAd(
+            rewardId: _rewardId,
             onRewarded: GiveReward,
             onClosed: OnAdClosed,
             onError: OnAdError);
@@ -61,8 +78,11 @@ public sealed class RewardedWoodButton : ValidatedMonoBehaviour
 
     private void GiveReward()
     {
-        _resourceStorage.AddResource(ResourceType.Wood, _woodAmount);
-        Debug.Log($"[RewardedWoodButton] Игрок получил +{_woodAmount} дерева за рекламу.", this);
+        _resourceStorage.AddResource(_resourceType, _amount);
+
+        Debug.Log(
+            $"[RewardedResourceAdButton] Игрок получил +{_amount} {GetResourceName(_resourceType)} за рекламу.",
+            this);
     }
 
     private void OnAdClosed()
@@ -72,7 +92,10 @@ public sealed class RewardedWoodButton : ValidatedMonoBehaviour
 
     private void OnAdError(string message)
     {
-        Debug.LogWarning($"[RewardedWoodButton] Реклама не показалась: {message}", this);
+        Debug.LogWarning(
+            $"[RewardedResourceAdButton] Реклама не показалась: {message}",
+            this);
+
         RefreshView(false);
     }
 
@@ -80,9 +103,22 @@ public sealed class RewardedWoodButton : ValidatedMonoBehaviour
     {
         _button.interactable = !adInProgress;
 
-        if (_label != null)
-            _label.text = adInProgress
-                ? "Реклама..."
-                : $"+{_woodAmount} дерева за рекламу";
+        if (_label == null)
+            return;
+
+        _label.text = adInProgress
+            ? "Реклама..."
+            : $"+{_amount} {GetResourceName(_resourceType)}";
+    }
+
+    private static string GetResourceName(ResourceType resourceType)
+    {
+        return resourceType switch
+        {
+            ResourceType.Wood => "дерева",
+            ResourceType.Meat => "еды",
+            ResourceType.Gold => "золота",
+            _ => "ресурса"
+        };
     }
 }

@@ -12,7 +12,7 @@ using Zenject;
 public sealed class YandexGameEventsBridge : MonoBehaviour
 {
     [Header("Scene Names")]
-    [SerializeField] private string _mainMenuSceneName = "MainMenu";
+    private string _mainMenuSceneName = "MainMenu";
     [SerializeField]
     private List<string> _gameplaySceneNames = new()
     {

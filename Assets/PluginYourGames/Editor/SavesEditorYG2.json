@@ -1,0 +1,22 @@
+{
+    "intExample": 5,
+    "strExample": "Hello!",
+    "boolExample": [
+        false,
+        false,
+        false,
+        false
+    ],
+    "idSave": 11,
+    "audioSettingsInitialized": true,
+    "musicVolume": 0.0,
+    "sfxVolume": 0.800000011920929,
+    "musicMuted": true,
+    "sfxMuted": false,
+    "levelProgressInitialized": true,
+    "lastUnlockedLevelIndex": 2,
+    "totalVictories": 1,
+    "completedLevelIds": [
+        "level_1"
+    ]
+}

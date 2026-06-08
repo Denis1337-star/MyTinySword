@@ -3,13 +3,11 @@ using UnityEngine;
 using YG;
 
 /// <summary>
-/// –еализаци€ рекламы через PluginYG2 / Yandex Games.
-/// —тавит игру на паузу на врем€ рекламы и выдаЄт награду только по rewarded-callback.
+/// –еализаци€ рекламы через PluginYG2 
+/// —тавит игру на паузу на врем€ рекламы и выдаЄт награду только по rewarded callback
 /// </summary>
 public sealed class YandexAdvertisementService : IAdvertisementService
 {
-    private const string DefaultRewardId = "wood_reward";
-
     private readonly GamePauseService _pauseService;
 
     private Action _currentRewardedCallback;
@@ -24,10 +22,17 @@ public sealed class YandexAdvertisementService : IAdvertisementService
     }
 
     public void ShowRewardedAd(
+        string rewardId,
         Action onRewarded,
         Action onClosed = null,
         Action<string> onError = null)
     {
+        if (string.IsNullOrWhiteSpace(rewardId))
+        {
+            onError?.Invoke("Reward id is empty.");
+            return;
+        }
+
         if (IsRewardedAdInProgress)
         {
             onError?.Invoke("Rewarded ad is already in progress.");
@@ -45,8 +50,8 @@ public sealed class YandexAdvertisementService : IAdvertisementService
         try
         {
             // ѕервый параметр Ч id награды.
-            // ¬торой параметр Ч callback, который вызываетс€ после получени€ награды.
-            YG2.RewardedAdvShow("wood_reward", OnRewarded);
+            // ¬торой параметр Ч callback награды.
+            YG2.RewardedAdvShow(rewardId, OnRewarded);
         }
         catch (Exception exception)
         {

@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
@@ -7,23 +8,37 @@ using Zenject;
 /// </summary>
 public sealed class AudioSettingsPanel : ValidatedMonoBehaviour
 {
+    [Header("Root")]
     [SerializeField] private GameObject _root;
-    [SerializeField] private Slider _musicSlider;
-    [SerializeField] private Slider _sfxSlider;
-    [SerializeField] private Toggle _musicMuteToggle;
-    [SerializeField] private Toggle _sfxMuteToggle;
     [SerializeField] private SimplePanelTween _panelTween;
 
+    [Header("Music")]
+    [SerializeField] private Slider _musicSlider;
+    [SerializeField] private Toggle _musicMuteToggle;
+
+    [Header("SFX")]
+    [SerializeField] private Slider _sfxSlider;
+    [SerializeField] private Toggle _sfxMuteToggle;
+
+    [Header("Save")]
+    [SerializeField, Min(0.1f)] private float _saveDelay = 0.5f;
+
     private GameAudioService _audioService;
+    private YandexAudioSaveService _audioSaveService;
+
+    private Coroutine _saveRoutine;
 
     private bool _isRefreshingUi;
     private bool _uiSubscribed;
     private bool _audioServiceSubscribed;
 
     [Inject]
-    private void Construct(GameAudioService audioService)
+    private void Construct(
+        GameAudioService audioService,
+        YandexAudioSaveService audioSaveService)
     {
         _audioService = audioService;
+        _audioSaveService = audioSaveService;
 
         TrySubscribeToAudioService();
         RefreshFromService();
@@ -45,6 +60,7 @@ public sealed class AudioSettingsPanel : ValidatedMonoBehaviour
     {
         UnsubscribeUi();
         UnsubscribeFromAudioService();
+        StopSaveRoutine();
     }
 
     protected override bool ValidateInternal()
@@ -71,7 +87,6 @@ public sealed class AudioSettingsPanel : ValidatedMonoBehaviour
     {
         _panelTween.Hide();
     }
-
 
     public void Toggle()
     {
@@ -151,6 +166,7 @@ public sealed class AudioSettingsPanel : ValidatedMonoBehaviour
             return;
 
         _audioService.SetMusicVolume(value);
+        ScheduleSave();
     }
 
     private void OnSfxSliderChanged(float value)
@@ -159,6 +175,7 @@ public sealed class AudioSettingsPanel : ValidatedMonoBehaviour
             return;
 
         _audioService.SetSfxVolume(value);
+        ScheduleSave();
     }
 
     private void OnMusicMuteToggleChanged(bool muted)
@@ -167,6 +184,7 @@ public sealed class AudioSettingsPanel : ValidatedMonoBehaviour
             return;
 
         _audioService.SetMusicMuted(muted);
+        ScheduleSave();
     }
 
     private void OnSfxMuteToggleChanged(bool muted)
@@ -175,5 +193,29 @@ public sealed class AudioSettingsPanel : ValidatedMonoBehaviour
             return;
 
         _audioService.SetSfxMuted(muted);
+        ScheduleSave();
+    }
+
+    private void ScheduleSave()
+    {
+        StopSaveRoutine();
+        _saveRoutine = StartCoroutine(SaveAfterDelay());
+    }
+
+    private IEnumerator SaveAfterDelay()
+    {
+        yield return new WaitForSecondsRealtime(_saveDelay);
+
+        _audioSaveService.SaveFrom(_audioService);
+        _saveRoutine = null;
+    }
+
+    private void StopSaveRoutine()
+    {
+        if (_saveRoutine == null)
+            return;
+
+        StopCoroutine(_saveRoutine);
+        _saveRoutine = null;
     }
 }

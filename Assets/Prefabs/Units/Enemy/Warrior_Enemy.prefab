@@ -12,6 +12,10 @@ PrefabInstance:
       propertyPath: faction
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 1390885792508008589, guid: 7094ca977003a1d47a7950e31869d5b6, type: 3}
+      propertyPath: _showWhenSelected
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1435114568600682809, guid: 7094ca977003a1d47a7950e31869d5b6, type: 3}
       propertyPath: _canBeSelected
       value: 0

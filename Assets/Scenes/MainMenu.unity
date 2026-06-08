@@ -739,11 +739,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _root: {fileID: 385408636}
-  _musicSlider: {fileID: 1010804360}
-  _sfxSlider: {fileID: 563313670}
-  _musicMuteToggle: {fileID: 1174693806}
-  _sfxMuteToggle: {fileID: 397032787}
   _panelTween: {fileID: 385408638}
+  _musicSlider: {fileID: 1010804360}
+  _musicMuteToggle: {fileID: 1174693806}
+  _sfxSlider: {fileID: 563313670}
+  _sfxMuteToggle: {fileID: 397032787}
+  _saveDelay: 0.5
 --- !u!225 &385408640
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -867,6 +868,7 @@ GameObject:
   - component: {fileID: 422592116}
   - component: {fileID: 422592115}
   - component: {fileID: 422592119}
+  - component: {fileID: 422592120}
   m_Layer: 5
   m_Name: StartButton
   m_TagString: Untagged
@@ -991,6 +993,20 @@ MonoBehaviour:
   _button: {fileID: 422592115}
   _soundId: 10
   _playOnlyWhenInteractable: 1
+--- !u!114 &422592120
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 422592114}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d9f7b655d5c641d47aab81b9977626aa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _button: {fileID: 422592115}
+  _levelCatalog: {fileID: 11400000, guid: c6670f18e4a89df48a78c40815478c84, type: 2}
 --- !u!1 &448467373
 GameObject:
   m_ObjectHideFlags: 0
@@ -2175,6 +2191,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1089323539}
   - component: {fileID: 1089323538}
+  - component: {fileID: 1089323540}
   m_Layer: 0
   m_Name: YandexGameEventsBridge
   m_TagString: Untagged
@@ -2213,6 +2230,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1089323540
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1089323537}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d1dfdf0f1f0492468a483af37fdfe4b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1131462996
 GameObject:
   m_ObjectHideFlags: 0
