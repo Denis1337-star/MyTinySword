@@ -1,7 +1,9 @@
 using UnityEngine;
 
 /// <summary>
-/// Ищет цели для боевого юнита
+/// Ищет цели для боевого юнита.
+/// Для атакующих юнитов ищет врагов.
+/// Для хилера ищет раненых союзных боевых юнитов.
 /// </summary>
 public sealed class ArmyTargetFinder
 {
@@ -23,8 +25,10 @@ public sealed class ArmyTargetFinder
         if (!CanSearch())
             return null;
 
-        int hitCount = Physics2D.OverlapCircleNonAlloc( _origin.position,
-            _unit.Config.VisionRange, _targetBuffer);
+        int hitCount = Physics2D.OverlapCircleNonAlloc(
+            _origin.position,
+            _unit.Config.VisionRange,
+            _targetBuffer);
 
         if (hitCount == 0)
             return null;
@@ -99,22 +103,13 @@ public sealed class ArmyTargetFinder
 
             Health targetHealth = hit.GetComponentInParent<Health>();
 
-            if (targetHealth == null || targetHealth.IsDead)
+            if (targetHealth == null)
                 continue;
 
-            if (targetHealth == _unit.Health)
+            if (!CanHealAllyUnit(targetHealth))
                 continue;
 
-            if (IsEnemy(targetHealth))
-                continue;
-
-            if (targetHealth.CurrentHealth >= targetHealth.MaxHealth)
-                continue;
-
-            float healthPercent = targetHealth.MaxHealth > 0
-                ? (float)targetHealth.CurrentHealth / targetHealth.MaxHealth
-                : 1f;
-
+            float healthPercent = targetHealth.HealthPercent;
             float distanceSqr = (targetHealth.transform.position - _origin.position).sqrMagnitude;
 
             bool lowerHealth = healthPercent < lowestHealthPercent;
@@ -143,6 +138,28 @@ public sealed class ArmyTargetFinder
             return false;
 
         return _unit.FactionMember.IsEnemy(targetFaction);
+    }
+
+    private bool CanHealAllyUnit(Health targetHealth)
+    {
+        if (targetHealth == null)
+            return false;
+
+        if (!targetHealth.CanBeHealed)
+            return false;
+
+        if (targetHealth == _unit.Health)
+            return false;
+
+        if (IsEnemy(targetHealth))
+            return false;
+
+        ArmyUnit targetUnit = targetHealth.GetComponentInParent<ArmyUnit>();
+
+        if (targetUnit == null || targetUnit.IsDead)
+            return false;
+
+        return true;
     }
 
     private bool CanSearch()

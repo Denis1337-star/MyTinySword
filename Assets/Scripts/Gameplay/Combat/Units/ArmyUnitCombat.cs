@@ -1,7 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// Выполняет боевые действия юнита
+/// Выполняет боевые действия юнита.
+/// Отвечает за атаку, стрельбу и лечение.
 /// </summary>
 public sealed class ArmyUnitCombat
 {
@@ -9,9 +10,10 @@ public sealed class ArmyUnitCombat
     private readonly Transform _origin;
     private readonly GameAudioService _audioService;
 
-
-    public ArmyUnitCombat( ArmyUnit unit,
-        Transform origin,GameAudioService audioService)
+    public ArmyUnitCombat(
+        ArmyUnit unit,
+        Transform origin,
+        GameAudioService audioService)
     {
         _unit = unit;
         _origin = origin;
@@ -43,13 +45,16 @@ public sealed class ArmyUnitCombat
         if (!CanAct())
             return;
 
-        if (target == null || target.IsDead)
+        if (!CanHealTarget(target))
+            return;
+
+        int healedAmount = target.Heal(_unit.Config.HealAmount);
+
+        if (healedAmount <= 0)
             return;
 
         _unit.AnimatorBridge.PlayAttack();
-
         PlayAttackSound(SoundId.Heal);
-        target.Heal(_unit.Config.HealAmount);
     }
 
     public float GetDistanceToTarget(Health target)
@@ -58,7 +63,6 @@ public sealed class ArmyUnitCombat
             return float.MaxValue;
 
         Collider2D targetCollider = target.GetComponent<Collider2D>();
-
 
         if (_unit.BodyCollider != null && targetCollider != null)
         {
@@ -84,8 +88,25 @@ public sealed class ArmyUnitCombat
         PlayAttackSound(SoundId.ArrowShoot);
     }
 
+    private bool CanHealTarget(Health target)
+    {
+        if (target == null)
+            return false;
+
+        if (!target.CanBeHealed)
+            return false;
+
+        if (target == _unit.Health)
+            return false;
+
+        return true;
+    }
+
     private void PlayAttackSound(SoundId soundId)
     {
+        if (_audioService == null)
+            return;
+
         _audioService.PlayWorldSound(soundId, _origin.position);
     }
 

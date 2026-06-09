@@ -18,6 +18,10 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
     [SerializeField] private Transform _worldSfxRoot;
 
     private readonly List<AudioSource> _worldSources = new();
+    private readonly List<WorldSoundPlayback> _recentWorldSounds = new();
+
+    [SerializeField, Min(0f)] private float _sameWorldSoundCooldown = 0.08f;
+    [SerializeField, Min(0f)] private float _sameWorldSoundDistance = 0.75f;
 
     private AudioListener _audioListener;
     private int _nextWorldSourceIndex;
@@ -35,6 +39,19 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
 
     public event Action SettingsChanged;
 
+    private readonly struct WorldSoundPlayback
+    {
+        public readonly SoundId SoundId;
+        public readonly Vector3 Position;
+        public readonly float Time;
+
+        public WorldSoundPlayback(SoundId soundId, Vector3 position, float time)
+        {
+            SoundId = soundId;
+            Position = position;
+            Time = time;
+        }
+    }
     protected override void Awake()
     {
         base.Awake();
@@ -218,7 +235,13 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
     /// </summary>
     public void PlayWorldSound(SoundId id, Vector3 worldPosition)
     {
-        if (!CanPlaySfx())
+        if(!CanPlaySfx())
+        return;
+
+        Vector3 soundPosition = worldPosition;
+        soundPosition.z = GetListenerZ();
+
+        if (!CanPlayWorldSoundNow(id, soundPosition))
             return;
 
         SoundEntry entry = _config.GetSound(id);
@@ -231,21 +254,19 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
         if (clip == null)
             return;
 
-        AudioSource source = GetNextWorldSource();
+        AudioSource source = GetAvailableWorldSource();
 
         if (source == null)
             return;
 
-        Vector3 soundPosition = worldPosition;
-        soundPosition.z = GetListenerZ();
-
         source.transform.position = soundPosition;
-        source.clip = clip;
         source.volume = entry.Volume;
         source.pitch = entry.GetPitch();
 
-        source.Stop();
-        source.Play();
+        // PlayOneShot не требует Stop(), поэтому мы не обрываем звук резко.
+        source.PlayOneShot(clip, entry.Volume);
+
+        RegisterWorldSound(id, soundPosition);
     }
 
     /// <summary>
@@ -374,19 +395,84 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
         source.outputAudioMixerGroup = _config.SfxMixerGroup;
     }
 
-    private AudioSource GetNextWorldSource()
+    private AudioSource GetAvailableWorldSource()
     {
         if (_worldSources.Count == 0)
             return null;
 
-        AudioSource source = _worldSources[_nextWorldSourceIndex];
+        for (int i = 0; i < _worldSources.Count; i++)
+        {
+            int index = (_nextWorldSourceIndex + i) % _worldSources.Count;
+            AudioSource source = _worldSources[index];
 
-        _nextWorldSourceIndex++;
+            if (source == null)
+                continue;
 
-        if (_nextWorldSourceIndex >= _worldSources.Count)
-            _nextWorldSourceIndex = 0;
+            if (source.isPlaying)
+                continue;
 
-        return source;
+            _nextWorldSourceIndex = index + 1;
+
+            if (_nextWorldSourceIndex >= _worldSources.Count)
+                _nextWorldSourceIndex = 0;
+
+            return source;
+        }
+
+        // ≈сли все источники зан€ты, лучше пропустить новый звук,
+        // чем резко оборвать старый и получить щелчок/скрежет.
+        return null;
+    }
+    private bool CanPlayWorldSoundNow(SoundId soundId, Vector3 position)
+    {
+        if (_sameWorldSoundCooldown <= 0f)
+            return true;
+
+        CleanupRecentWorldSounds();
+
+        float minDistanceSqr = _sameWorldSoundDistance * _sameWorldSoundDistance;
+        float currentTime = Time.unscaledTime;
+
+        for (int i = 0; i < _recentWorldSounds.Count; i++)
+        {
+            WorldSoundPlayback playback = _recentWorldSounds[i];
+
+            if (playback.SoundId != soundId)
+                continue;
+
+            if (currentTime - playback.Time > _sameWorldSoundCooldown)
+                continue;
+
+            float distanceSqr = (playback.Position - position).sqrMagnitude;
+
+            if (distanceSqr <= minDistanceSqr)
+                return false;
+        }
+
+        return true;
+    }
+
+    private void RegisterWorldSound(SoundId soundId, Vector3 position)
+    {
+        _recentWorldSounds.Add(new WorldSoundPlayback(
+            soundId,
+            position,
+            Time.unscaledTime));
+    }
+
+    private void CleanupRecentWorldSounds()
+    {
+        if (_recentWorldSounds.Count == 0)
+            return;
+
+        float currentTime = Time.unscaledTime;
+        float maxLifetime = Mathf.Max(_sameWorldSoundCooldown, 0.1f);
+
+        for (int i = _recentWorldSounds.Count - 1; i >= 0; i--)
+        {
+            if (currentTime - _recentWorldSounds[i].Time > maxLifetime)
+                _recentWorldSounds.RemoveAt(i);
+        }
     }
 
     private void ApplyMusicVolume()

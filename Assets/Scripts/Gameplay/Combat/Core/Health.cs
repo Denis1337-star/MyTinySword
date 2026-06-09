@@ -2,18 +2,26 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// Компонент здоровья
+/// Компонент здоровья.
+/// Отвечает за урон, лечение, смерть и уведомление UI/аудио о смене здоровья.
 /// </summary>
 public sealed class Health : ValidatedMonoBehaviour, IDamageable
 {
-    [SerializeField] private int _maxHealth ;
+    [SerializeField] private int _maxHealth;
 
     private int _currentHealth;
     private bool _died;
 
     public int MaxHealth => _maxHealth;
     public int CurrentHealth => _currentHealth;
+
     public bool IsDead => _died || _currentHealth <= 0;
+    public bool IsFullHealth => _currentHealth >= _maxHealth;
+    public bool CanBeHealed => !IsDead && _currentHealth < _maxHealth;
+
+    public float HealthPercent => _maxHealth > 0
+        ? (float)_currentHealth / _maxHealth
+        : 0f;
 
     public event Action<int, int> OnHealthChanged;
     public event Action OnDied;
@@ -70,21 +78,28 @@ public sealed class Health : ValidatedMonoBehaviour, IDamageable
         OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
     }
 
-    public void Heal(int amount)
+    /// <summary>
+    /// Лечит объект и возвращает фактическое количество восстановленного здоровья.
+    /// Если лечение не применилось, возвращает 0.
+    /// </summary>
+    public int Heal(int amount)
     {
         if (amount <= 0)
-            return;
+            return 0;
 
-        if (IsDead)
-            return;
+        if (!CanBeHealed)
+            return 0;
 
+        int previousHealth = _currentHealth;
         int newHealth = Mathf.Min(_maxHealth, _currentHealth + amount);
 
-        if (newHealth == _currentHealth)
-            return;
+        if (newHealth == previousHealth)
+            return 0;
 
         _currentHealth = newHealth;
         OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
+
+        return _currentHealth - previousHealth;
     }
 
     public void ResetHealth()

@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Единая точка управления паузой gameplay
+/// Единая точка управления паузой gameplay.
+/// Работает через набор причин паузы, чтобы разные системы не конфликтовали.
 /// </summary>
 public sealed class GamePauseService
 {
     private readonly HashSet<GamePauseReason> _activeReasons = new();
 
     private float _previousAudioVolume = 1f;
+    private bool _pauseApplied;
 
     public event Action<bool> PauseStateChanged;
 
@@ -45,24 +47,35 @@ public sealed class GamePauseService
         bool shouldPause = IsPaused;
 
         if (shouldPause)
-            ApplyPause();
+            ApplyPauseIfNeeded();
         else
-            ApplyResume();
+            ApplyResumeIfNeeded();
 
         PauseStateChanged?.Invoke(shouldPause);
     }
 
-    private void ApplyPause()
+    private void ApplyPauseIfNeeded()
     {
+        if (_pauseApplied)
+            return;
+
+        _pauseApplied = true;
+
         Time.timeScale = 0f;
 
         _previousAudioVolume = AudioListener.volume;
+
         AudioListener.pause = true;
         AudioListener.volume = 0f;
     }
 
-    private void ApplyResume()
+    private void ApplyResumeIfNeeded()
     {
+        if (!_pauseApplied)
+            return;
+
+        _pauseApplied = false;
+
         Time.timeScale = 1f;
 
         AudioListener.pause = false;

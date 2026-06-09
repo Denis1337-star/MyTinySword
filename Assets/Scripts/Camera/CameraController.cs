@@ -15,6 +15,7 @@ public sealed class CameraController : ValidatedMonoBehaviour
     private const float MinMouseWheelDelta = 0.01f;
 
     [SerializeField] private CinemachineVirtualCamera _virtualCamera;
+    [SerializeField] private CinemachineConfiner2D _confiner2D;
     [SerializeField] private Transform _cameraTarget;
     [SerializeField] private float _moveSpeed = 0.001f;
     [SerializeField] private float _zoomSpeed = 0.01f;
@@ -57,6 +58,7 @@ public sealed class CameraController : ValidatedMonoBehaviour
         bool valid = true;
 
         valid &= ValidationUtility.IsAssigned(this, _virtualCamera, nameof(_virtualCamera));
+        valid &= ValidationUtility.IsAssigned(this, _confiner2D, nameof(_confiner2D));
         valid &= ValidationUtility.IsAssigned(this, _cameraTarget, nameof(_cameraTarget));
 
         return valid;
@@ -237,10 +239,17 @@ public sealed class CameraController : ValidatedMonoBehaviour
         float currentZoom = _virtualCamera.m_Lens.OrthographicSize;
         float targetZoom = currentZoom - distanceDelta * _zoomSpeed;
 
-        _virtualCamera.m_Lens.OrthographicSize = Mathf.Clamp(
+        float clampedZoom = Mathf.Clamp(
             targetZoom,
             _minZoom,
             _maxZoom);
+
+        if (Mathf.Approximately(currentZoom, clampedZoom))
+            return;
+
+        _virtualCamera.m_Lens.OrthographicSize = clampedZoom;
+
+        _confiner2D.InvalidateCache();
     }
 
     private float GetCurrentZoom()
