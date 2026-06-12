@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 7606855515729946697}
   - component: {fileID: -9171239762790172264}
   - component: {fileID: 2931756123346556886}
+  - component: {fileID: 1996249263023455995}
   m_Layer: 9
   m_Name: House
   m_TagString: Untagged
@@ -171,6 +172,7 @@ MonoBehaviour:
   factionMember: {fileID: 1435012739113869488}
   health: {fileID: 7606855515729946697}
   selectable: {fileID: 7192985443726976149}
+  _canBeDemolishedByButton: 1
   _houseConfig: {fileID: 11400000, guid: 74dc8a191090ec149bc2b2a3b4eee769, type: 2}
   _spawnPoint: {fileID: 1492884252047116931}
   _dropPoint: {fileID: 1924322427756946528}
@@ -241,6 +243,19 @@ MonoBehaviour:
   _playDamageSound: 1
   _playDeathSound: 1
   _damageSoundCooldown: 0.08
+--- !u!114 &1996249263023455995
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 148874888745276253}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5bfbca7783100a6479b68154022d712e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetPriority: 50
 --- !u!1 &2306703238688880557
 GameObject:
   m_ObjectHideFlags: 0

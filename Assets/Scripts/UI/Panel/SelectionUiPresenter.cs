@@ -3,7 +3,9 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Управляет отображением UI панелей в зависимости от текущего выбора
+/// Управляет отображением UI панелей в зависимости от текущего выбора.
+/// Важно: специализированные здания проверяем раньше BuildingBase,
+/// потому что House, ProductionBuildingBase и Tower наследуются от BuildingBase.
 /// </summary>
 public sealed class SelectionUiPresenter : ValidatedMonoBehaviour
 {
@@ -11,6 +13,7 @@ public sealed class SelectionUiPresenter : ValidatedMonoBehaviour
     [SerializeField] private WorkerCommandPanel _workerCommandPanel;
     [SerializeField] private HousePanel _housePanel;
     [SerializeField] private ProductionBuildingPanel _productionBuildingPanel;
+    [SerializeField] private BuildingActionPanel _buildingActionPanel;
     [SerializeField] private ArmySelectionPanel _armySelectionPanel;
     [SerializeField] private ConstructionPanel _constructionPanel;
 
@@ -56,6 +59,7 @@ public sealed class SelectionUiPresenter : ValidatedMonoBehaviour
         valid &= ValidationUtility.IsAssigned(this, _workerCommandPanel, nameof(_workerCommandPanel));
         valid &= ValidationUtility.IsAssigned(this, _housePanel, nameof(_housePanel));
         valid &= ValidationUtility.IsAssigned(this, _productionBuildingPanel, nameof(_productionBuildingPanel));
+        valid &= ValidationUtility.IsAssigned(this, _buildingActionPanel, nameof(_buildingActionPanel));
         valid &= ValidationUtility.IsAssigned(this, _armySelectionPanel, nameof(_armySelectionPanel));
         valid &= ValidationUtility.IsAssigned(this, _constructionPanel, nameof(_constructionPanel));
 
@@ -130,7 +134,10 @@ public sealed class SelectionUiPresenter : ValidatedMonoBehaviour
         if (TryShowProductionBuildingPanel(selectable))
             return;
 
-        TryShowConstructionPanel(selectable);
+        if (TryShowConstructionPanel(selectable))
+            return;
+
+        TryShowBuildingActionPanel(selectable);
     }
 
     private void HandleSelectionCleared()
@@ -214,6 +221,17 @@ public sealed class SelectionUiPresenter : ValidatedMonoBehaviour
         return true;
     }
 
+    private bool TryShowBuildingActionPanel(UnitSelectable selectable)
+    {
+        BuildingBase building = FindComponentNearSelectable<BuildingBase>(selectable);
+
+        if (building == null)
+            return false;
+
+        _buildingActionPanel.Show(building);
+        return true;
+    }
+
     private T FindComponentNearSelectable<T>(UnitSelectable selectable) where T : Component
     {
         if (selectable == null)
@@ -237,6 +255,7 @@ public sealed class SelectionUiPresenter : ValidatedMonoBehaviour
         _workerCommandPanel.Hide();
         _housePanel.Hide();
         _productionBuildingPanel.Hide();
+        _buildingActionPanel.Hide();
         _armySelectionPanel.Hide();
         _constructionPanel.Hide();
     }

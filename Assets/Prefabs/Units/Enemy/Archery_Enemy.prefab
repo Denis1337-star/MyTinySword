@@ -78,7 +78,7 @@ PrefabInstance:
       objectReference: {fileID: 8803055395597374786}
     - target: {fileID: 6177620043868158610, guid: d6a83031fb5240044a0ffb7f2c8a2a67, type: 3}
       propertyPath: _canBeSelected
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8407854404614778072, guid: d6a83031fb5240044a0ffb7f2c8a2a67, type: 3}
       propertyPath: m_Layer
@@ -86,7 +86,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8587532437177846562, guid: d6a83031fb5240044a0ffb7f2c8a2a67, type: 3}
       propertyPath: _showWhenSelected
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

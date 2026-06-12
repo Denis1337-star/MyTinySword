@@ -4,7 +4,8 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Дом  здание которое владеет группой рабочих
+/// Дом — здание, которое владеет группой рабочих.
+/// Создаёт стартовых рабочих, нанимает новых рабочих и хранит точки ожидания/сдачи ресурсов.
 /// </summary>
 public sealed class House : BuildingBase
 {
@@ -193,6 +194,20 @@ public sealed class House : BuildingBase
         {
             _isHiringInProgress = false;
         }
+    }
+    public void AssignAllWorkersToJob(WorkerJobType job)
+    {
+        for (int i = 0; i < _workers.Count; i++)
+        {
+            Worker worker = _workers[i];
+
+            if (worker == null)
+                continue;
+
+            worker.AssignJob(job);
+        }
+
+        OnWorkersChanged?.Invoke();
     }
 
     public void RemoveWorker(Worker worker)

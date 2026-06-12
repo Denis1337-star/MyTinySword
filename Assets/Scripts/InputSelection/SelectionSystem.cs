@@ -5,6 +5,7 @@ using Zenject;
 
 /// <summary>
 /// Центральная система выбора объектов игроком.
+/// Выбирает только объекты игрока, чтобы enemy здания/юниты не открывали управляющие панели.
 /// </summary>
 public sealed class SelectionSystem : MonoBehaviour
 {
@@ -67,10 +68,7 @@ public sealed class SelectionSystem : MonoBehaviour
 
             UnitSelectable foundSelectable = FindSelectableFromHit(hit);
 
-            if (foundSelectable == null)
-                continue;
-
-            if (!foundSelectable.CanBeSelected)
+            if (!CanSelectPlayerObject(foundSelectable))
                 continue;
 
             selectable = foundSelectable;
@@ -88,7 +86,7 @@ public sealed class SelectionSystem : MonoBehaviour
             return;
         }
 
-        if (!selectable.CanBeSelected)
+        if (!CanSelectPlayerObject(selectable))
             return;
 
         if (CurrentSelection == selectable && _selectedUnits.Count <= 1)
@@ -124,7 +122,7 @@ public sealed class SelectionSystem : MonoBehaviour
         {
             UnitSelectable selectable = armyUnits[i];
 
-            if (selectable == null || !selectable.CanBeSelected)
+            if (!CanSelectPlayerObject(selectable))
                 continue;
 
             selectable.Select();
@@ -153,7 +151,7 @@ public sealed class SelectionSystem : MonoBehaviour
 
             UnitSelectable selectable = FindSelectableFromComponent(armyUnit);
 
-            if (selectable == null || !selectable.CanBeSelected)
+            if (!CanSelectPlayerObject(selectable))
                 continue;
 
             selectable.Select();
@@ -209,6 +207,22 @@ public sealed class SelectionSystem : MonoBehaviour
 
         _selectedUnits.Clear();
         CurrentSelection = null;
+    }
+
+    private bool CanSelectPlayerObject(UnitSelectable selectable)
+    {
+        if (selectable == null)
+            return false;
+
+        if (!selectable.CanBeSelected)
+            return false;
+
+        FactionMember factionMember = selectable.GetComponentInParent<FactionMember>();
+
+        if (factionMember == null)
+            return true;
+
+        return factionMember.IsPlayer();
     }
 
     private UnitSelectable FindSelectableFromHit(Collider2D hit)

@@ -18,7 +18,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 801126465291340924, guid: 9d0a5870dace2f54fb5cef54057d4cad, type: 3}
       propertyPath: _showWhenSelected
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2732607864089885633, guid: 9d0a5870dace2f54fb5cef54057d4cad, type: 3}
       propertyPath: m_Layer
@@ -30,7 +30,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6818272059298226011, guid: 9d0a5870dace2f54fb5cef54057d4cad, type: 3}
       propertyPath: _canBeSelected
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7101548476794337762, guid: 9d0a5870dace2f54fb5cef54057d4cad, type: 3}
       propertyPath: m_LocalPosition.x

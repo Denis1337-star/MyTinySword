@@ -2,7 +2,8 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Базовый класс для всех зданий
+/// Базовый класс для всех зданий.
+/// Отвечает за конфиг, здоровье, фракцию, выбор, снос и разрушение здания.
 /// </summary>
 [RequireComponent(typeof(FactionMember))]
 [RequireComponent(typeof(UnitSelectable))]
@@ -15,6 +16,9 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
     [SerializeField] protected FactionMember factionMember;
     [SerializeField] protected Health health;
     [SerializeField] protected UnitSelectable selectable;
+
+    [Header("Demolish")]
+    [SerializeField] private bool _canBeDemolishedByButton = true;
 
     private BuildingRegistry _buildingRegistry;
     private GameAudioService _audioService;
@@ -29,6 +33,12 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
 
     public string DisplayName => config.DisplayName;
     public FactionType Faction => factionMember.Faction;
+
+    /// <summary>
+    /// Можно ли снести это здание через UI-кнопку.
+    /// Не влияет на уничтожение здания юнитами через Health.
+    /// </summary>
+    public bool CanBeDemolishedByButton => _canBeDemolishedByButton;
 
     [Inject]
     private void Construct(
@@ -48,13 +58,14 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
 
     protected virtual void OnEnable()
     {
-            health.OnDied += HandleDeath;
+        health.OnDied += HandleDeath;
     }
 
     protected virtual void OnDisable()
     {
-            health.OnDied -= HandleDeath;
+        health.OnDied -= HandleDeath;
     }
+
     protected virtual void OnValidate()
     {
     }
@@ -77,16 +88,36 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
         return valid;
     }
 
-
     public void AttachConstructionSlot(ConstructionSlot slot)
     {
         _sourceSlot = slot;
     }
 
+    /// <summary>
+    /// Сносит здание напрямую.
+    /// Используется внутренней логикой здания.
+    /// Для UI-кнопки лучше использовать TryDemolishByButton().
+    /// </summary>
     public void Demolish()
     {
         PlayDemolishSound();
         HandleDeath();
+    }
+
+    /// <summary>
+    /// Пытается снести здание через UI-кнопку.
+    /// Если здание защищено от ручного сноса, ничего не делает.
+    /// </summary>
+    public bool TryDemolishByButton()
+    {
+        if (!_canBeDemolishedByButton)
+        {
+            Debug.LogWarning($"{name}: это здание нельзя снести кнопкой.", this);
+            return false;
+        }
+
+        Demolish();
+        return true;
     }
 
     protected virtual void HandleDeath()
@@ -102,10 +133,8 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
         Destroy(gameObject);
     }
 
-
     private void ApplyConfig()
     {
-
         health.Initialize(config.MaxHealth);
     }
 
@@ -113,6 +142,7 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
     {
         _audioService.PlayWorldSound(SoundId.BuildingDemolished, transform.position);
     }
+
     protected void PlayWorldSound(SoundId soundId, Vector3 position)
     {
         _audioService.PlayWorldSound(soundId, position);
@@ -120,7 +150,6 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
 
     private void UnregisterUniqueBuilding()
     {
-
         if (!config.UniqueBuilding)
             return;
 

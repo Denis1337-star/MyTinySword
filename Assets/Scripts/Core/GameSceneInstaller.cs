@@ -110,6 +110,10 @@ public sealed class GameSceneInstaller : MonoInstaller
             .AsSingle()
             .NonLazy();
 
+        Container.Bind<EnemyHealthInspectService>()
+    .AsSingle()
+    .NonLazy();
+
         Container.Bind<CameraFocusController>()
             .FromInstance(_cameraFocusController)
             .AsSingle()

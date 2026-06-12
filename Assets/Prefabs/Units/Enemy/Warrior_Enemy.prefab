@@ -14,11 +14,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1390885792508008589, guid: 7094ca977003a1d47a7950e31869d5b6, type: 3}
       propertyPath: _showWhenSelected
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1435114568600682809, guid: 7094ca977003a1d47a7950e31869d5b6, type: 3}
       propertyPath: _canBeSelected
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3884826190589095570, guid: 7094ca977003a1d47a7950e31869d5b6, type: 3}
       propertyPath: m_Name

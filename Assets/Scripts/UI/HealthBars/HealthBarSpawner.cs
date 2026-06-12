@@ -1,9 +1,9 @@
 using UnityEngine;
-using UnityEngine.Serialization;
 using Zenject;
 
 /// <summary>
-/// Спавнит и обновляет HP bar над объектом
+/// Спавнит и обновляет HP bar над объектом.
+/// HP bar может показываться при выборе, получении урона или inspect-клике по врагу.
 /// </summary>
 public sealed class HealthBarSpawner : ValidatedMonoBehaviour
 {
@@ -21,6 +21,7 @@ public sealed class HealthBarSpawner : ValidatedMonoBehaviour
     private Camera _mainCamera;
 
     private bool _damagedOnce;
+    private bool _inspected;
 
     [Inject]
     private void Construct(
@@ -57,6 +58,7 @@ public sealed class HealthBarSpawner : ValidatedMonoBehaviour
             _health.OnDied -= OnDied;
         }
 
+        _inspected = false;
         DestroyBar();
     }
 
@@ -87,6 +89,24 @@ public sealed class HealthBarSpawner : ValidatedMonoBehaviour
         HideBar();
     }
 
+    public void ShowInspected()
+    {
+        if (_health == null || _health.IsDead)
+            return;
+
+        _inspected = true;
+        ShowBar();
+        RefreshBar();
+    }
+
+    public void HideInspected()
+    {
+        _inspected = false;
+
+        if (!ShouldShowBar())
+            HideBar();
+    }
+
     private void OnHealthChanged(int current, int max)
     {
         _damagedOnce = current < max;
@@ -103,6 +123,7 @@ public sealed class HealthBarSpawner : ValidatedMonoBehaviour
 
     private void OnDied()
     {
+        _inspected = false;
         HideBar();
     }
 
@@ -117,7 +138,7 @@ public sealed class HealthBarSpawner : ValidatedMonoBehaviour
                        _health != null &&
                        _health.CurrentHealth < _health.MaxHealth;
 
-        return selected || damaged;
+        return selected || damaged || _inspected;
     }
 
     private void ShowBar()
