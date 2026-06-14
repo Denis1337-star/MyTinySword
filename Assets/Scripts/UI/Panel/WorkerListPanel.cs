@@ -3,7 +3,9 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// UI панель списка рабочих выбранного дома
+/// UI панель списка рабочих выбранного дома.
+/// Создаёт элементы списка через Zenject, чтобы вложенные компоненты prefab
+/// вроде UiButtonSound тоже получили свои зависимости.
 /// </summary>
 public sealed class WorkerListPanel : ValidatedMonoBehaviour
 {
@@ -16,13 +18,17 @@ public sealed class WorkerListPanel : ValidatedMonoBehaviour
 
     private readonly List<WorkerListItem> _items = new();
 
+    private DiContainer _container;
     private SelectionSystem _selectionSystem;
     private House _currentHouse;
     private House _subscribedHouse;
 
     [Inject]
-    private void Construct(SelectionSystem selectionSystem)
+    private void Construct(
+        DiContainer container,
+        SelectionSystem selectionSystem)
     {
+        _container = container;
         _selectionSystem = selectionSystem;
     }
 
@@ -111,7 +117,15 @@ public sealed class WorkerListPanel : ValidatedMonoBehaviour
         if (_itemPrefab == null || _contentRoot == null)
             return null;
 
-        return Instantiate(_itemPrefab, _contentRoot);
+        if (_container == null)
+        {
+            Debug.LogError($"{name}: DiContainer не внедрён. WorkerListItem не создан.", this);
+            return null;
+        }
+
+        return _container.InstantiatePrefabForComponent<WorkerListItem>(
+            _itemPrefab,
+            _contentRoot);
     }
 
     private void SelectWorker(Worker worker)
