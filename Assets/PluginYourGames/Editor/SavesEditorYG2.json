@@ -7,16 +7,15 @@
         false,
         false
     ],
-    "idSave": 19,
-    "audioSettingsInitialized": true,
-    "musicVolume": 0.0,
-    "sfxVolume": 0.800000011920929,
-    "musicMuted": true,
+    "idSave": 27,
+    "audioSettingsInitialized": false,
+    "musicVolume": 1.0,
+    "sfxVolume": 1.0,
+    "musicMuted": false,
     "sfxMuted": false,
+    "tutorialCompleted": true,
     "levelProgressInitialized": true,
-    "lastUnlockedLevelIndex": 2,
-    "totalVictories": 1,
-    "completedLevelIds": [
-        "level_1"
-    ]
+    "lastUnlockedLevelIndex": 1,
+    "totalVictories": 0,
+    "completedLevelIds": []
 }

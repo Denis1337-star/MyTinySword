@@ -544,6 +544,7 @@ GameObject:
   - component: {fileID: 360382868}
   - component: {fileID: 360382867}
   - component: {fileID: 360382870}
+  - component: {fileID: 360382871}
   m_Layer: 5
   m_Name: AboutsButton
   m_TagString: Untagged
@@ -610,7 +611,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 0
+  m_Interactable: 1
   m_TargetGraphic: {fileID: 360382868}
   m_OnClick:
     m_PersistentCalls:
@@ -668,6 +669,20 @@ MonoBehaviour:
   _button: {fileID: 360382867}
   _soundId: 10
   _playOnlyWhenInteractable: 1
+--- !u!114 &360382871
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 360382865}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad405535e9f6ba349a5b30c2aa9331a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _button: {fileID: 360382867}
+  _reloadSceneAfterReset: 1
 --- !u!1 &385408636
 GameObject:
   m_ObjectHideFlags: 0

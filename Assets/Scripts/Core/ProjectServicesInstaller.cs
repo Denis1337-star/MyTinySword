@@ -46,5 +46,10 @@ public sealed class ProjectServicesInstaller : MonoInstaller
              .Bind<LevelRuntimeService>()
              .AsSingle()
              .NonLazy();
+
+        Container
+             .Bind<TutorialSaveService>()
+             .AsSingle()
+              .NonLazy();
     }
 }
