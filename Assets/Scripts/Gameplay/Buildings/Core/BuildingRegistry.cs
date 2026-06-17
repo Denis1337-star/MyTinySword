@@ -1,13 +1,17 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Реестр зданий на сцене
+/// Реестр зданий на сцене.
+/// Хранит построенные и строящиеся здания.
 /// </summary>
 public sealed class BuildingRegistry : MonoBehaviour
 {
     private readonly HashSet<string> _builtBuildingIds = new();
     private readonly HashSet<string> _constructingBuildingIds = new();
+
+    public event Action<BuildingConfig> BuildingBuilt;
 
     public bool IsBuiltOrConstructing(BuildingConfig config)
     {
@@ -41,6 +45,8 @@ public sealed class BuildingRegistry : MonoBehaviour
 
         _constructingBuildingIds.Remove(config.BuildingId);
         _builtBuildingIds.Add(config.BuildingId);
+
+        BuildingBuilt?.Invoke(config);
     }
 
     public void UnregisterBuilt(BuildingConfig config)
@@ -61,5 +67,6 @@ public sealed class BuildingRegistry : MonoBehaviour
     {
         _builtBuildingIds.Clear();
         _constructingBuildingIds.Clear();
+        BuildingBuilt = null;
     }
 }

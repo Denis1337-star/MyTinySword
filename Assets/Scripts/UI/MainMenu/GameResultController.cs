@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using Zenject;
 
@@ -22,6 +23,8 @@ public sealed class GameResultController : ValidatedMonoBehaviour
 
     private bool _gameFinished;
 
+    public event Action<bool> GameFinished;
+
     [Inject]
     private void Construct(
         LevelProgressService levelProgressService,
@@ -44,6 +47,7 @@ public sealed class GameResultController : ValidatedMonoBehaviour
     private void OnDestroy()
     {
         Unsubscribe();
+        GameFinished = null;
     }
 
     protected override bool ValidateInternal()
@@ -100,10 +104,14 @@ public sealed class GameResultController : ValidatedMonoBehaviour
         {
             SaveVictoryProgress();
             _resultPanel.ShowVictory();
+
+            GameFinished?.Invoke(true);
             return;
         }
 
         _resultPanel.ShowDefeat();
+
+        GameFinished?.Invoke(false);
     }
 
     private void SaveVictoryProgress()

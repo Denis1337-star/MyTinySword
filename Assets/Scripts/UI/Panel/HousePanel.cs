@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -30,6 +31,8 @@ public sealed class HousePanel : ValidatedMonoBehaviour
     private House _currentHouse;
     private WorkerListPanel _workerListPanel;
     private SelectionSystem _selectionSystem;
+
+    public event Action<WorkerJobType> AllWorkersJobAssigned;
 
     [Inject]
     private void Construct(
@@ -171,6 +174,8 @@ public sealed class HousePanel : ValidatedMonoBehaviour
             return;
 
         _currentHouse.AssignAllWorkersToJob(job);
+
+        AllWorkersJobAssigned?.Invoke(job);
 
         Refresh();
         _workerListPanel?.Show(_currentHouse);

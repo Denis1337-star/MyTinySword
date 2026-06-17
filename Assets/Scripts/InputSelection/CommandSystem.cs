@@ -1,9 +1,10 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// —истема команд дл€ выбранной армии
+/// —истема команд дл€ выбранной армии.
 /// </summary>
 public sealed class CommandSystem : MonoBehaviour
 {
@@ -17,6 +18,8 @@ public sealed class CommandSystem : MonoBehaviour
     private SelectionSystem _selectionSystem;
     private Camera _mainCamera;
 
+    public event Action<IDamageable> AttackCommandIssued;
+
     [Inject]
     private void Construct(
         SelectionSystem selectionSystem,
@@ -27,7 +30,7 @@ public sealed class CommandSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// ѕытаетс€ отдать выбранной армии команду атаки по enemy
+    /// ѕытаетс€ отдать выбранной армии команду атаки по enemy.
     /// </summary>
     public bool TryAttackSelectedArmyAtScreenPosition(Vector2 screenPosition)
     {
@@ -48,11 +51,16 @@ public sealed class CommandSystem : MonoBehaviour
         if (target == null)
             return false;
 
-        return IssueAttackCommand(selectedUnits, target);
+        bool commandIssued = IssueAttackCommand(selectedUnits, target);
+
+        if (commandIssued)
+            AttackCommandIssued?.Invoke(target);
+
+        return commandIssued;
     }
 
     /// <summary>
-    /// ѕытаетс€ отдать выбранной армии команду движени€ в screenPosition
+    /// ѕытаетс€ отдать выбранной армии команду движени€ в screenPosition.
     /// </summary>
     public bool TryMoveSelectedArmyAtScreenPosition(Vector2 screenPosition)
     {
@@ -71,7 +79,8 @@ public sealed class CommandSystem : MonoBehaviour
         return commandIssued;
     }
 
-    private bool IssueAttackCommand(IReadOnlyList<UnitSelectable> selectedUnits,
+    private bool IssueAttackCommand(
+        IReadOnlyList<UnitSelectable> selectedUnits,
         IDamageable target)
     {
         if (selectedUnits == null || target == null)
@@ -91,7 +100,8 @@ public sealed class CommandSystem : MonoBehaviour
         return commandIssued;
     }
 
-    private bool IssueMoveCommand(IReadOnlyList<UnitSelectable> selectedUnits,
+    private bool IssueMoveCommand(
+        IReadOnlyList<UnitSelectable> selectedUnits,
         Vector2 worldPosition)
     {
         if (selectedUnits == null)
@@ -119,14 +129,17 @@ public sealed class CommandSystem : MonoBehaviour
         _moveCommandIndicator.Show(worldPosition);
     }
 
-    private IDamageable FindEnemyDamageableAt(Vector2 worldPosition,
+    private IDamageable FindEnemyDamageableAt(
+        Vector2 worldPosition,
         FactionMember selectedArmyFaction)
     {
         if (selectedArmyFaction == null)
             return null;
 
         int hitCount = Physics2D.OverlapPointNonAlloc(
-            worldPosition,_targetHits, _targetLayerMask);
+            worldPosition,
+            _targetHits,
+            _targetLayerMask);
 
         for (int i = 0; i < hitCount; i++)
         {
@@ -156,10 +169,18 @@ public sealed class CommandSystem : MonoBehaviour
 
         IDamageable damageable = hit.GetComponent<IDamageable>();
 
+        if (damageable != null)
             return damageable;
+
+        Component parentComponent = hit.GetComponentInParent<Component>();
+
+        return parentComponent != null
+            ? parentComponent.GetComponentInParent<IDamageable>()
+            : null;
     }
 
-    private bool IsValidEnemyTarget(IDamageable damageable,
+    private bool IsValidEnemyTarget(
+        IDamageable damageable,
         FactionMember selectedArmyFaction)
     {
         if (damageable == null || damageable.IsDead)
@@ -185,7 +206,10 @@ public sealed class CommandSystem : MonoBehaviour
 
         FactionMember factionMember = targetComponent.GetComponent<FactionMember>();
 
-        return factionMember;
+        if (factionMember != null)
+            return factionMember;
+
+        return targetComponent.GetComponentInParent<FactionMember>();
     }
 
     private bool HasPlayerArmyUnits(IReadOnlyList<UnitSelectable> selectedUnits)
@@ -244,6 +268,12 @@ public sealed class CommandSystem : MonoBehaviour
         armyUnit = selectable.GetComponent<ArmyUnit>();
 
         if (armyUnit == null)
+            armyUnit = selectable.GetComponentInParent<ArmyUnit>();
+
+        if (armyUnit == null)
+            armyUnit = selectable.GetComponentInChildren<ArmyUnit>();
+
+        if (armyUnit == null)
             return false;
 
         if (!armyUnit.IsPlayerUnit())
@@ -253,5 +283,10 @@ public sealed class CommandSystem : MonoBehaviour
             return false;
 
         return true;
+    }
+
+    private void OnDestroy()
+    {
+        AttackCommandIssued = null;
     }
 }
