@@ -1,5 +1,5 @@
 /// <summary>
-/// Фракции  в игре
+/// Р¤СЂР°РєС†РёРё  РІ РёРіСЂРµ
 /// </summary>
 public enum FactionType
 {

@@ -2,17 +2,17 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Визуальный индикатор команды движения армии
+/// Р’РёР·СѓР°Р»СЊРЅС‹Р№ РёРЅРґРёРєР°С‚РѕСЂ РєРѕРјР°РЅРґС‹ РґРІРёР¶РµРЅРёСЏ Р°СЂРјРёРё
 /// </summary>
 [RequireComponent(typeof(SpriteRenderer))]
 public sealed class MoveCommandIndicator : MonoBehaviour
 {
     [Header("Animation")]
+    [SerializeField] private SpriteRenderer _spriteRenderer;
     [SerializeField, Min(0.05f)] private float _lifeTime = 0.6f;
     [SerializeField, Min(0.01f)] private float _startScale = 0.75f;
     [SerializeField, Min(0.01f)] private float _endScale = 1.15f;
 
-    private SpriteRenderer _spriteRenderer;
     private Color _startColor;
     private float _timer;
     private bool _isPlaying;
@@ -26,7 +26,6 @@ public sealed class MoveCommandIndicator : MonoBehaviour
 
     private void Awake()
     {
-        _spriteRenderer = GetComponent<SpriteRenderer>();
         _startColor = _spriteRenderer.color;
 
         Hide();
@@ -51,7 +50,7 @@ public sealed class MoveCommandIndicator : MonoBehaviour
     }
 
     /// <summary>
-    /// Показывает индикатор в мировой позиции
+    /// РџРѕРєР°Р·С‹РІР°РµС‚ РёРЅРґРёРєР°С‚РѕСЂ РІ РјРёСЂРѕРІРѕР№ РїРѕР·РёС†РёРё
     /// </summary>
     public void Show(Vector2 worldPosition)
     {
@@ -89,14 +88,10 @@ public sealed class MoveCommandIndicator : MonoBehaviour
         _isPlaying = false;
         _timer = 0f;
 
-        if (_spriteRenderer != null)
-            _spriteRenderer.enabled = false;
+        _spriteRenderer.enabled = false;
     }
     private void PlayMoveCommandSound()
     {
-        if (_audioService == null)
-            return;
-
         _audioService.PlayWorldSound(SoundId.MoveCommand, transform.position);
     }
 }

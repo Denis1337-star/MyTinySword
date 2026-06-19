@@ -3,9 +3,8 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// UI панель списка рабочих выбранного дома.
-/// Создаёт элементы списка через Zenject, чтобы вложенные компоненты prefab
-/// вроде UiButtonSound тоже получили свои зависимости.
+/// UI-РїР°РЅРµР»СЊ СЃРїРёСЃРєР° СЂР°Р±РѕС‡РёС… РІС‹Р±СЂР°РЅРЅРѕРіРѕ РґРѕРјР°.
+/// РЎРїРёСЃРѕРє РѕР±РЅРѕРІР»СЏРµС‚СЃСЏ С‡РµСЂРµР· HousePanel вЂ” Р±РµР· РѕС‚РґРµР»СЊРЅРѕР№ РїРѕРґРїРёСЃРєРё РЅР° РґРѕРј.
 /// </summary>
 public sealed class WorkerListPanel : ValidatedMonoBehaviour
 {
@@ -21,7 +20,6 @@ public sealed class WorkerListPanel : ValidatedMonoBehaviour
     private DiContainer _container;
     private SelectionSystem _selectionSystem;
     private House _currentHouse;
-    private House _subscribedHouse;
 
     [Inject]
     private void Construct(
@@ -30,11 +28,6 @@ public sealed class WorkerListPanel : ValidatedMonoBehaviour
     {
         _container = container;
         _selectionSystem = selectionSystem;
-    }
-
-    protected override void Awake()
-    {
-        base.Awake();
     }
 
     protected override bool ValidateInternal()
@@ -56,34 +49,19 @@ public sealed class WorkerListPanel : ValidatedMonoBehaviour
             return;
         }
 
-        if (_currentHouse == house)
-        {
-            ShowRoot();
-            Rebuild();
-            return;
-        }
-
-        UnsubscribeFromHouse();
-
         _currentHouse = house;
-
-        SubscribeToHouse();
-
         ShowRoot();
         Rebuild();
     }
 
     public void Hide()
     {
-        UnsubscribeFromHouse();
-
         _currentHouse = null;
-
         ClearItems();
         _root.SetActive(false);
     }
 
-    private void Rebuild()
+    public void Rebuild()
     {
         ClearItems();
 
@@ -114,15 +92,6 @@ public sealed class WorkerListPanel : ValidatedMonoBehaviour
 
     private WorkerListItem CreateItem()
     {
-        if (_itemPrefab == null || _contentRoot == null)
-            return null;
-
-        if (_container == null)
-        {
-            Debug.LogError($"{name}: DiContainer не внедрён. WorkerListItem не создан.", this);
-            return null;
-        }
-
         return _container.InstantiatePrefabForComponent<WorkerListItem>(
             _itemPrefab,
             _contentRoot);
@@ -134,27 +103,6 @@ public sealed class WorkerListPanel : ValidatedMonoBehaviour
             return;
 
         _selectionSystem.SelectWorkerFromUI(worker);
-    }
-
-    private void SubscribeToHouse()
-    {
-        if (_currentHouse == null)
-            return;
-
-        if (_subscribedHouse == _currentHouse)
-            return;
-
-        _currentHouse.OnWorkersChanged += Rebuild;
-        _subscribedHouse = _currentHouse;
-    }
-
-    private void UnsubscribeFromHouse()
-    {
-        if (_subscribedHouse == null)
-            return;
-
-        _subscribedHouse.OnWorkersChanged -= Rebuild;
-        _subscribedHouse = null;
     }
 
     private void ClearItems()

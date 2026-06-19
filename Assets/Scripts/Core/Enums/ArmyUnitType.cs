@@ -1,6 +1,6 @@
 
 /// <summary>
-/// Тип боевого юнита
+/// РўРёРї Р±РѕРµРІРѕРіРѕ СЋРЅРёС‚Р°
 /// </summary>
 public enum ArmyUnitType
 {

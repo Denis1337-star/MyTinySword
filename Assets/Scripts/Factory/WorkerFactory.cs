@@ -2,7 +2,7 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Фабрика для создания worker через Zenject
+/// Р¤Р°Р±СЂРёРєР° РґР»СЏ СЃРѕР·РґР°РЅРёСЏ worker С‡РµСЂРµР· Zenject
 /// </summary>
 public sealed class WorkerFactory
 {
@@ -18,7 +18,7 @@ public sealed class WorkerFactory
     {
         if (prefab == null)
         {
-            Debug.LogError("WorkerFactory: prefab worker не назначен.");
+            Debug.LogError("WorkerFactory: prefab worker РЅРµ РЅР°Р·РЅР°С‡РµРЅ.");
             return null;
         }
 

@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// ������ ������ ���� ��������.
+/// Настройки одного шага обучения в инспекторе.
 /// </summary>
 [Serializable]
 public sealed class TutorialStepData
@@ -33,15 +33,11 @@ public sealed class TutorialStepData
     public int MinimumGold => _minimumGold;
     public int MinimumMeat => _minimumMeat;
 
+    /// <summary>
+    /// Проверяет, подходит ли конфиг здания для шага (например, казарма).
+    /// </summary>
     public bool IsRequiredBuilding(BuildingConfig buildingConfig)
     {
-        if (_requiredBuildingConfig == null)
-            return buildingConfig != null;
-
-        if (buildingConfig == null)
-            return false;
-
-        return buildingConfig == _requiredBuildingConfig ||
-               buildingConfig.BuildingId == _requiredBuildingConfig.BuildingId;
+        return BuildingConfigUtility.Matches(_requiredBuildingConfig, buildingConfig);
     }
 }

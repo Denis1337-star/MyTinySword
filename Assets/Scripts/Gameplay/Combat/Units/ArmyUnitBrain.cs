@@ -2,11 +2,12 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Управляет поведением боевого юнита
+/// РЈРїСЂР°РІР»СЏРµС‚ РїРѕРІРµРґРµРЅРёРµРј Р±РѕРµРІРѕРіРѕ СЋРЅРёС‚Р°
 /// </summary>
+[RequireComponent(typeof(ArmyUnit))]
 public sealed class ArmyUnitBrain : MonoBehaviour
 {
-    private ArmyUnit _unit;
+    [SerializeField] private ArmyUnit _unit;
     private ArmyTargetFinder _targetFinder;
     private ArmyUnitCombat _combat;
     private GameAudioService _audioService;
@@ -38,7 +39,6 @@ public sealed class ArmyUnitBrain : MonoBehaviour
 
     private void Awake()
     {
-        _unit = GetComponent<ArmyUnit>();
         _targetFinder = new ArmyTargetFinder(_unit, transform);
     }
     private void Start()
@@ -273,7 +273,7 @@ public sealed class ArmyUnitBrain : MonoBehaviour
         if (component == null)
             return null;
 
-        return component.GetComponentInParent<Health>();
+        return component.GetComponent<Health>();
     }
 
     private bool CanAct()

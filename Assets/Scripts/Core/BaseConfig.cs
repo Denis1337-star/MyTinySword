@@ -1,12 +1,12 @@
 using UnityEngine;
 
 /// <summary>
-/// Базовый класс для всех конфигов проекта
+/// Р‘Р°Р·РѕРІС‹Р№ РєР»Р°СЃСЃ РґР»СЏ РІСЃРµС… РєРѕРЅС„РёРіРѕРІ РїСЂРѕРµРєС‚Р°
 /// </summary>
 public abstract class BaseConfig : ScriptableObject
 {
     /// <summary>
-    /// Проверяет конфиг настроен корректно
+    /// РџСЂРѕРІРµСЂСЏРµС‚ РєРѕРЅС„РёРі РЅР°СЃС‚СЂРѕРµРЅ РєРѕСЂСЂРµРєС‚РЅРѕ
     /// </summary>
     public abstract bool IsValid();
 }

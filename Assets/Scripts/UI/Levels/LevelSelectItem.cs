@@ -4,9 +4,9 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Один элемент выбора уровня в меню.
-/// Показывает название уровня, статус открытия/прохождения
-/// и сообщает наружу, когда игрок нажал на открытый уровень.
+/// РћРґРёРЅ СЌР»РµРјРµРЅС‚ РІС‹Р±РѕСЂР° СѓСЂРѕРІРЅСЏ РІ РјРµРЅСЋ.
+/// РџРѕРєР°Р·С‹РІР°РµС‚ РЅР°Р·РІР°РЅРёРµ СѓСЂРѕРІРЅСЏ, СЃС‚Р°С‚СѓСЃ РѕС‚РєСЂС‹С‚РёСЏ/РїСЂРѕС…РѕР¶РґРµРЅРёСЏ
+/// Рё СЃРѕРѕР±С‰Р°РµС‚ РЅР°СЂСѓР¶Сѓ, РєРѕРіРґР° РёРіСЂРѕРє РЅР°Р¶Р°Р» РЅР° РѕС‚РєСЂС‹С‚С‹Р№ СѓСЂРѕРІРµРЅСЊ.
 /// </summary>
 public sealed class LevelSelectItem : ValidatedMonoBehaviour
 {
@@ -63,8 +63,8 @@ public sealed class LevelSelectItem : ValidatedMonoBehaviour
         if (_levelConfig == null)
         {
             _button.interactable = false;
-            _titleText.text = "Уровень не задан";
-            _statusText.text = "Ошибка";
+            _titleText.text = "РЈСЂРѕРІРµРЅСЊ РЅРµ Р·Р°РґР°РЅ";
+            _statusText.text = "РћС€РёР±РєР°";
             SetOptionalView(_lockedView, true);
             SetOptionalView(_completedView, false);
             return;
@@ -82,12 +82,12 @@ public sealed class LevelSelectItem : ValidatedMonoBehaviour
     private string GetStatusText(bool completed)
     {
         if (!_unlocked)
-            return "Закрыт";
+            return "Р—Р°РєСЂС‹С‚";
 
         if (completed)
-            return "Пройден";
+            return "РџСЂРѕР№РґРµРЅ";
 
-        return "Доступен";
+        return "Р”РѕСЃС‚СѓРїРµРЅ";
     }
 
     private void OnButtonClicked()

@@ -1,9 +1,11 @@
+using System;
+using System.Collections;
 using Cinemachine;
 using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// ”Ô‡‚ÎˇÂÚ focus ÂÊËÏÓÏ Í‡ÏÂ˚
+/// –ï–¥–∏–Ω–∞—è —Ç–æ—á–∫–∞ —É–ø—Ä–∞–≤–ª–µ–Ω–∏—è Cinemachine: follow —Ä–∞–±–æ—á–µ–≥–æ –∏ cinematic tutorial.
 /// </summary>
 public sealed class CameraFocusController : ValidatedMonoBehaviour
 {
@@ -17,9 +19,12 @@ public sealed class CameraFocusController : ValidatedMonoBehaviour
     private Transform _currentFocusTarget;
     private bool _hasFocus;
     private bool _isSubscribed;
+    private bool _tutorialControlsCamera;
+    private Coroutine _tutorialRoutine;
 
     public bool HasFocus => _hasFocus;
     public Transform CurrentFocusTarget => _currentFocusTarget;
+    public bool IsTutorialFollowActive => _tutorialRoutine != null;
 
     [Inject]
     private void Construct(SelectionSystem selectionSystem)
@@ -41,7 +46,7 @@ public sealed class CameraFocusController : ValidatedMonoBehaviour
 
     private void Update()
     {
-        if (!_hasFocus)
+        if (_tutorialControlsCamera || !_hasFocus)
             return;
 
         if (!_cancelFocusOnManualDrag)
@@ -56,6 +61,7 @@ public sealed class CameraFocusController : ValidatedMonoBehaviour
     private void OnDisable()
     {
         Unsubscribe();
+        StopTutorialCamera();
     }
 
     private void OnValidate()
@@ -74,9 +80,56 @@ public sealed class CameraFocusController : ValidatedMonoBehaviour
         return valid;
     }
 
+    public void BeginTutorialCamera()
+    {
+        _tutorialControlsCamera = true;
+        _cameraController.SetInputEnabled(false);
+        CancelFocus();
+    }
+
+    public void EndTutorialCamera()
+    {
+        StopTutorialCamera();
+        _tutorialControlsCamera = false;
+        _cameraController.SetInputEnabled(true);
+        _virtualCamera.Follow = _defaultFollowTarget;
+    }
+
+    public void TutorialFocusOn(Transform target, Action onComplete = null)
+    {
+        if (!_tutorialControlsCamera || target == null)
+        {
+            onComplete?.Invoke();
+            return;
+        }
+
+        StopTutorialRoutine();
+        _virtualCamera.Follow = target;
+        onComplete?.Invoke();
+    }
+
+    public void TutorialFollow(Transform target, Func<bool> shouldStop)
+    {
+        if (!_tutorialControlsCamera || target == null)
+            return;
+
+        StopTutorialRoutine();
+        _tutorialRoutine = StartCoroutine(TutorialFollowRoutine(target, shouldStop));
+    }
+
+    public void StopTutorialCamera()
+    {
+        StopTutorialRoutine();
+
+        if (!_tutorialControlsCamera)
+            return;
+
+        _virtualCamera.Follow = _defaultFollowTarget;
+    }
+
     public void FocusOn(Transform target)
     {
-        if (target == null)
+        if (target == null || _tutorialControlsCamera)
             return;
 
         _currentFocusTarget = target;
@@ -98,12 +151,28 @@ public sealed class CameraFocusController : ValidatedMonoBehaviour
         _virtualCamera.Follow = _defaultFollowTarget;
     }
 
+    private IEnumerator TutorialFollowRoutine(Transform target, Func<bool> shouldStop)
+    {
+        _virtualCamera.Follow = target;
+
+        while (target != null && shouldStop != null && !shouldStop())
+            yield return null;
+
+        _tutorialRoutine = null;
+    }
+
+    private void StopTutorialRoutine()
+    {
+        if (_tutorialRoutine == null)
+            return;
+
+        StopCoroutine(_tutorialRoutine);
+        _tutorialRoutine = null;
+    }
+
     private void Subscribe()
     {
         if (_isSubscribed)
-            return;
-
-        if (_selectionSystem == null)
             return;
 
         _selectionSystem.SelectionChanged += HandleSelectionChanged;
@@ -119,23 +188,14 @@ public sealed class CameraFocusController : ValidatedMonoBehaviour
         if (!_isSubscribed)
             return;
 
-        if (_selectionSystem != null)
-        {
-            _selectionSystem.SelectionChanged -= HandleSelectionChanged;
-            _selectionSystem.SelectionCleared -= HandleSelectionCleared;
-        }
+        _selectionSystem.SelectionChanged -= HandleSelectionChanged;
+        _selectionSystem.SelectionCleared -= HandleSelectionCleared;
 
         _isSubscribed = false;
     }
 
     private void RefreshFromCurrentSelection()
     {
-        if (_selectionSystem == null)
-        {
-            CancelFocus();
-            return;
-        }
-
         UnitSelectable currentSelection = _selectionSystem.CurrentSelection;
 
         if (currentSelection == null)
@@ -149,13 +209,16 @@ public sealed class CameraFocusController : ValidatedMonoBehaviour
 
     private void HandleSelectionChanged(UnitSelectable selectable)
     {
+        if (_tutorialControlsCamera)
+            return;
+
         if (selectable == null)
         {
             CancelFocus();
             return;
         }
 
-        Worker worker = FindWorkerNearSelectable(selectable);
+        Worker worker = SelectableUtility.FindNear<Worker>(selectable);
 
         if (worker == null)
         {
@@ -168,15 +231,10 @@ public sealed class CameraFocusController : ValidatedMonoBehaviour
 
     private void HandleSelectionCleared()
     {
+        if (_tutorialControlsCamera)
+            return;
+
         CancelFocus();
-    }
-
-    private Worker FindWorkerNearSelectable(UnitSelectable selectable)
-    {
-        if (selectable == null)
-            return null;
-
-        return selectable.GetComponent<Worker>();
     }
 
     private void SyncDefaultTargetWithCameraPosition()

@@ -3,7 +3,7 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Место где  можно  строить здания
+/// РњРµСЃС‚Рѕ РіРґРµ  РјРѕР¶РЅРѕ  СЃС‚СЂРѕРёС‚СЊ Р·РґР°РЅРёСЏ
 /// </summary>
 public sealed class ConstructionSlot : ValidatedMonoBehaviour
 {
@@ -50,13 +50,13 @@ public sealed class ConstructionSlot : ValidatedMonoBehaviour
     public string GetBuildBlockReason(BuildingConfig config)
     {
         if (_currentConstruction != null)
-            return "Уже строится";
+            return "РЈР¶Рµ СЃС‚СЂРѕРёС‚СЃСЏ";
 
         if (config.UniqueBuilding && _buildingRegistry.IsBuiltOrConstructing(config))
-            return "Лимит достигнут";
+            return "Р›РёРјРёС‚ РґРѕСЃС‚РёРіРЅСѓС‚";
 
         if (!_resourceStorage.HasResources(config.WoodCost, config.GoldCost, 0))
-            return "Не хватает ресурсов";
+            return "РќРµ С…РІР°С‚Р°РµС‚ СЂРµСЃСѓСЂСЃРѕРІ";
 
         return string.Empty;
     }

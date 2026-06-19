@@ -1,5 +1,5 @@
 /// <summary>
-/// Состояние работы с ресурсом
+/// РЎРѕСЃС‚РѕСЏРЅРёРµ СЂР°Р±РѕС‚С‹ СЃ СЂРµСЃСѓСЂСЃРѕРј
 /// </summary>
 public sealed class WorkerWorkState : IWorkerState
 {
@@ -12,10 +12,9 @@ public sealed class WorkerWorkState : IWorkerState
 
     public void Enter()
     {
-        if (!_worker.HasValidResourceAssignmentForWork())
+        if (!_worker.HasValidResourceAssignment())
         {
-            _worker.ClearCurrentAssignment();
-            _worker.StateMachine.ChangeState(WorkerStateType.Idle);
+            _worker.ResetToIdle();
             return;
         }
 
@@ -28,7 +27,7 @@ public sealed class WorkerWorkState : IWorkerState
         if (!started)
         {
             _worker.Animator.SetWorking(false);
-            _worker.ClearCurrentAssignment();
+            _worker.ResetToIdle();
             _worker.StateMachine.ChangeState(WorkerStateType.FindResource);
         }
     }
@@ -46,8 +45,7 @@ public sealed class WorkerWorkState : IWorkerState
     {
         if (_worker.CurrentJobLogic == null)
         {
-            _worker.ClearCurrentAssignment();
-            _worker.StateMachine.ChangeState(WorkerStateType.Idle);
+            _worker.ResetToIdle();
             return;
         }
 

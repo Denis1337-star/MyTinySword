@@ -1,0 +1,7 @@
+﻿python : Python 
+C:\Users\Денис\AppData\Local\Temp\ps-script-09283eed-ea8c-4215-8690-f6c2d688ffde.ps1:7 знак:1
++ python "C:\GameTest\MyTinySword\tools\rewrite_utf8.py" 2>&1 | Out-Fil ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Python :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

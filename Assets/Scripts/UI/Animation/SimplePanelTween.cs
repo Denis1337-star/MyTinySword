@@ -2,25 +2,19 @@ using DG.Tweening;
 using UnityEngine;
 
 /// <summary>
-/// DOTween анимация открытия и закрытия UI панели
+/// DOTween-Р°РЅРёРјР°С†РёСЏ РїРѕСЏРІР»РµРЅРёСЏ Рё СЃРєСЂС‹С‚РёСЏ UI-РїР°РЅРµР»РµР№.
 /// </summary>
- [RequireComponent(typeof(CanvasGroup))]
+[RequireComponent(typeof(CanvasGroup))]
 public sealed class SimplePanelTween : MonoBehaviour
 {
     [Header("Animation")]
+    [SerializeField] private CanvasGroup _canvasGroup;
     [SerializeField, Min(0.01f)] private float _duration = 0.2f;
     [SerializeField, Min(0.01f)] private float _hiddenScale = 0.9f;
     [SerializeField] private Ease _showEase = Ease.OutBack;
     [SerializeField] private Ease _hideEase = Ease.InBack;
 
-    private CanvasGroup _canvasGroup;
-
     public bool IsVisible => gameObject.activeSelf;
-
-    private void Awake()
-    {
-        _canvasGroup = GetComponent<CanvasGroup>();
-    }
 
     private void OnDestroy()
     {
@@ -93,8 +87,6 @@ public sealed class SimplePanelTween : MonoBehaviour
     private void KillTweens()
     {
         transform.DOKill();
-
-        if (_canvasGroup != null)
-            _canvasGroup.DOKill();
+        _canvasGroup.DOKill();
     }
 }

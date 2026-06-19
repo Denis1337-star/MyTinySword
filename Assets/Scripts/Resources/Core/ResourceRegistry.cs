@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Реестр всех  ресурсных точек на сцене
+/// Р РµРµСЃС‚СЂ РІСЃРµС…  СЂРµСЃСѓСЂСЃРЅС‹С… С‚РѕС‡РµРє РЅР° СЃС†РµРЅРµ
 /// </summary>
 public sealed class ResourceRegistry : MonoBehaviour
 {
@@ -31,7 +31,7 @@ public sealed class ResourceRegistry : MonoBehaviour
     }
 
     /// <summary>
-    /// Ищет ближайший доступный ресурс конкретного типа
+    /// РС‰РµС‚ Р±Р»РёР¶Р°Р№С€РёР№ РґРѕСЃС‚СѓРїРЅС‹Р№ СЂРµСЃСѓСЂСЃ РєРѕРЅРєСЂРµС‚РЅРѕРіРѕ С‚РёРїР°
     /// </summary>
     public T FindBest<T>(Vector2 from) where T : ResourceNodeBase
     {

@@ -3,7 +3,7 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// UI отображение ресурсов 
+/// UI РѕС‚РѕР±СЂР°Р¶РµРЅРёРµ СЂРµСЃСѓСЂСЃРѕРІ 
 /// </summary>
 public sealed class ResourceStorageView : ValidatedMonoBehaviour
 {

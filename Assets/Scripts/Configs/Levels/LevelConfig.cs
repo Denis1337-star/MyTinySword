@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Конфиг одного уровня
+/// РљРѕРЅС„РёРі РѕРґРЅРѕРіРѕ СѓСЂРѕРІРЅСЏ
 /// </summary>
 [CreateAssetMenu(
     fileName = "LevelConfig",
@@ -16,8 +16,8 @@ public sealed class LevelConfig : BaseConfig
     [SerializeField] private string _sceneName = "Level_1";
 
     [Header("View")]
-    [SerializeField] private string _displayName = "Уровень 1";
-    [SerializeField, TextArea] private string _description = "Первый уровень.";
+    [SerializeField] private string _displayName = "РЈСЂРѕРІРµРЅСЊ 1";
+    [SerializeField, TextArea] private string _description = "РџРµСЂРІС‹Р№ СѓСЂРѕРІРµРЅСЊ.";
 
     [Header("Tutorial")]
     [SerializeField] private bool _isTutorialLevel = true;
@@ -35,25 +35,25 @@ public sealed class LevelConfig : BaseConfig
 
         if (string.IsNullOrWhiteSpace(_levelId))
         {
-            Debug.LogError($"{name}: Level Id не задан.", this);
+            Debug.LogError($"{name}: Level Id РЅРµ Р·Р°РґР°РЅ.", this);
             valid = false;
         }
 
         if (_levelIndex < 1)
         {
-            Debug.LogError($"{name}: Level Index должен быть больше 0.", this);
+            Debug.LogError($"{name}: Level Index РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ Р±РѕР»СЊС€Рµ 0.", this);
             valid = false;
         }
 
         if (string.IsNullOrWhiteSpace(_sceneName))
         {
-            Debug.LogError($"{name}: Scene Name не задан.", this);
+            Debug.LogError($"{name}: Scene Name РЅРµ Р·Р°РґР°РЅ.", this);
             valid = false;
         }
 
         if (string.IsNullOrWhiteSpace(_displayName))
         {
-            Debug.LogError($"{name}: Display Name не задан.", this);
+            Debug.LogError($"{name}: Display Name РЅРµ Р·Р°РґР°РЅ.", this);
             valid = false;
         }
 

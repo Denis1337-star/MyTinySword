@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Универсальное описание gameplay указателя
+/// РЈРЅРёРІРµСЂСЃР°Р»СЊРЅРѕРµ РѕРїРёСЃР°РЅРёРµ gameplay СѓРєР°Р·Р°С‚РµР»СЏ
 /// </summary>
 public readonly struct GameplayPointer
 {

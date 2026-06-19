@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// UI элемент одного типа боевых юнитов в панели выбранной армии
+/// UI СЌР»РµРјРµРЅС‚ РѕРґРЅРѕРіРѕ С‚РёРїР° Р±РѕРµРІС‹С… СЋРЅРёС‚РѕРІ РІ РїР°РЅРµР»Рё РІС‹Р±СЂР°РЅРЅРѕР№ Р°СЂРјРёРё
 /// </summary>
 public sealed class ArmySelectionItem : ValidatedMonoBehaviour
 {

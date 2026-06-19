@@ -255,6 +255,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _config: {fileID: 11400000, guid: 27064912583c31342af4bc3aa68fe899, type: 2}
+  _movement: {fileID: 4727677065358696826}
+  _animator: {fileID: 1263769579142275136}
+  _brain: {fileID: 8964258087385836050}
 --- !u!95 &1585844759019371601
 Animator:
   serializedVersion: 5
@@ -288,7 +291,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4258471bc5c77aa4eb687b6386ec3c50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _workSoundOrigin: {fileID: 1430824173254198747}
   _workSounds:
   - _equipment: 1
     _soundId: 300
@@ -296,6 +298,8 @@ MonoBehaviour:
     _soundId: 301
   - _equipment: 3
     _soundId: 302
+  _animator: {fileID: 1585844759019371601}
+  _movement: {fileID: 4727677065358696826}
 --- !u!195 &4803159699397084767
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -330,3 +334,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b092a38935b2ad7428a5bf47a79b01ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _worker: {fileID: 4596641850069108570}

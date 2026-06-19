@@ -1,13 +1,13 @@
 using UnityEngine;
 
 /// <summary>
-/// класс для компонентов сцены для проверки настроек при запуске
-/// если проверка не проходит компонент отключается
+/// РєР»Р°СЃСЃ РґР»СЏ РєРѕРјРїРѕРЅРµРЅС‚РѕРІ СЃС†РµРЅС‹ РґР»СЏ РїСЂРѕРІРµСЂРєРё РЅР°СЃС‚СЂРѕРµРє РїСЂРё Р·Р°РїСѓСЃРєРµ
+/// РµСЃР»Рё РїСЂРѕРІРµСЂРєР° РЅРµ РїСЂРѕС…РѕРґРёС‚ РєРѕРјРїРѕРЅРµРЅС‚ РѕС‚РєР»СЋС‡Р°РµС‚СЃСЏ
 /// </summary>
 public abstract class ValidatedMonoBehaviour : MonoBehaviour
 {
     /// <summary>
-    /// проверка компонента при инициализации
+    /// РїСЂРѕРІРµСЂРєР° РєРѕРјРїРѕРЅРµРЅС‚Р° РїСЂРё РёРЅРёС†РёР°Р»РёР·Р°С†РёРё
     /// </summary>
     protected virtual void Awake()
     {
@@ -16,12 +16,12 @@ public abstract class ValidatedMonoBehaviour : MonoBehaviour
         if (isValid)
             return;
 
-        Debug.LogError($"{name}: проверка не пройдена в {GetType().Name}. Компонент отключён.", this);
+        Debug.LogError($"{name}: РїСЂРѕРІРµСЂРєР° РЅРµ РїСЂРѕР№РґРµРЅР° РІ {GetType().Name}. РљРѕРјРїРѕРЅРµРЅС‚ РѕС‚РєР»СЋС‡С‘РЅ.", this);
         enabled = false;
     }
 
     /// <summary>
-    /// вернет true если компонент настроен правильно
+    /// РІРµСЂРЅРµС‚ true РµСЃР»Рё РєРѕРјРїРѕРЅРµРЅС‚ РЅР°СЃС‚СЂРѕРµРЅ РїСЂР°РІРёР»СЊРЅРѕ
     /// </summary>
     protected abstract bool ValidateInternal();
 }

@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
-/// Показывает экран победы или поражения
+/// РџРѕРєР°Р·С‹РІР°РµС‚ СЌРєСЂР°РЅ РїРѕР±РµРґС‹ РёР»Рё РїРѕСЂР°Р¶РµРЅРёСЏ.
 /// </summary>
 public sealed class GameResultPanel : ValidatedMonoBehaviour
 {
@@ -39,12 +39,12 @@ public sealed class GameResultPanel : ValidatedMonoBehaviour
 
     public void ShowVictory()
     {
-        ShowResult("ПОБЕДА");
+        ShowResult("РџРћР‘Р•Р”Рђ");
     }
 
     public void ShowDefeat()
     {
-        ShowResult("ПОРАЖЕНИЕ");
+        ShowResult("РџРћР РђР–Р•РќРР•");
     }
 
     private void ShowResult(string resultText)

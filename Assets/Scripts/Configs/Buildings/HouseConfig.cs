@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Конфиг дома
+/// РљРѕРЅС„РёРі РґРѕРјР°
 /// </summary>
 [CreateAssetMenu(menuName = "MyTinySword/Configs/House Config")]
 public sealed class HouseConfig : BaseConfig

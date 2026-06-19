@@ -3,8 +3,8 @@ using UnityEngine.UI;
 using Zenject;
 
 /// <summary>
-/// Кнопка запуска первого доступного уровня из LevelCatalog.
-/// Используется в MainMenu вместо прямой загрузки сцены строкой.
+/// РљРЅРѕРїРєР° Р·Р°РїСѓСЃРєР° РїРµСЂРІРѕРіРѕ РґРѕСЃС‚СѓРїРЅРѕРіРѕ СѓСЂРѕРІРЅСЏ РёР· LevelCatalog.
+/// РСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РІ MainMenu РІРјРµСЃС‚Рѕ РїСЂСЏРјРѕР№ Р·Р°РіСЂСѓР·РєРё СЃС†РµРЅС‹ СЃС‚СЂРѕРєРѕР№.
 /// </summary>
 public sealed class StartFirstLevelButton : ValidatedMonoBehaviour
 {
@@ -49,7 +49,7 @@ public sealed class StartFirstLevelButton : ValidatedMonoBehaviour
 
         if (firstLevel == null)
         {
-            Debug.LogError($"{name}: первый уровень не найден в LevelCatalog.", this);
+            Debug.LogError($"{name}: РїРµСЂРІС‹Р№ СѓСЂРѕРІРµРЅСЊ РЅРµ РЅР°Р№РґРµРЅ РІ LevelCatalog.", this);
             return;
         }
 

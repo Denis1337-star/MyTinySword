@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// Ресурсная точка дерева
+/// Р РµСЃСѓСЂСЃРЅР°СЏ С‚РѕС‡РєР° РґРµСЂРµРІР°
 /// </summary>
 [RequireComponent(typeof(Animator))]
 public sealed class TreeResource : ResourceNodeBase
@@ -40,7 +40,7 @@ public sealed class TreeResource : ResourceNodeBase
 
         if (_config != null && !_config.IsValid())
         {
-            Debug.LogError($"{name}: TreeResourceConfig некорректный.", this);
+            Debug.LogError($"{name}: TreeResourceConfig РЅРµРєРѕСЂСЂРµРєС‚РЅС‹Р№.", this);
             valid = false;
         }
 

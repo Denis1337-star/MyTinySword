@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Конфиг здания
+/// РљРѕРЅС„РёРі Р·РґР°РЅРёСЏ
 /// </summary>
 [CreateAssetMenu(menuName = "MyTinySword/Configs/Building Config")]
 public sealed class BuildingConfig : BaseConfig

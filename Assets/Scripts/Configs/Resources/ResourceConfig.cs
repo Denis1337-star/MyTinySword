@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Базовый конфиг ресурсов
+/// Р‘Р°Р·РѕРІС‹Р№ РєРѕРЅС„РёРі СЂРµСЃСѓСЂСЃРѕРІ
 /// </summary>
 public abstract class ResourceConfig : BaseConfig
 {

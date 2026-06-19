@@ -4,7 +4,7 @@ using UnityEngine.UI;
 using Zenject;
 
 /// <summary>
-/// UI панель настроек звука
+/// UI РїР°РЅРµР»СЊ РЅР°СЃС‚СЂРѕРµРє Р·РІСѓРєР°
 /// </summary>
 public sealed class AudioSettingsPanel : ValidatedMonoBehaviour
 {

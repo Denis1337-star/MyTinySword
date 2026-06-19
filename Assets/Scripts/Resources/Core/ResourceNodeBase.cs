@@ -3,7 +3,7 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Базовая логика ресурсной точки
+/// Р‘Р°Р·РѕРІР°СЏ Р»РѕРіРёРєР° СЂРµСЃСѓСЂСЃРЅРѕР№ С‚РѕС‡РєРё
 /// </summary>
 public abstract class ResourceNodeBase : ValidatedMonoBehaviour
 {
@@ -88,7 +88,7 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour
     }
 
     /// <summary>
-    /// Отменяет работу с ресурсом
+    /// РћС‚РјРµРЅСЏРµС‚ СЂР°Р±РѕС‚Сѓ СЃ СЂРµСЃСѓСЂСЃРѕРј
     /// </summary>
     public virtual void CancelWork(Worker worker)
     {
@@ -96,7 +96,7 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour
     }
 
     /// <summary>
-    /// Завершает работу с ресурсом без отмены самой ресурсной логики
+    /// Р—Р°РІРµСЂС€Р°РµС‚ СЂР°Р±РѕС‚Сѓ СЃ СЂРµСЃСѓСЂСЃРѕРј Р±РµР· РѕС‚РјРµРЅС‹ СЃР°РјРѕР№ СЂРµСЃСѓСЂСЃРЅРѕР№ Р»РѕРіРёРєРё
     /// </summary>
     public virtual void CompleteWork(Worker worker)
     {

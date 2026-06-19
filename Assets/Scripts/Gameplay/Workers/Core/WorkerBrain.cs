@@ -2,12 +2,13 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Отвечает за назначение работы
+/// РћС‚РІРµС‡Р°РµС‚ Р·Р° РЅР°Р·РЅР°С‡РµРЅРёРµ СЂР°Р±РѕС‚С‹
 /// </summary>
 [RequireComponent(typeof(Worker))]
 public sealed class WorkerBrain : MonoBehaviour
 {
-    private Worker _worker;
+    [SerializeField] private Worker _worker;
+
     private ResourceRegistry _resourceRegistry;
 
     private IWorkerJob _chopWoodJob;
@@ -24,13 +25,8 @@ public sealed class WorkerBrain : MonoBehaviour
         _huntMeatJob = new HuntMeatJob(_resourceRegistry);
     }
 
-    private void Awake()
-    {
-        _worker = GetComponent<Worker>();
-    }
-
     /// <summary>
-    /// Назначает новую работу worker
+    /// РќР°Р·РЅР°С‡Р°РµС‚ РЅРѕРІСѓСЋ СЂР°Р±РѕС‚Сѓ worker
     /// </summary>
     public void AssignJob(WorkerJobType job)
     {
@@ -57,7 +53,7 @@ public sealed class WorkerBrain : MonoBehaviour
     }
 
     /// <summary>
-    /// Применяет отложенную работу
+    /// РџСЂРёРјРµРЅСЏРµС‚ РѕС‚Р»РѕР¶РµРЅРЅСѓСЋ СЂР°Р±РѕС‚Сѓ
     /// </summary>
     public void ApplyPendingJobIfAny()
     {
@@ -74,7 +70,7 @@ public sealed class WorkerBrain : MonoBehaviour
     }
 
     /// <summary>
-    /// Немедленно применяет новую работу
+    /// РќРµРјРµРґР»РµРЅРЅРѕ РїСЂРёРјРµРЅСЏРµС‚ РЅРѕРІСѓСЋ СЂР°Р±РѕС‚Сѓ
     /// </summary>
     public void ApplyJobImmediately(WorkerJobType job)
     {

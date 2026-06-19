@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Состояние движения к ресурсу
+/// РЎРѕСЃС‚РѕСЏРЅРёРµ РґРІРёР¶РµРЅРёСЏ Рє СЂРµСЃСѓСЂСЃСѓ
 /// </summary>
 public sealed class WorkerGoToResourceState : IWorkerState
 {
@@ -17,7 +17,7 @@ public sealed class WorkerGoToResourceState : IWorkerState
 
     public void Enter()
     {
-        if (!_worker.HasValidResourceAssignmentForMove())
+        if (!_worker.HasValidResourceAssignment())
         {
             ResetToIdle();
             return;
@@ -39,7 +39,7 @@ public sealed class WorkerGoToResourceState : IWorkerState
 
     public void Update()
     {
-        if (!_worker.HasValidResourceAssignmentForMove())
+        if (!_worker.HasValidResourceAssignment())
         {
             ResetToIdle();
             return;
@@ -85,7 +85,6 @@ public sealed class WorkerGoToResourceState : IWorkerState
 
     private void ResetToIdle()
     {
-        _worker.ClearCurrentAssignment();
-        _worker.StateMachine.ChangeState(WorkerStateType.Idle);
+        _worker.ResetToIdle();
     }
 }

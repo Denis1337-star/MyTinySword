@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Каталог всех уровней игры
+/// РљР°С‚Р°Р»РѕРі РІСЃРµС… СѓСЂРѕРІРЅРµР№ РёРіСЂС‹
 /// </summary>
 [CreateAssetMenu(
     fileName = "LevelCatalog",
@@ -59,7 +59,7 @@ public sealed class LevelCatalog : BaseConfig
 
         if (_levels == null || _levels.Count == 0)
         {
-            Debug.LogError($"{name}: список уровней пуст.", this);
+            Debug.LogError($"{name}: СЃРїРёСЃРѕРє СѓСЂРѕРІРЅРµР№ РїСѓСЃС‚.", this);
             return false;
         }
 
@@ -72,7 +72,7 @@ public sealed class LevelCatalog : BaseConfig
 
             if (level == null)
             {
-                Debug.LogError($"{name}: LevelConfig с индексом {i} не назначен.", this);
+                Debug.LogError($"{name}: LevelConfig СЃ РёРЅРґРµРєСЃРѕРј {i} РЅРµ РЅР°Р·РЅР°С‡РµРЅ.", this);
                 valid = false;
                 continue;
             }
@@ -81,13 +81,13 @@ public sealed class LevelCatalog : BaseConfig
 
             if (!ids.Add(level.LevelId))
             {
-                Debug.LogError($"{name}: повторяется Level Id: {level.LevelId}.", this);
+                Debug.LogError($"{name}: РїРѕРІС‚РѕСЂСЏРµС‚СЃСЏ Level Id: {level.LevelId}.", this);
                 valid = false;
             }
 
             if (!indexes.Add(level.LevelIndex))
             {
-                Debug.LogError($"{name}: повторяется Level Index: {level.LevelIndex}.", this);
+                Debug.LogError($"{name}: РїРѕРІС‚РѕСЂСЏРµС‚СЃСЏ Level Index: {level.LevelIndex}.", this);
                 valid = false;
             }
         }

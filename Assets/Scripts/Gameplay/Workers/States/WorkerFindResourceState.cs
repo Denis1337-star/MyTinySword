@@ -1,5 +1,5 @@
 /// <summary>
-/// Состояние поиска ресурса
+/// РЎРѕСЃС‚РѕСЏРЅРёРµ РїРѕРёСЃРєР° СЂРµСЃСѓСЂСЃР°
 /// </summary>
 public sealed class WorkerFindResourceState : IWorkerState
 {
@@ -18,8 +18,7 @@ public sealed class WorkerFindResourceState : IWorkerState
 
         if (!assigned)
         {
-            _worker.ClearCurrentAssignment();
-            _worker.StateMachine.ChangeState(WorkerStateType.Idle);
+            _worker.ResetToIdle();
             return;
         }
 

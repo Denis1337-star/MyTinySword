@@ -2,7 +2,7 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Объект стройки
+/// РћР±СЉРµРєС‚ СЃС‚СЂРѕР№РєРё
 /// </summary>
 public sealed class ConstructionSite : MonoBehaviour
 {
@@ -82,26 +82,32 @@ public sealed class ConstructionSite : MonoBehaviour
         if (building == null)
         {
             Debug.LogError(
-                $"{name}: не удалось создать здание из BuildingConfig \"{_config.name}\".",
+                $"{name}: РЅРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ Р·РґР°РЅРёРµ РёР· BuildingConfig \"{_config.name}\".",
                 this);
 
             return;
         }
 
-        AttachSlotToBuilding(building);
+        BuildingBase buildingBase = building.GetComponent<BuildingBase>();
+
+        if (buildingBase == null)
+        {
+            Debug.LogError($"{name}: prefab РЅРµ СЃРѕРґРµСЂР¶РёС‚ BuildingBase.", building);
+            return;
+        }
+
+        AttachSlotToBuilding(buildingBase);
         PlayBuiltSound();
 
         _finished = true;
 
-        _buildingRegistry?.RegisterBuilt(_config);
+        _buildingRegistry?.RegisterBuilt(_config, buildingBase);
 
         NotifySlotAndDestroy();
     }
 
-    private void AttachSlotToBuilding(GameObject building)
+    private void AttachSlotToBuilding(BuildingBase buildingBase)
     {
-        BuildingBase buildingBase = building.GetComponent<BuildingBase>();
-
         buildingBase.AttachConstructionSlot(_slot);
     }
 

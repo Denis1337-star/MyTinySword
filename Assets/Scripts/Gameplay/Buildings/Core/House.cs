@@ -4,8 +4,8 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Дом — здание, которое владеет группой рабочих.
-/// Создаёт стартовых рабочих, нанимает новых рабочих и хранит точки ожидания/сдачи ресурсов.
+/// Р”РѕРј вЂ” Р·РґР°РЅРёРµ, РєРѕС‚РѕСЂРѕРµ РІР»Р°РґРµРµС‚ РіСЂСѓРїРїРѕР№ СЂР°Р±РѕС‡РёС….
+/// РЎРѕР·РґР°С‘С‚ СЃС‚Р°СЂС‚РѕРІС‹С… СЂР°Р±РѕС‡РёС…, РЅР°РЅРёРјР°РµС‚ РЅРѕРІС‹С… СЂР°Р±РѕС‡РёС… Рё С…СЂР°РЅРёС‚ С‚РѕС‡РєРё РѕР¶РёРґР°РЅРёСЏ/СЃРґР°С‡Рё СЂРµСЃСѓСЂСЃРѕРІ.
 /// </summary>
 public sealed class House : BuildingBase
 {
@@ -75,7 +75,7 @@ public sealed class House : BuildingBase
 
         if (_houseConfig != null && !_houseConfig.IsValid())
         {
-            Debug.LogError($"{name}: HouseConfig настроен некорректно.", this);
+            Debug.LogError($"{name}: HouseConfig РЅР°СЃС‚СЂРѕРµРЅ РЅРµРєРѕСЂСЂРµРєС‚РЅРѕ.", this);
             valid = false;
         }
 
@@ -157,10 +157,10 @@ public sealed class House : BuildingBase
     public string GetHireBlockReason()
     {
         if (CurrentWorkers >= MaxWorkers)
-            return "Достигнут лимит рабочих";
+            return "Р”РѕСЃС‚РёРіРЅСѓС‚ Р»РёРјРёС‚ СЂР°Р±РѕС‡РёС…";
 
         if (!_resourceStorage.HasResources(CurrentWoodCost, CurrentGoldCost, 0))
-            return "Не хватает ресурсов";
+            return "РќРµ С…РІР°С‚Р°РµС‚ СЂРµСЃСѓСЂСЃРѕРІ";
 
         return string.Empty;
     }
@@ -188,7 +188,7 @@ public sealed class House : BuildingBase
             Worker worker = SpawnWorker();
 
             if (worker == null)
-                Debug.LogError($"{name}: не удалось создать рабочего после списания ресурсов.", this);
+                Debug.LogError($"{name}: РЅРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ СЂР°Р±РѕС‡РµРіРѕ РїРѕСЃР»Рµ СЃРїРёСЃР°РЅРёСЏ СЂРµСЃСѓСЂСЃРѕРІ.", this);
         }
         finally
         {

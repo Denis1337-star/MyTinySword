@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Состояние переноски груза
+/// РЎРѕСЃС‚РѕСЏРЅРёРµ РїРµСЂРµРЅРѕСЃРєРё РіСЂСѓР·Р°
 /// </summary>
 public sealed class WorkerCarryState : IWorkerState
 {

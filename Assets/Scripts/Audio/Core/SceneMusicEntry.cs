@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// Музыка для конкретной сцены
+/// РњСѓР·С‹РєР° РґР»СЏ РєРѕРЅРєСЂРµС‚РЅРѕР№ СЃС†РµРЅС‹
 /// </summary>
 [Serializable]
 public sealed class SceneMusicEntry

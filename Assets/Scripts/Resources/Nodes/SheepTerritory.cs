@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Задаёт прямоугольную территорию внутри которой может перемещаться овца
+/// Р—Р°РґР°С‘С‚ РїСЂСЏРјРѕСѓРіРѕР»СЊРЅСѓСЋ С‚РµСЂСЂРёС‚РѕСЂРёСЋ РІРЅСѓС‚СЂРё РєРѕС‚РѕСЂРѕР№ РјРѕР¶РµС‚ РїРµСЂРµРјРµС‰Р°С‚СЊСЃСЏ РѕРІС†Р°
 /// </summary>
 [RequireComponent(typeof(BoxCollider2D))]
 public sealed class SheepTerritory : MonoBehaviour

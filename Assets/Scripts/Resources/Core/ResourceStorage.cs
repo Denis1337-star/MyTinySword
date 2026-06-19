@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// Центральное хранилище ресурсов 
+/// Р¦РµРЅС‚СЂР°Р»СЊРЅРѕРµ С…СЂР°РЅРёР»РёС‰Рµ СЂРµСЃСѓСЂСЃРѕРІ 
 /// </summary>
 public sealed class ResourceStorage : MonoBehaviour
 {
@@ -17,7 +17,7 @@ public sealed class ResourceStorage : MonoBehaviour
     public int Meat => _meat;
 
     /// <summary>
-    /// Возвращает текущее количество конкретного ресурса
+    /// Р’РѕР·РІСЂР°С‰Р°РµС‚ С‚РµРєСѓС‰РµРµ РєРѕР»РёС‡РµСЃС‚РІРѕ РєРѕРЅРєСЂРµС‚РЅРѕРіРѕ СЂРµСЃСѓСЂСЃР°
     /// </summary>
     public int GetAmount(ResourceType resourceType)
     {
@@ -31,7 +31,7 @@ public sealed class ResourceStorage : MonoBehaviour
     }
 
     /// <summary>
-    /// Добавляет ресурс в хранилище
+    /// Р”РѕР±Р°РІР»СЏРµС‚ СЂРµСЃСѓСЂСЃ РІ С…СЂР°РЅРёР»РёС‰Рµ
     /// </summary>
     public void AddResource(ResourceType resourceType, int amount)
     {
@@ -57,7 +57,7 @@ public sealed class ResourceStorage : MonoBehaviour
             case ResourceType.None:
             default:
                 changed = false;
-                Debug.LogWarning($"{name}: попытка добавить неизвестный ресурс {resourceType}.", this);
+                Debug.LogWarning($"{name}: РїРѕРїС‹С‚РєР° РґРѕР±Р°РІРёС‚СЊ РЅРµРёР·РІРµСЃС‚РЅС‹Р№ СЂРµСЃСѓСЂСЃ {resourceType}.", this);
                 break;
         }
 
@@ -66,7 +66,7 @@ public sealed class ResourceStorage : MonoBehaviour
     }
 
     /// <summary>
-    /// Проверяет хватает ли ресурсов
+    /// РџСЂРѕРІРµСЂСЏРµС‚ С…РІР°С‚Р°РµС‚ Р»Рё СЂРµСЃСѓСЂСЃРѕРІ
     /// </summary>
     public bool HasResources(int woodCost, int goldCost, int meatCost)
     {
@@ -79,7 +79,7 @@ public sealed class ResourceStorage : MonoBehaviour
     }
 
     /// <summary>
-    /// списывает ресурсы
+    /// СЃРїРёСЃС‹РІР°РµС‚ СЂРµСЃСѓСЂСЃС‹
     /// </summary>
     public bool TrySpendResources(int woodCost, int goldCost, int meatCost)
     {

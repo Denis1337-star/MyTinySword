@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 /// <summary>
-/// Утилита для touch input
+/// РЈС‚РёР»РёС‚Р° РґР»СЏ touch input
 /// </summary>
 public static class TouchUtility
 {
@@ -12,7 +12,7 @@ public static class TouchUtility
     private const float MaxTapMovementSqr = MaxTapMovement * MaxTapMovement;
 
     /// <summary>
-    /// Пытается получить завершённый короткий touch tap
+    /// РџС‹С‚Р°РµС‚СЃСЏ РїРѕР»СѓС‡РёС‚СЊ Р·Р°РІРµСЂС€С‘РЅРЅС‹Р№ РєРѕСЂРѕС‚РєРёР№ touch tap
     /// </summary>
     public static bool TryGetEndedTap(out Touch touch)
     {
@@ -40,7 +40,7 @@ public static class TouchUtility
     }
 
     /// <summary>
-    /// Проверяет, находится ли touch над UI
+    /// РџСЂРѕРІРµСЂСЏРµС‚, РЅР°С…РѕРґРёС‚СЃСЏ Р»Рё touch РЅР°Рґ UI
     /// </summary>
     public static bool IsPointerOverUI(Touch touch)
     {
@@ -51,7 +51,7 @@ public static class TouchUtility
     }
 
     /// <summary>
-    /// Переводит экранную позицию touch в позицию мира
+    /// РџРµСЂРµРІРѕРґРёС‚ СЌРєСЂР°РЅРЅСѓСЋ РїРѕР·РёС†РёСЋ touch РІ РїРѕР·РёС†РёСЋ РјРёСЂР°
     /// </summary>
     public static Vector2 ScreenToWorld(Camera camera, Vector2 screenPosition)
     {

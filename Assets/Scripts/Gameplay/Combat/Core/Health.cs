@@ -2,8 +2,8 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// Компонент здоровья.
-/// Отвечает за урон, лечение, смерть и уведомление UI/аудио о смене здоровья.
+/// РљРѕРјРїРѕРЅРµРЅС‚ Р·РґРѕСЂРѕРІСЊСЏ.
+/// РћС‚РІРµС‡Р°РµС‚ Р·Р° СѓСЂРѕРЅ, Р»РµС‡РµРЅРёРµ, СЃРјРµСЂС‚СЊ Рё СѓРІРµРґРѕРјР»РµРЅРёРµ UI/Р°СѓРґРёРѕ Рѕ СЃРјРµРЅРµ Р·РґРѕСЂРѕРІСЊСЏ.
 /// </summary>
 public sealed class Health : ValidatedMonoBehaviour, IDamageable
 {
@@ -38,7 +38,7 @@ public sealed class Health : ValidatedMonoBehaviour, IDamageable
         if (_maxHealth >= 1)
             return true;
 
-        Debug.LogError($"{name}: MaxHealth должен быть минимум 1.", this);
+        Debug.LogError($"{name}: MaxHealth РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РјРёРЅРёРјСѓРј 1.", this);
         return false;
     }
 
@@ -79,8 +79,8 @@ public sealed class Health : ValidatedMonoBehaviour, IDamageable
     }
 
     /// <summary>
-    /// Лечит объект и возвращает фактическое количество восстановленного здоровья.
-    /// Если лечение не применилось, возвращает 0.
+    /// Р›РµС‡РёС‚ РѕР±СЉРµРєС‚ Рё РІРѕР·РІСЂР°С‰Р°РµС‚ С„Р°РєС‚РёС‡РµСЃРєРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ РІРѕСЃСЃС‚Р°РЅРѕРІР»РµРЅРЅРѕРіРѕ Р·РґРѕСЂРѕРІСЊСЏ.
+    /// Р•СЃР»Рё Р»РµС‡РµРЅРёРµ РЅРµ РїСЂРёРјРµРЅРёР»РѕСЃСЊ, РІРѕР·РІСЂР°С‰Р°РµС‚ 0.
     /// </summary>
     public int Heal(int amount)
     {

@@ -1,7 +1,7 @@
 using System;
 
 /// <summary>
-/// Главное здание базы
+/// Р“Р»Р°РІРЅРѕРµ Р·РґР°РЅРёРµ Р±Р°Р·С‹
 /// </summary>
 public sealed class Castle : BuildingBase
 {

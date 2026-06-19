@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Конфиг юнита ближнего боя
+/// РљРѕРЅС„РёРі СЋРЅРёС‚Р° Р±Р»РёР¶РЅРµРіРѕ Р±РѕСЏ.
 /// </summary>
 [CreateAssetMenu(menuName = "MyTinySword/Configs/Units/Melee Unit Config")]
 public sealed class MeleeUnitConfig : UnitConfig
@@ -25,10 +25,7 @@ public sealed class MeleeUnitConfig : UnitConfig
 
     public override string GetPreviewStatsText()
     {
-        return
-            base.GetPreviewStatsText() + "\n" +
-            $"Урон: {_damage}\n" +
-            $"Дистанция атаки: {_attackRange}\n" ;
+        return base.GetPreviewStatsText() + "\n" + FormatAttackStats(_damage, _attackRange);
     }
 
     protected override void OnValidate()

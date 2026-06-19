@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// Ресурсная точка золота
+/// Р РµСЃСѓСЂСЃРЅР°СЏ С‚РѕС‡РєР° Р·РѕР»РѕС‚Р°
 /// </summary>
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(SpriteRenderer))]
@@ -54,7 +54,7 @@ public sealed class GoldResource : ResourceNodeBase
 
         if (_config != null && !_config.IsValid())
         {
-            Debug.LogError($"{name}: GoldResourceConfig некорректный.", this);
+            Debug.LogError($"{name}: GoldResourceConfig РЅРµРєРѕСЂСЂРµРєС‚РЅС‹Р№.", this);
             valid = false;
         }
 

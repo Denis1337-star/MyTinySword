@@ -2,7 +2,7 @@ using DG.Tweening;
 using UnityEngine;
 
 /// <summary>
-/// DOTween анимация названия игры в главном меню
+/// DOTween Р°РЅРёРјР°С†РёСЏ РЅР°Р·РІР°РЅРёСЏ РёРіСЂС‹ РІ РіР»Р°РІРЅРѕРј РјРµРЅСЋ
 /// </summary>
 [RequireComponent(typeof(CanvasGroup))]
 public sealed class MainMenuTitleTween : MonoBehaviour

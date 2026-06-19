@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// JoZ логика рубки дерева
+/// JoZ Р»РѕРіРёРєР° СЂСѓР±РєРё РґРµСЂРµРІР°
 /// </summary>
 public sealed class ChopWoodJob : IWorkerJob
 {

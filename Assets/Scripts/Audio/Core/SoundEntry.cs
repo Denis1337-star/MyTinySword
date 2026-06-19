@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// Одна настройка звука
+/// РћРґРЅР° РЅР°СЃС‚СЂРѕР№РєР° Р·РІСѓРєР°
 /// </summary>
 [Serializable]
 public sealed class SoundEntry

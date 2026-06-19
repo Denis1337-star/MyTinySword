@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Рабочий слот у ресурсной точки
+/// Р Р°Р±РѕС‡РёР№ СЃР»РѕС‚ Сѓ СЂРµСЃСѓСЂСЃРЅРѕР№ С‚РѕС‡РєРё
 /// </summary>
 public sealed class WorkSlot : MonoBehaviour
 {

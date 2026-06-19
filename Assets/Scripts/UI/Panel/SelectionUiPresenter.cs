@@ -3,9 +3,8 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Управляет отображением UI панелей в зависимости от текущего выбора.
-/// Важно: специализированные здания проверяем раньше BuildingBase,
-/// потому что House, ProductionBuildingBase и Tower наследуются от BuildingBase.
+///   UI-     .
+///     BuildingBase.
 /// </summary>
 public sealed class SelectionUiPresenter : ValidatedMonoBehaviour
 {
@@ -71,9 +70,6 @@ public sealed class SelectionUiPresenter : ValidatedMonoBehaviour
         if (_isSubscribed)
             return;
 
-        if (_selectionSystem == null)
-            return;
-
         _selectionSystem.SelectionChanged += HandleSelectionChanged;
         _selectionSystem.SelectionCleared += HandleSelectionCleared;
 
@@ -87,23 +83,14 @@ public sealed class SelectionUiPresenter : ValidatedMonoBehaviour
         if (!_isSubscribed)
             return;
 
-        if (_selectionSystem != null)
-        {
-            _selectionSystem.SelectionChanged -= HandleSelectionChanged;
-            _selectionSystem.SelectionCleared -= HandleSelectionCleared;
-        }
+        _selectionSystem.SelectionChanged -= HandleSelectionChanged;
+        _selectionSystem.SelectionCleared -= HandleSelectionCleared;
 
         _isSubscribed = false;
     }
 
     private void RefreshFromCurrentSelection()
     {
-        if (_selectionSystem == null)
-        {
-            HideAll();
-            return;
-        }
-
         UnitSelectable currentSelection = _selectionSystem.CurrentSelection;
 
         if (currentSelection == null)
@@ -147,116 +134,112 @@ public sealed class SelectionUiPresenter : ValidatedMonoBehaviour
 
     private bool TryShowArmyPanel()
     {
-        if (_selectionSystem == null)
-            return false;
-
         IReadOnlyList<UnitSelectable> selectedUnits = _selectionSystem.SelectedUnits;
 
-        if (selectedUnits == null || selectedUnits.Count == 0)
+        if (!ArmyUnitSelectionUtility.HasAnyPlayerArmyUnit(selectedUnits))
             return false;
 
-        for (int i = 0; i < selectedUnits.Count; i++)
-        {
-            UnitSelectable selectable = selectedUnits[i];
+        if (!_armySelectionPanel.Show(selectedUnits))
+            return false;
 
-            if (selectable == null)
-                continue;
-
-            ArmyUnit armyUnit = FindComponentNearSelectable<ArmyUnit>(selectable);
-
-            if (armyUnit == null)
-                continue;
-
-            if (!armyUnit.IsPlayerUnit())
-                continue;
-
-            _armySelectionPanel.Show(selectedUnits);
-            return true;
-        }
-
-        return false;
+        ShowPanelTween(_armySelectionPanel.PanelTween);
+        return true;
     }
 
     private bool TryShowWorkerPanel(UnitSelectable selectable)
     {
-        Worker worker = FindComponentNearSelectable<Worker>(selectable);
+        Worker worker = SelectableUtility.FindNear<Worker>(selectable);
 
         if (worker == null)
             return false;
 
         _workerCommandPanel.ShowForWorker(worker);
+        ShowPanelTween(_workerCommandPanel.PanelTween);
         return true;
     }
 
     private bool TryShowHousePanel(UnitSelectable selectable)
     {
-        House house = FindComponentNearSelectable<House>(selectable);
+        House house = SelectableUtility.FindNear<House>(selectable);
 
         if (house == null)
             return false;
 
         _housePanel.Show(house);
+        ShowPanelTween(_housePanel.PanelTween);
         return true;
     }
 
     private bool TryShowProductionBuildingPanel(UnitSelectable selectable)
     {
-        ProductionBuildingBase building = FindComponentNearSelectable<ProductionBuildingBase>(selectable);
+        ProductionBuildingBase building = SelectableUtility.FindNear<ProductionBuildingBase>(selectable);
 
         if (building == null)
             return false;
 
         _productionBuildingPanel.Show(building);
+        ShowPanelTween(_productionBuildingPanel.PanelTween);
         return true;
     }
 
     private bool TryShowConstructionPanel(UnitSelectable selectable)
     {
-        ConstructionSlot slot = FindComponentNearSelectable<ConstructionSlot>(selectable);
+        ConstructionSlot slot = SelectableUtility.FindNear<ConstructionSlot>(selectable);
 
         if (slot == null)
             return false;
 
         _constructionPanel.Show(slot);
+        ShowPanelTween(_constructionPanel.PanelTween);
         return true;
     }
 
-    private bool TryShowBuildingActionPanel(UnitSelectable selectable)
+    private void TryShowBuildingActionPanel(UnitSelectable selectable)
     {
-        BuildingBase building = FindComponentNearSelectable<BuildingBase>(selectable);
+        BuildingBase building = SelectableUtility.FindNear<BuildingBase>(selectable);
 
         if (building == null)
-            return false;
+            return;
 
         _buildingActionPanel.Show(building);
-        return true;
-    }
-
-    private T FindComponentNearSelectable<T>(UnitSelectable selectable) where T : Component
-    {
-        if (selectable == null)
-            return null;
-
-        T component = selectable.GetComponent<T>();
-
-        if (component != null)
-            return component;
-
-        component = selectable.GetComponentInParent<T>();
-
-        if (component != null)
-            return component;
-
-        return selectable.GetComponentInChildren<T>();
+        ShowPanelTween(_buildingActionPanel.PanelTween);
     }
 
     private void HideAll()
     {
         _workerCommandPanel.Hide();
-        _housePanel.Hide();
+        HidePanelTween(_workerCommandPanel.PanelTween);
+
+        HideHousePanel();
+
         _productionBuildingPanel.Hide();
+        HidePanelTween(_productionBuildingPanel.PanelTween);
+
         _buildingActionPanel.Hide();
+        HidePanelTween(_buildingActionPanel.PanelTween);
+
         _armySelectionPanel.Hide();
+        HidePanelTween(_armySelectionPanel.PanelTween);
+
         _constructionPanel.Hide();
+        HidePanelTween(_constructionPanel.PanelTween);
+    }
+
+    public void HideHousePanel()
+    {
+        _housePanel.Hide();
+        HidePanelTween(_housePanel.PanelTween);
+    }
+
+    private static void ShowPanelTween(SimplePanelTween panelTween)
+    {
+        if (panelTween != null)
+            panelTween.Show();
+    }
+
+    private static void HidePanelTween(SimplePanelTween panelTween)
+    {
+        if (panelTween != null)
+            panelTween.Hide();
     }
 }

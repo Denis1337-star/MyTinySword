@@ -2,7 +2,7 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Проигрывает UI звук при открытии панели
+/// РџСЂРѕРёРіСЂС‹РІР°РµС‚ UI Р·РІСѓРє РїСЂРё РѕС‚РєСЂС‹С‚РёРё РїР°РЅРµР»Рё
 /// </summary>
 public sealed class UiPanelOpenSound : MonoBehaviour
 {

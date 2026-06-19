@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using Zenject;
 
 /// <summary>
-/// Проигрывает UI звук при нажатии на кнопку
+/// РџСЂРѕРёРіСЂС‹РІР°РµС‚ UI Р·РІСѓРє РїСЂРё РЅР°Р¶Р°С‚РёРё РЅР° РєРЅРѕРїРєСѓ
 /// </summary>
 [RequireComponent(typeof(Button))]
 public sealed class UiButtonSound : ValidatedMonoBehaviour
@@ -11,7 +11,7 @@ public sealed class UiButtonSound : ValidatedMonoBehaviour
     [SerializeField] private Button _button;
     [SerializeField] private SoundId _soundId = SoundId.ButtonClick;
 
-    [Tooltip("Если включено, звук не будет проигрываться у неактивной кнопки")]
+    [Tooltip("Р•СЃР»Рё РІРєР»СЋС‡РµРЅРѕ, Р·РІСѓРє РЅРµ Р±СѓРґРµС‚ РїСЂРѕРёРіСЂС‹РІР°С‚СЊСЃСЏ Сѓ РЅРµР°РєС‚РёРІРЅРѕР№ РєРЅРѕРїРєРё")]
     [SerializeField] private bool _playOnlyWhenInteractable = true;
 
     private GameAudioService _audioService;

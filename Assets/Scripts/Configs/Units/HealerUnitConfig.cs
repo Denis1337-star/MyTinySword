@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Конфиг юнита лекаря
+/// РљРѕРЅС„РёРі СЋРЅРёС‚Р°-Р»РµРєР°СЂСЏ.
 /// </summary>
 [CreateAssetMenu(menuName = "MyTinySword/Configs/Units/Healer Unit Config")]
 public sealed class HealerUnitConfig : UnitConfig
@@ -25,9 +25,7 @@ public sealed class HealerUnitConfig : UnitConfig
 
     public override string GetPreviewStatsText()
     {
-        return
-            base.GetPreviewStatsText() + "\n" +
-            $"Лечение: {_healAmount}\n" ;
+        return base.GetPreviewStatsText() + "\n" + $"Р›РµС‡РµРЅРёРµ: {_healAmount}\n";
     }
 
     protected override void OnValidate()

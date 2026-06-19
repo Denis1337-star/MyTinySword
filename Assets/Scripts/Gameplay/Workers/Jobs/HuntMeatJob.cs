@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Job логика охоты на овцу
+/// Job Р»РѕРіРёРєР° РѕС…РѕС‚С‹ РЅР° РѕРІС†Сѓ
 /// </summary>
 public sealed class HuntMeatJob : IWorkerJob
 {

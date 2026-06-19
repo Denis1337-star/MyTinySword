@@ -3,8 +3,8 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Следит за уничтожением главных баз и завершает матч.
-/// При победе сохраняет прогресс текущего уровня.
+/// РЎР»РµРґРёС‚ Р·Р° СѓРЅРёС‡С‚РѕР¶РµРЅРёРµРј РіР»Р°РІРЅС‹С… Р±Р°Р· Рё Р·Р°РІРµСЂС€Р°РµС‚ РјР°С‚С‡.
+/// РџСЂРё РїРѕР±РµРґРµ СЃРѕС…СЂР°РЅСЏРµС‚ РїСЂРѕРіСЂРµСЃСЃ С‚РµРєСѓС‰РµРіРѕ СѓСЂРѕРІРЅСЏ.
 /// </summary>
 public sealed class GameResultController : ValidatedMonoBehaviour
 {
@@ -120,7 +120,7 @@ public sealed class GameResultController : ValidatedMonoBehaviour
 
         if (levelConfig == null)
         {
-            Debug.LogError($"{name}: не удалось определить текущий LevelConfig. Прогресс не сохранён.", this);
+            Debug.LogError($"{name}: РЅРµ СѓРґР°Р»РѕСЃСЊ РѕРїСЂРµРґРµР»РёС‚СЊ С‚РµРєСѓС‰РёР№ LevelConfig. РџСЂРѕРіСЂРµСЃСЃ РЅРµ СЃРѕС…СЂР°РЅС‘РЅ.", this);
             return;
         }
 

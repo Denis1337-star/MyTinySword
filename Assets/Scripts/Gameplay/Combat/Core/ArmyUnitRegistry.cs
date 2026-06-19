@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Глобальный реестр всех боевых юнитов 
+/// Р“Р»РѕР±Р°Р»СЊРЅС‹Р№ СЂРµРµСЃС‚СЂ РІСЃРµС… Р±РѕРµРІС‹С… СЋРЅРёС‚РѕРІ 
 /// </summary>
 public sealed class ArmyUnitRegistry : MonoBehaviour
 {

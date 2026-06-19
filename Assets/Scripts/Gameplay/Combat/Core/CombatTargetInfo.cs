@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Описывает боевую цель 
+/// РћРїРёСЃС‹РІР°РµС‚ Р±РѕРµРІСѓСЋ С†РµР»СЊ 
 /// </summary>
 public class CombatTargetInfo : MonoBehaviour
 {

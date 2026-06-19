@@ -2,7 +2,7 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Базовый компонент боевого юнита
+/// Р‘Р°Р·РѕРІС‹Р№ РєРѕРјРїРѕРЅРµРЅС‚ Р±РѕРµРІРѕРіРѕ СЋРЅРёС‚Р°
 /// </summary>
 [RequireComponent(typeof(Health))]
 [RequireComponent(typeof(FactionMember))]
@@ -40,8 +40,6 @@ public sealed class ArmyUnit : ValidatedMonoBehaviour
 
     protected override void Awake()
     {
-        ResolveReferences();
-
         base.Awake();
 
         if (!enabled)
@@ -74,7 +72,6 @@ public sealed class ArmyUnit : ValidatedMonoBehaviour
 
     private void OnValidate()
     {
-        ResolveReferences();
     }
 
     protected override bool ValidateInternal()
@@ -91,7 +88,7 @@ public sealed class ArmyUnit : ValidatedMonoBehaviour
 
         if (_config != null && !_config.IsValid())
         {
-            Debug.LogError($"{name}: UnitConfig настроен некорректно.", this);
+            Debug.LogError($"{name}: UnitConfig РЅР°СЃС‚СЂРѕРµРЅ РЅРµРєРѕСЂСЂРµРєС‚РЅРѕ.", this);
             valid = false;
         }
 
@@ -117,26 +114,5 @@ public sealed class ArmyUnit : ValidatedMonoBehaviour
     private void HandleDeath()
     {
         Destroy(gameObject);
-    }
-
-    private void ResolveReferences()
-    {
-        if (_health == null)
-            _health = GetComponent<Health>();
-
-        if (_factionMember == null)
-            _factionMember = GetComponent<FactionMember>();
-
-        if (_movement == null)
-            _movement = GetComponent<UnitMovement>();
-
-        if (_animatorBridge == null)
-            _animatorBridge = GetComponent<UnitAnimatorBridge>();
-
-        if (_brain == null)
-            _brain = GetComponent<ArmyUnitBrain>();
-
-        if (_bodyCollider == null)
-            _bodyCollider = GetComponent<Collider2D>();
     }
 }

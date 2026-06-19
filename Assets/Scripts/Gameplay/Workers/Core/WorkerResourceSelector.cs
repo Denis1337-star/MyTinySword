@@ -1,10 +1,10 @@
 /// <summary>
-/// Helper для выбора ресурсной точки и рабочего слота для worker
+/// Helper РґР»СЏ РІС‹Р±РѕСЂР° СЂРµСЃСѓСЂСЃРЅРѕР№ С‚РѕС‡РєРё Рё СЂР°Р±РѕС‡РµРіРѕ СЃР»РѕС‚Р° РґР»СЏ worker.
 /// </summary>
 public static class WorkerResourceSelector
 {
     /// <summary>
-    /// Ищет ресурс для текущей job worker
+    /// РС‰РµС‚ СЂРµСЃСѓСЂСЃ РґР»СЏ С‚РµРєСѓС‰РµР№ job worker.
     /// </summary>
     public static bool TryAssignResourceAndSlot(Worker worker)
     {
@@ -36,29 +36,9 @@ public static class WorkerResourceSelector
     }
 
     /// <summary>
-    /// Проверяет можно ли worker двигаться к ресурсу
+    /// РџСЂРѕРІРµСЂСЏРµС‚, С‡С‚Рѕ Сѓ worker РµСЃС‚СЊ РІР°Р»РёРґРЅРѕРµ РЅР°Р·РЅР°С‡РµРЅРёРµ РЅР° СЂРµСЃСѓСЂСЃ.
     /// </summary>
-    public static bool HasValidAssignmentForMove(Worker worker)
-    {
-        if (worker == null)
-            return false;
-
-        if (worker.TargetResource == null)
-            return false;
-
-        if (worker.TargetSlot == null)
-            return false;
-
-        if (!worker.TargetResource.IsAvailable)
-            return false;
-
-        return worker.TargetSlot.IsReservedBy(worker);
-    }
-
-    /// <summary>
-    /// Проверяет можно ли worker начать работу с  ресурсом
-    /// </summary>
-    public static bool HasValidAssignmentForWork(Worker worker)
+    public static bool HasValidAssignment(Worker worker)
     {
         if (worker == null)
             return false;

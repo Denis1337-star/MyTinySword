@@ -2,7 +2,7 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Фабрика для создания боевых юнитов через Zenject
+/// Р¤Р°Р±СЂРёРєР° РґР»СЏ СЃРѕР·РґР°РЅРёСЏ Р±РѕРµРІС‹С… СЋРЅРёС‚РѕРІ С‡РµСЂРµР· Zenject
 /// </summary>
 public sealed class ArmyUnitFactory
 {
@@ -18,7 +18,7 @@ public sealed class ArmyUnitFactory
     {
         if (prefab == null)
         {
-            Debug.LogError("ArmyUnitFactory: prefab юнита не назначен.");
+            Debug.LogError("ArmyUnitFactory: prefab СЋРЅРёС‚Р° РЅРµ РЅР°Р·РЅР°С‡РµРЅ.");
             return null;
         }
 

@@ -1,5 +1,5 @@
 /// <summary>
-/// Тип состояния worker
+/// РўРёРї СЃРѕСЃС‚РѕСЏРЅРёСЏ worker
 /// </summary>
 public enum WorkerStateType
 {

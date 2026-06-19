@@ -1,8 +1,8 @@
 namespace YG
 {
     /// <summary>
-    /// Поля сохранения обучения.
-    /// PluginYG2 хранит эти данные внутри YG2.saves.
+    /// РџРѕР»СЏ СЃРѕС…СЂР°РЅРµРЅРёСЏ РѕР±СѓС‡РµРЅРёСЏ.
+    /// PluginYG2 С…СЂР°РЅРёС‚ СЌС‚Рё РґР°РЅРЅС‹Рµ РІРЅСѓС‚СЂРё YG2.saves.
     /// </summary>
     public partial class SavesYG
     {

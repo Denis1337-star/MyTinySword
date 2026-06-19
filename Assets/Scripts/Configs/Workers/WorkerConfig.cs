@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Конфиг рабочего
+/// РљРѕРЅС„РёРі СЂР°Р±РѕС‡РµРіРѕ
 /// </summary>
 [CreateAssetMenu(menuName = "MyTinySword/Configs/Worker Config")]
 public sealed class WorkerConfig : BaseConfig

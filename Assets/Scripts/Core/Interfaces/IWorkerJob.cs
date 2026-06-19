@@ -1,14 +1,14 @@
 using UnityEngine;
 
 /// <summary>
-/// Интерфейс логики работы worker
+/// РРЅС‚РµСЂС„РµР№СЃ Р»РѕРіРёРєРё СЂР°Р±РѕС‚С‹ worker
 /// </summary>
 public interface IWorkerJob
 {
     WorkerJobType JobType { get; }  
     ResourceType RewardType { get; } 
 
-    // Находит подходящий ресурс для этой работы, начиная поиск от указанной позиции
+    // РќР°С…РѕРґРёС‚ РїРѕРґС…РѕРґСЏС‰РёР№ СЂРµСЃСѓСЂСЃ РґР»СЏ СЌС‚РѕР№ СЂР°Р±РѕС‚С‹, РЅР°С‡РёРЅР°СЏ РїРѕРёСЃРє РѕС‚ СѓРєР°Р·Р°РЅРЅРѕР№ РїРѕР·РёС†РёРё
     ResourceNodeBase FindResource(Vector2 from);  
 }
 

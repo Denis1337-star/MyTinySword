@@ -2,7 +2,7 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// √Î‡‚Ì˚È installer ÒˆÂÌ˚
+/// –ì–ª–∞–≤–Ω—ã–π installer —Å—Ü–µ–Ω—ã.
 /// </summary>
 public sealed class GameSceneInstaller : MonoInstaller
 {
@@ -19,6 +19,7 @@ public sealed class GameSceneInstaller : MonoInstaller
     [SerializeField] private SelectionSystem _selectionSystem;
     [SerializeField] private Camera _mainCamera;
     [SerializeField] private CameraFocusController _cameraFocusController;
+    [SerializeField] private BuildingDemolishService _buildingDemolishService;
 
     [Header("Input / Commands")]
     [SerializeField] private GameplayInputController _gameplayInputController;
@@ -56,6 +57,7 @@ public sealed class GameSceneInstaller : MonoInstaller
         valid &= ValidationUtility.IsAssigned(this, _selectionSystem, nameof(_selectionSystem));
         valid &= ValidationUtility.IsAssigned(this, _mainCamera, nameof(_mainCamera));
         valid &= ValidationUtility.IsAssigned(this, _cameraFocusController, nameof(_cameraFocusController));
+        valid &= ValidationUtility.IsAssigned(this, _buildingDemolishService, nameof(_buildingDemolishService));
 
         valid &= ValidationUtility.IsAssigned(this, _gameplayInputController, nameof(_gameplayInputController));
         valid &= ValidationUtility.IsAssigned(this, _commandSystem, nameof(_commandSystem));
@@ -116,6 +118,11 @@ public sealed class GameSceneInstaller : MonoInstaller
 
         Container.Bind<CameraFocusController>()
             .FromInstance(_cameraFocusController)
+            .AsSingle()
+            .NonLazy();
+
+        Container.Bind<BuildingDemolishService>()
+            .FromInstance(_buildingDemolishService)
             .AsSingle()
             .NonLazy();
     }

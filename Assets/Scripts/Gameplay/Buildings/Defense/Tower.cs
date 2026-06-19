@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Автоматически ищет врагов в радиусе и атакует их
+/// РђРІС‚РѕРјР°С‚РёС‡РµСЃРєРё РёС‰РµС‚ РІСЂР°РіРѕРІ РІ СЂР°РґРёСѓСЃРµ Рё Р°С‚Р°РєСѓРµС‚ РёС…
 /// </summary>
 public sealed class Tower : BuildingBase
 {
@@ -54,6 +54,7 @@ public sealed class Tower : BuildingBase
         Shoot(_currentTarget);
         _attackTimer = _attackCooldown;
     }
+
     private bool IsCurrentTargetValid()
     {
         if (_currentTarget == null)
@@ -64,7 +65,6 @@ public sealed class Tower : BuildingBase
 
         return IsTargetInRange(_currentTarget);
     }
-
 
     private bool IsTargetInRange(Health target)
     {
@@ -80,51 +80,17 @@ public sealed class Tower : BuildingBase
         if (FactionMember == null)
             return null;
 
-        int hitCount = Physics2D.OverlapCircleNonAlloc(
+        return CombatTargetScanner.FindBestTarget(
             transform.position,
             _attackRange,
-            _targetBuffer);
-
-        if (hitCount == 0)
-            return null;
-
-        Health bestTarget = null;
-        int bestPriority = int.MinValue;
-        float bestDistanceSqr = float.MaxValue;
-
-        for (int i = 0; i < hitCount; i++)
-        {
-            Collider2D hit = _targetBuffer[i];
-
-            if (!TryGetValidTarget(hit, out Health targetHealth, out CombatTargetInfo targetInfo))
-                continue;
-
-            int priority = GetTargetPriority(targetInfo);
-            float distanceSqr = GetDistanceSqrTo(targetHealth);
-
-            if (!IsBetterTarget(priority, distanceSqr, bestPriority, bestDistanceSqr))
-                continue;
-
-            bestPriority = priority;
-            bestDistanceSqr = distanceSqr;
-            bestTarget = targetHealth;
-        }
-
-        return bestTarget;
+            _targetBuffer,
+            IsValidEnemyTarget,
+            GetTargetPriority);
     }
 
-    private bool TryGetValidTarget(
-         Collider2D hit,
-         out Health targetHealth,
-         out CombatTargetInfo targetInfo)
+    private bool IsValidEnemyTarget(Collider2D hit, Health targetHealth)
     {
-        targetHealth = null;
-        targetInfo = null;
-
-        if (hit == null)
-            return false;
-
-        if (!hit.TryGetComponent(out targetHealth))
+        if (hit == null || targetHealth == null)
             return false;
 
         if (targetHealth.IsDead)
@@ -136,39 +102,15 @@ public sealed class Tower : BuildingBase
         if (!hit.TryGetComponent(out FactionMember targetFaction))
             return false;
 
-        if (!FactionMember.IsEnemy(targetFaction))
-            return false;
-
-        hit.TryGetComponent(out targetInfo);
-        return true;
+        return FactionMember.IsEnemy(targetFaction);
     }
 
-    private int GetTargetPriority(CombatTargetInfo targetInfo)
+    private int GetTargetPriority(Collider2D hit)
     {
-        if (targetInfo == null)
-            return (int)TargetPriorityType.Building;
+        if (hit != null && hit.TryGetComponent(out CombatTargetInfo targetInfo))
+            return (int)targetInfo.TargetPriority;
 
-        return (int)targetInfo.TargetPriority;
-    }
-
-    private float GetDistanceSqrTo(Health target)
-    {
-        return (target.transform.position - transform.position).sqrMagnitude;
-    }
-
-    private bool IsBetterTarget(
-        int priority,
-        float distanceSqr,
-        int bestPriority,
-        float bestDistanceSqr)
-    {
-        if (priority > bestPriority)
-            return true;
-
-        if (priority < bestPriority)
-            return false;
-
-        return distanceSqr < bestDistanceSqr;
+        return (int)TargetPriorityType.Building;
     }
 
     private void Shoot(Health target)

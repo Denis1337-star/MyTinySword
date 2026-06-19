@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.AI;
 
 /// <summary>
-/// Перемещает овцу по случайным точкам внутри территории
+/// РџРµСЂРµРјРµС‰Р°РµС‚ РѕРІС†Сѓ РїРѕ СЃР»СѓС‡Р°Р№РЅС‹Рј С‚РѕС‡РєР°Рј РІРЅСѓС‚СЂРё С‚РµСЂСЂРёС‚РѕСЂРёРё
 /// </summary>
 [RequireComponent(typeof(UnitMovement))]
 [RequireComponent(typeof(NavMeshAgent))]
@@ -109,7 +109,7 @@ public sealed class SheepAI : MonoBehaviour
             return;
         }
 
-        Debug.LogWarning($"{name}: не найдена подходящая NavMesh-точка внутри территории.", this);
+        Debug.LogWarning($"{name}: РЅРµ РЅР°Р№РґРµРЅР° РїРѕРґС…РѕРґСЏС‰Р°СЏ NavMesh-С‚РѕС‡РєР° РІРЅСѓС‚СЂРё С‚РµСЂСЂРёС‚РѕСЂРёРё.", this);
     }
 
     private void UpdateMovingAnimation()

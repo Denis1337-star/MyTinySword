@@ -2,7 +2,7 @@ using UnityEngine;
 using YG;
 
 /// <summary>
-/// —ервис сохранени€ и загрузки аудио настроек через PluginYG2 Storage
+/// ?????? ?????????? ? ???????? ????? ???????? ????? PluginYG2 Storage.
 /// </summary>
 public sealed class YandexAudioSaveService
 {
@@ -34,7 +34,7 @@ public sealed class YandexAudioSaveService
         YG2.saves.musicMuted = audioService.IsMusicMuted;
         YG2.saves.sfxMuted = audioService.IsSfxMuted;
 
-        YG2.SaveProgress();
+        YandexSaveUtility.SaveProgress();
 
         Debug.Log("[YandexAudioSaveService] Audio settings saved.");
     }

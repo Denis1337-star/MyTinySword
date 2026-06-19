@@ -2,7 +2,7 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Глобальный installer audio системы
+/// Р“Р»РѕР±Р°Р»СЊРЅС‹Р№ installer audio-СЃРёСЃС‚РµРјС‹.
 /// </summary>
 public sealed class ProjectServicesInstaller : MonoInstaller
 {

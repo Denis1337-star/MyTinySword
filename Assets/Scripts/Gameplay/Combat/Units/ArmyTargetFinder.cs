@@ -1,9 +1,9 @@
 using UnityEngine;
 
 /// <summary>
-/// Ищет цели для боевого юнита.
-/// Для атакующих юнитов ищет врагов.
-/// Для хилера ищет раненых союзных боевых юнитов.
+/// РС‰РµС‚ С†РµР»Рё РґР»СЏ Р±РѕРµРІРѕРіРѕ СЋРЅРёС‚Р°.
+/// Р”Р»СЏ Р°С‚Р°РєСѓСЋС‰РёС… СЋРЅРёС‚РѕРІ РёС‰РµС‚ РІСЂР°РіРѕРІ.
+/// Р”Р»СЏ С…РёР»РµСЂР° РёС‰РµС‚ СЂР°РЅРµРЅС‹С… СЃРѕСЋР·РЅС‹С… Р±РѕРµРІС‹С… СЋРЅРёС‚РѕРІ.
 /// </summary>
 public sealed class ArmyTargetFinder
 {
@@ -25,56 +25,31 @@ public sealed class ArmyTargetFinder
         if (!CanSearch())
             return null;
 
-        int hitCount = Physics2D.OverlapCircleNonAlloc(
+        return CombatTargetScanner.FindBestTarget(
             _origin.position,
             _unit.Config.VisionRange,
-            _targetBuffer);
+            _targetBuffer,
+            IsValidEnemyTarget,
+            GetEnemyTargetPriority);
+    }
 
-        if (hitCount == 0)
-            return null;
+    private bool IsValidEnemyTarget(Collider2D hit, Health targetHealth)
+    {
+        if (targetHealth == null || targetHealth.IsDead)
+            return false;
 
-        Health bestTarget = null;
-        int bestPriority = int.MinValue;
-        float bestDistanceSqr = float.MaxValue;
+        if (targetHealth == _unit.Health)
+            return false;
 
-        for (int i = 0; i < hitCount; i++)
-        {
-            Collider2D hit = _targetBuffer[i];
+        return IsEnemy(targetHealth);
+    }
 
-            if (hit == null)
-                continue;
+    private int GetEnemyTargetPriority(Collider2D hit)
+    {
+        if (hit != null && hit.TryGetComponent(out CombatTargetInfo targetInfo))
+            return (int)targetInfo.TargetPriority;
 
-            Health targetHealth = hit.GetComponentInParent<Health>();
-
-            if (targetHealth == null || targetHealth.IsDead)
-                continue;
-
-            if (targetHealth == _unit.Health)
-                continue;
-
-            if (!IsEnemy(targetHealth))
-                continue;
-
-            CombatTargetInfo targetInfo = targetHealth.GetComponentInParent<CombatTargetInfo>();
-
-            int priority = targetInfo != null
-                ? (int)targetInfo.TargetPriority
-                : (int)TargetPriorityType.ArmyUnit;
-
-            float distanceSqr = (targetHealth.transform.position - _origin.position).sqrMagnitude;
-
-            bool betterPriority = priority > bestPriority;
-            bool samePriorityButCloser = priority == bestPriority && distanceSqr < bestDistanceSqr;
-
-            if (betterPriority || samePriorityButCloser)
-            {
-                bestPriority = priority;
-                bestDistanceSqr = distanceSqr;
-                bestTarget = targetHealth;
-            }
-        }
-
-        return bestTarget;
+        return (int)TargetPriorityType.ArmyUnit;
     }
 
     public Health FindLowestHealthAllyUnit()
@@ -101,7 +76,7 @@ public sealed class ArmyTargetFinder
             if (hit == null)
                 continue;
 
-            Health targetHealth = hit.GetComponentInParent<Health>();
+            Health targetHealth = hit.GetComponent<Health>();
 
             if (targetHealth == null)
                 continue;
@@ -132,7 +107,7 @@ public sealed class ArmyTargetFinder
         if (targetHealth == null)
             return false;
 
-        FactionMember targetFaction = targetHealth.GetComponentInParent<FactionMember>();
+        FactionMember targetFaction = targetHealth.GetComponent<FactionMember>();
 
         if (targetFaction == null)
             return false;
@@ -154,7 +129,7 @@ public sealed class ArmyTargetFinder
         if (IsEnemy(targetHealth))
             return false;
 
-        ArmyUnit targetUnit = targetHealth.GetComponentInParent<ArmyUnit>();
+        ArmyUnit targetUnit = targetHealth.GetComponent<ArmyUnit>();
 
         if (targetUnit == null || targetUnit.IsDead)
             return false;

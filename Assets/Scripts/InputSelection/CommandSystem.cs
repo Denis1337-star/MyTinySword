@@ -4,7 +4,7 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Система команд для выбранной армии.
+/// РЎРёСЃС‚РµРјР° РєРѕРјР°РЅРґ РґР»СЏ РІС‹Р±СЂР°РЅРЅРѕР№ Р°СЂРјРёРё.
 /// </summary>
 public sealed class CommandSystem : MonoBehaviour
 {
@@ -30,7 +30,7 @@ public sealed class CommandSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// Пытается отдать выбранной армии команду атаки по enemy.
+    /// РџС‹С‚Р°РµС‚СЃСЏ РѕС‚РґР°С‚СЊ РІС‹Р±СЂР°РЅРЅРѕР№ Р°СЂРјРёРё РєРѕРјР°РЅРґСѓ Р°С‚Р°РєРё РїРѕ РІСЂР°РіСѓ.
     /// </summary>
     public bool TryAttackSelectedArmyAtScreenPosition(Vector2 screenPosition)
     {
@@ -60,7 +60,7 @@ public sealed class CommandSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// Пытается отдать выбранной армии команду движения в screenPosition.
+    /// РџС‹С‚Р°РµС‚СЃСЏ РѕС‚РґР°С‚СЊ РІС‹Р±СЂР°РЅРЅРѕР№ Р°СЂРјРёРё РєРѕРјР°РЅРґСѓ РґРІРёР¶РµРЅРёСЏ РІ screenPosition.
     /// </summary>
     public bool TryMoveSelectedArmyAtScreenPosition(Vector2 screenPosition)
     {
@@ -136,7 +136,7 @@ public sealed class CommandSystem : MonoBehaviour
         if (selectedArmyFaction == null)
             return null;
 
-        int hitCount = Physics2D.OverlapPointNonAlloc(
+        int hitCount = Physics2DHitUtility.OverlapAtWorld(
             worldPosition,
             _targetHits,
             _targetLayerMask);
@@ -167,16 +167,7 @@ public sealed class CommandSystem : MonoBehaviour
         if (hit == null)
             return null;
 
-        IDamageable damageable = hit.GetComponent<IDamageable>();
-
-        if (damageable != null)
-            return damageable;
-
-        Component parentComponent = hit.GetComponentInParent<Component>();
-
-        return parentComponent != null
-            ? parentComponent.GetComponentInParent<IDamageable>()
-            : null;
+        return hit.GetComponent<IDamageable>();
     }
 
     private bool IsValidEnemyTarget(
@@ -204,26 +195,12 @@ public sealed class CommandSystem : MonoBehaviour
         if (targetComponent == null)
             return null;
 
-        FactionMember factionMember = targetComponent.GetComponent<FactionMember>();
-
-        if (factionMember != null)
-            return factionMember;
-
-        return targetComponent.GetComponentInParent<FactionMember>();
+        return targetComponent.GetComponent<FactionMember>();
     }
 
     private bool HasPlayerArmyUnits(IReadOnlyList<UnitSelectable> selectedUnits)
     {
-        if (selectedUnits == null || selectedUnits.Count == 0)
-            return false;
-
-        for (int i = 0; i < selectedUnits.Count; i++)
-        {
-            if (TryGetPlayerArmyUnit(selectedUnits[i], out ArmyUnit _))
-                return true;
-        }
-
-        return false;
+        return ArmyUnitSelectionUtility.HasAnyPlayerArmyUnit(selectedUnits);
     }
 
     private FactionMember FindFirstSelectedPlayerFaction(IReadOnlyList<UnitSelectable> selectedUnits)
@@ -233,7 +210,7 @@ public sealed class CommandSystem : MonoBehaviour
 
         for (int i = 0; i < selectedUnits.Count; i++)
         {
-            if (!TryGetPlayerArmyUnit(selectedUnits[i], out ArmyUnit armyUnit))
+            if (!ArmyUnitSelectionUtility.TryGetPlayerArmyUnit(selectedUnits[i], out ArmyUnit armyUnit))
                 continue;
 
             if (armyUnit.FactionMember != null)
@@ -249,40 +226,11 @@ public sealed class CommandSystem : MonoBehaviour
     {
         brain = null;
 
-        if (!TryGetPlayerArmyUnit(selectable, out ArmyUnit armyUnit))
+        if (!ArmyUnitSelectionUtility.TryGetPlayerArmyUnit(selectable, out ArmyUnit armyUnit))
             return false;
 
         brain = armyUnit.Brain;
         return brain != null;
-    }
-
-    private bool TryGetPlayerArmyUnit(
-        UnitSelectable selectable,
-        out ArmyUnit armyUnit)
-    {
-        armyUnit = null;
-
-        if (selectable == null)
-            return false;
-
-        armyUnit = selectable.GetComponent<ArmyUnit>();
-
-        if (armyUnit == null)
-            armyUnit = selectable.GetComponentInParent<ArmyUnit>();
-
-        if (armyUnit == null)
-            armyUnit = selectable.GetComponentInChildren<ArmyUnit>();
-
-        if (armyUnit == null)
-            return false;
-
-        if (!armyUnit.IsPlayerUnit())
-            return false;
-
-        if (armyUnit.IsDead)
-            return false;
-
-        return true;
     }
 
     private void OnDestroy()

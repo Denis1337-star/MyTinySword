@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Worker стоит около дома и периодически проверяет работу
+/// Worker СЃС‚РѕРёС‚ РѕРєРѕР»Рѕ РґРѕРјР° Рё РїРµСЂРёРѕРґРёС‡РµСЃРєРё РїСЂРѕРІРµСЂСЏРµС‚ СЂР°Р±РѕС‚Сѓ
 /// </summary>
 public sealed class WorkerIdleState : IWorkerState
 {

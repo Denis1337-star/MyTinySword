@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Конфиг овцы как ресурс
+/// РљРѕРЅС„РёРі РѕРІС†С‹ РєР°Рє СЂРµСЃСѓСЂСЃ
 /// </summary>
 [CreateAssetMenu(menuName = "MyTinySword/Configs/Resources/Sheep Config")]
 public sealed class SheepResourceConfig : ResourceConfig

@@ -2,7 +2,7 @@ using UnityEngine;
 using YG;
 
 /// <summary>
-/// Сервис сохранения состояния обучения.
+/// РЎРµСЂРІРёСЃ СЃРѕС…СЂР°РЅРµРЅРёСЏ СЃРѕСЃС‚РѕСЏРЅРёСЏ РѕР±СѓС‡РµРЅРёСЏ.
 /// </summary>
 public sealed class TutorialSaveService
 {
@@ -17,15 +17,15 @@ public sealed class TutorialSaveService
             return;
 
         YG2.saves.tutorialCompleted = true;
-        YG2.SaveProgress();
+        YandexSaveUtility.SaveProgress();
 
         Debug.Log("[TutorialSaveService] Tutorial completed saved.");
     }
 
     public void ResetTutorial()
     {
-        YG2.saves.tutorialCompleted = false;
-        YG2.SaveProgress();
+        GameSavesDefaults.ApplyTutorial(YG2.saves);
+        YandexSaveUtility.SaveProgress();
 
         Debug.Log("[TutorialSaveService] Tutorial reset.");
     }

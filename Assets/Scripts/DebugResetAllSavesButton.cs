@@ -1,12 +1,11 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using YG;
 
 /// <summary>
-/// Временная debug-кнопка для сброса всех наших сохранений.
-/// Перед релизом удалить из сцены или отключить.
+/// Р’СЂРµРјРµРЅРЅР°СЏ debug-РєРЅРѕРїРєР° РґР»СЏ СЃР±СЂРѕСЃР° РІСЃРµС… РЅР°С€РёС… СЃРѕС…СЂР°РЅРµРЅРёР№.
+/// РџРµСЂРµРґ СЂРµР»РёР·РѕРј СѓРґР°Р»РёС‚СЊ РёР· СЃС†РµРЅС‹ РёР»Рё РѕС‚РєР»СЋС‡РёС‚СЊ.
 /// </summary>
 public sealed class DebugResetAllSavesButton : MonoBehaviour
 {
@@ -33,37 +32,12 @@ public sealed class DebugResetAllSavesButton : MonoBehaviour
 
     private void ResetAllSaves()
     {
-        ResetAudioSaves();
-        ResetLevelProgressSaves();
-        ResetTutorialSaves();
+        GameSavesDefaults.ApplyAll(YG2.saves);
+        YandexSaveUtility.SaveProgress();
 
-        YG2.SaveProgress();
-
-        Debug.Log("[DebugResetAllSavesButton] Все сохранения проекта сброшены.");
+        Debug.Log("[DebugResetAllSavesButton] Р’СЃРµ СЃРѕС…СЂР°РЅРµРЅРёСЏ РїСЂРѕРµРєС‚Р° СЃР±СЂРѕС€РµРЅС‹.");
 
         if (_reloadSceneAfterReset)
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-    }
-
-    private void ResetAudioSaves()
-    {
-        YG2.saves.audioSettingsInitialized = false;
-        YG2.saves.musicVolume = 1f;
-        YG2.saves.sfxVolume = 1f;
-        YG2.saves.musicMuted = false;
-        YG2.saves.sfxMuted = false;
-    }
-
-    private void ResetLevelProgressSaves()
-    {
-        YG2.saves.levelProgressInitialized = false;
-        YG2.saves.lastUnlockedLevelIndex = 1;
-        YG2.saves.totalVictories = 0;
-        YG2.saves.completedLevelIds = new List<string>();
-    }
-
-    private void ResetTutorialSaves()
-    {
-        YG2.saves.tutorialCompleted = false;
     }
 }

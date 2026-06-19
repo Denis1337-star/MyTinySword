@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Глобальный реестр всех worker 
+/// Глобальный реестр всех рабочих на сцене.
 /// </summary>
 public sealed class WorkerRegistry : MonoBehaviour
 {

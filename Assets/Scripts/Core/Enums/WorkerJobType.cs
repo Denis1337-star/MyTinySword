@@ -1,5 +1,5 @@
 /// <summary>
-/// Тип работы worker
+/// РўРёРї СЂР°Р±РѕС‚С‹ worker
 /// </summary>
 public enum WorkerJobType
 {

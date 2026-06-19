@@ -41,6 +41,9 @@ public sealed class SelectionSystem : MonoBehaviour
         if (!TryGetSelectableAtScreenPosition(screenPosition, out UnitSelectable selectable))
             return false;
 
+        if (!TutorialInputGuard.AllowsSelectionOf(selectable))
+            return false;
+
         Select(selectable);
         return true;
     }
@@ -49,13 +52,9 @@ public sealed class SelectionSystem : MonoBehaviour
     {
         selectable = null;
 
-        if (_mainCamera == null)
-            return false;
-
-        Vector2 worldPosition = TouchUtility.ScreenToWorld(_mainCamera, screenPosition);
-
-        int hitCount = Physics2D.OverlapPointNonAlloc(
-            worldPosition,
+        int hitCount = Physics2DHitUtility.OverlapAtScreen(
+            _mainCamera,
+            screenPosition,
             _selectionHits,
             _selectionLayerMask);
 
@@ -66,7 +65,7 @@ public sealed class SelectionSystem : MonoBehaviour
             if (hit == null)
                 continue;
 
-            UnitSelectable foundSelectable = FindSelectableFromHit(hit);
+            UnitSelectable foundSelectable = SelectableUtility.FindFromHit(hit);
 
             if (!CanSelectPlayerObject(foundSelectable))
                 continue;
@@ -87,6 +86,9 @@ public sealed class SelectionSystem : MonoBehaviour
         }
 
         if (!CanSelectPlayerObject(selectable))
+            return;
+
+        if (!TutorialInputGuard.AllowsSelectionOf(selectable))
             return;
 
         if (CurrentSelection == selectable && _selectedUnits.Count <= 1)
@@ -149,7 +151,7 @@ public sealed class SelectionSystem : MonoBehaviour
             if (armyUnit == null)
                 continue;
 
-            UnitSelectable selectable = FindSelectableFromComponent(armyUnit);
+            UnitSelectable selectable = SelectableUtility.FindFromComponent(armyUnit);
 
             if (!CanSelectPlayerObject(selectable))
                 continue;
@@ -169,13 +171,27 @@ public sealed class SelectionSystem : MonoBehaviour
             return;
         }
 
-        UnitSelectable selectable = FindSelectableFromComponent(worker);
+        UnitSelectable selectable = SelectableUtility.FindFromComponent(worker);
 
         Select(selectable);
     }
 
     public void ClearSelection()
     {
+        if (!TutorialInputGuard.AllowsClearSelection())
+            return;
+
+        ForceClearSelection();
+    }
+
+    /// <summary>
+    /// Снимает выбор без проверки tutorial-guard (системные действия).
+    /// </summary>
+    public void ForceClearSelection()
+    {
+        if (CurrentSelection == null && _selectedUnits.Count == 0)
+            return;
+
         ClearSelectionInternal();
         SelectionCleared?.Invoke();
     }
@@ -217,42 +233,11 @@ public sealed class SelectionSystem : MonoBehaviour
         if (!selectable.CanBeSelected)
             return false;
 
-        FactionMember factionMember = selectable.GetComponentInParent<FactionMember>();
+        FactionMember factionMember = selectable.GetComponent<FactionMember>();
 
         if (factionMember == null)
             return true;
 
         return factionMember.IsPlayer();
-    }
-
-    private UnitSelectable FindSelectableFromHit(Collider2D hit)
-    {
-        if (hit == null)
-            return null;
-
-        UnitSelectable selectable = hit.GetComponentInParent<UnitSelectable>();
-
-        if (selectable != null)
-            return selectable;
-
-        return hit.GetComponentInChildren<UnitSelectable>();
-    }
-
-    private UnitSelectable FindSelectableFromComponent(Component component)
-    {
-        if (component == null)
-            return null;
-
-        UnitSelectable selectable = component.GetComponent<UnitSelectable>();
-
-        if (selectable != null)
-            return selectable;
-
-        selectable = component.GetComponentInParent<UnitSelectable>();
-
-        if (selectable != null)
-            return selectable;
-
-        return component.GetComponentInChildren<UnitSelectable>();
     }
 }

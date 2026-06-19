@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Job логика добычи золота
+/// Job Р»РѕРіРёРєР° РґРѕР±С‹С‡Рё Р·РѕР»РѕС‚Р°
 /// </summary>
 public sealed class MineGoldJob : IWorkerJob
 {

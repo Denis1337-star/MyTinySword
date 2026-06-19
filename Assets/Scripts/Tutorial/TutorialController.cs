@@ -3,9 +3,7 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Управляет пошаговым обучением.
-/// Часть шагов можно листать кнопкой "Далее",
-/// часть шагов ждёт реальные действия игрока.
+/// РЈРїСЂР°РІР»СЏРµС‚ РїСЂРѕС…РѕР¶РґРµРЅРёРµРј РѕР±СѓС‡РµРЅРёСЏ: С€Р°РіРё, РѕРіСЂР°РЅРёС‡РµРЅРёСЏ РІРІРѕРґР°, РєР°РјРµСЂР° Рё СЃРѕС…СЂР°РЅРµРЅРёРµ РїРѕСЃР»Рµ РїРѕР±РµРґС‹.
 /// </summary>
 public sealed class TutorialController : ValidatedMonoBehaviour
 {
@@ -13,25 +11,42 @@ public sealed class TutorialController : ValidatedMonoBehaviour
     [SerializeField] private bool _runOnlyOnTutorialLevel = true;
 
     [Header("UI")]
-    [SerializeField] private TutorialPanel _panel;
+    [SerializeField] private TutorialUiView _uiView;
+    [SerializeField] private CameraFocusController _cameraFocus;
+
+    [Header("Highlight Targets")]
+    [SerializeField] private Transform _houseHighlightTarget;
+    [SerializeField] private Transform _constructionSlotHighlightTarget;
+    [SerializeField] private Transform _playerWarriorHighlightTarget;
+    [SerializeField] private Transform _enemyWarriorHighlightTarget;
 
     [Header("Gameplay References")]
     [SerializeField] private HousePanel _housePanel;
+    [SerializeField] private ConstructionPanel _constructionPanel;
+    [SerializeField] private ProductionBuildingPanel _productionBuildingPanel;
     [SerializeField] private GameResultController _gameResultController;
 
     [Header("Steps")]
     [SerializeField] private List<TutorialStepData> _steps = new();
 
+    private readonly List<ArmyUnit> _armyUnitBuffer = new();
+
     private TutorialSaveService _tutorialSaveService;
     private LevelRuntimeService _levelRuntimeService;
     private SelectionSystem _selectionSystem;
+    private SelectionUiPresenter _selectionUiPresenter;
     private BuildingRegistry _buildingRegistry;
     private ArmyUnitRegistry _armyUnitRegistry;
     private ResourceStorage _resourceStorage;
     private CommandSystem _commandSystem;
+    private Camera _mainCamera;
 
+    private Transform _builtBarrackTarget;
+    private ArmyUnit _trackedWarrior;
+    private int _playerArmyCountBeforeSpawn;
     private int _currentStepIndex;
     private bool _isRunning;
+    private bool _awaitVictoryToSave;
     private bool _subscribedToGameplayEvents;
 
     [Inject]
@@ -39,18 +54,22 @@ public sealed class TutorialController : ValidatedMonoBehaviour
         TutorialSaveService tutorialSaveService,
         LevelRuntimeService levelRuntimeService,
         SelectionSystem selectionSystem,
+        SelectionUiPresenter selectionUiPresenter,
         BuildingRegistry buildingRegistry,
         ArmyUnitRegistry armyUnitRegistry,
         ResourceStorage resourceStorage,
-        CommandSystem commandSystem)
+        CommandSystem commandSystem,
+        Camera mainCamera)
     {
         _tutorialSaveService = tutorialSaveService;
         _levelRuntimeService = levelRuntimeService;
         _selectionSystem = selectionSystem;
+        _selectionUiPresenter = selectionUiPresenter;
         _buildingRegistry = buildingRegistry;
         _armyUnitRegistry = armyUnitRegistry;
         _resourceStorage = resourceStorage;
         _commandSystem = commandSystem;
+        _mainCamera = mainCamera;
     }
 
     protected override void Awake()
@@ -60,15 +79,47 @@ public sealed class TutorialController : ValidatedMonoBehaviour
         if (!enabled)
             return;
 
-        _panel.Hide();
+        _uiView.HideAll();
     }
 
     private void OnEnable()
     {
-        _panel.NextButton.onClick.AddListener(GoToNextStep);
-        _panel.SkipButton.onClick.AddListener(SkipTutorial);
+        _uiView.FullScreenNextButton.onClick.AddListener(GoToNextStep);
 
         SubscribeToGameplayEvents();
+    }
+
+    private void OnDisable()
+    {
+        _uiView.FullScreenNextButton.onClick.RemoveListener(GoToNextStep);
+
+        UnsubscribeFromGameplayEvents();
+        _cameraFocus.StopTutorialCamera();
+        ClearConstructionTutorialRestrictions();
+    }
+
+    private void Update()
+    {
+        if (!TryGetRunningStep(out TutorialStepData currentStep))
+            return;
+
+        if (currentStep.StepType == TutorialStepType.WaitBattleReach)
+            UpdateWaitBattleReachStep();
+    }
+
+    protected override bool ValidateInternal()
+    {
+        bool valid = true;
+
+        valid &= ValidationUtility.IsAssigned(this, _uiView, nameof(_uiView));
+        valid &= ValidationUtility.IsAssigned(this, _cameraFocus, nameof(_cameraFocus));
+        valid &= ValidationUtility.IsAssigned(this, _housePanel, nameof(_housePanel));
+        valid &= ValidationUtility.IsAssigned(this, _constructionPanel, nameof(_constructionPanel));
+        valid &= ValidationUtility.IsAssigned(this, _productionBuildingPanel, nameof(_productionBuildingPanel));
+        valid &= ValidationUtility.IsAssigned(this, _gameResultController, nameof(_gameResultController));
+        valid &= ValidationUtility.NotEmptyList(this, _steps, nameof(_steps));
+
+        return valid;
     }
 
     private void Start()
@@ -76,42 +127,17 @@ public sealed class TutorialController : ValidatedMonoBehaviour
         TryStartTutorial();
     }
 
-    private void OnDisable()
-    {
-        _panel.NextButton.onClick.RemoveListener(GoToNextStep);
-        _panel.SkipButton.onClick.RemoveListener(SkipTutorial);
-
-        UnsubscribeFromGameplayEvents();
-    }
-
-    protected override bool ValidateInternal()
-    {
-        bool valid = true;
-
-        valid &= ValidationUtility.IsAssigned(this, _panel, nameof(_panel));
-        valid &= ValidationUtility.IsAssigned(this, _housePanel, nameof(_housePanel));
-        valid &= ValidationUtility.IsAssigned(this, _gameResultController, nameof(_gameResultController));
-
-        if (_steps == null || _steps.Count == 0)
-        {
-            Debug.LogError($"{name}: список шагов обучения пуст.", this);
-            valid = false;
-        }
-
-        return valid;
-    }
-
     private void TryStartTutorial()
     {
         if (_tutorialSaveService.IsTutorialCompleted())
         {
-            _panel.Hide();
+            _uiView.HideAll();
             return;
         }
 
         if (_runOnlyOnTutorialLevel && !IsCurrentLevelTutorial())
         {
-            _panel.Hide();
+            _uiView.HideAll();
             return;
         }
 
@@ -120,7 +146,7 @@ public sealed class TutorialController : ValidatedMonoBehaviour
 
     private bool IsCurrentLevelTutorial()
     {
-        if (_levelRuntimeService == null || !_levelRuntimeService.HasCurrentLevel)
+        if (!_levelRuntimeService.HasCurrentLevel)
             return true;
 
         return _levelRuntimeService.CurrentLevel.IsTutorialLevel;
@@ -128,58 +154,83 @@ public sealed class TutorialController : ValidatedMonoBehaviour
 
     private void StartTutorial()
     {
-        if (_steps == null || _steps.Count == 0)
-            return;
-
         _isRunning = true;
+        _awaitVictoryToSave = false;
         _currentStepIndex = 0;
-
+        _cameraFocus.BeginTutorialCamera();
         ShowCurrentStep();
     }
 
     private void GoToNextStep()
     {
-        if (!_isRunning)
-            return;
-
-        TutorialStepData currentStep = GetCurrentStep();
-
-        if (currentStep == null)
+        if (!TryGetRunningStep(out TutorialStepData currentStep))
             return;
 
         if (!currentStep.AllowManualNext)
             return;
 
+        if (currentStep.StepType == TutorialStepType.FinalMotivation)
+        {
+            FinishGuidanceAndAwaitVictory();
+            return;
+        }
+
         AdvanceStep();
     }
 
-    private void SkipTutorial()
-    {
-        if (!_isRunning)
-            return;
-
-        CompleteTutorial();
-    }
-
+    /// <summary>
+    /// Р—Р°РІРµСЂС€Р°РµС‚ РѕР±СѓС‡РµРЅРёРµ Рё СЃСЂР°Р·Сѓ РїРѕРјРµС‡Р°РµС‚ РµРіРѕ РїСЂРѕР№РґРµРЅРЅС‹Рј.
+    /// </summary>
     private void CompleteTutorial()
     {
         _isRunning = false;
-
+        _awaitVictoryToSave = false;
         _tutorialSaveService.MarkTutorialCompleted();
-        _panel.Hide();
+        ClearTutorialRestrictions();
+        _cameraFocus.EndTutorialCamera();
+        _uiView.HideAll();
+    }
+
+    /// <summary>
+    /// РЎРЅРёРјР°РµС‚ РѕРіСЂР°РЅРёС‡РµРЅРёСЏ UI, РЅРѕ СЃРѕС…СЂР°РЅРµРЅРёРµ РїСЂРѕРёР·РѕР№РґС‘С‚ С‚РѕР»СЊРєРѕ РїРѕСЃР»Рµ РїРѕР±РµРґС‹.
+    /// </summary>
+    private void FinishGuidanceAndAwaitVictory()
+    {
+        _isRunning = false;
+        _awaitVictoryToSave = true;
+        ClearTutorialRestrictions();
+        _cameraFocus.EndTutorialCamera();
+        _uiView.HideAll();
     }
 
     private void AdvanceStep()
     {
+        ExitCurrentStep();
+
         _currentStepIndex++;
 
         if (_currentStepIndex >= _steps.Count)
         {
-            CompleteTutorial();
+            FinishGuidanceAndAwaitVictory();
             return;
         }
 
         ShowCurrentStep();
+    }
+
+    private void ExitCurrentStep()
+    {
+        if (!TryGetRunningStep(out TutorialStepData currentStep))
+            return;
+
+        if (currentStep.StepType == TutorialStepType.AssignWorkersToWood)
+        {
+            _selectionUiPresenter.HideHousePanel();
+            _selectionSystem.ForceClearSelection();
+        }
+
+        if (currentStep.StepType == TutorialStepType.BuildBarrackInPanel)
+            ClearConstructionTutorialRestrictions();
     }
 
     private void ShowCurrentStep()
@@ -188,38 +239,170 @@ public sealed class TutorialController : ValidatedMonoBehaviour
 
         if (currentStep == null)
         {
-            CompleteTutorial();
+            FinishGuidanceAndAwaitVictory();
             return;
         }
 
         EnsureMinimumResources(currentStep);
+        ApplyStepPreparation(currentStep);
 
-        _panel.ShowStep(
-            currentStep.Message,
+        TutorialStepDefinition definition = TutorialStepDefinition.For(currentStep.StepType);
+        Transform worldTarget = ResolveWorldTarget(definition.Highlight, currentStep);
+        RectTransform uiTarget = ResolveUiTarget(definition.Highlight, currentStep);
+
+        _uiView.Present(
+            currentStep,
             _currentStepIndex,
-            _steps.Count);
+            _steps.Count,
+            definition,
+            _mainCamera,
+            uiTarget,
+            worldTarget);
 
-        _panel.NextButton.gameObject.SetActive(currentStep.AllowManualNext);
+        TutorialInputGuard.Apply(
+            currentStep.StepType,
+            ResolveAllowedSelectionRoot(worldTarget));
 
         TryAutoCompleteCurrentStepFromCurrentState();
+        TryStartStepPresentation(currentStep);
+    }
+
+    private void ApplyStepPreparation(TutorialStepData step)
+    {
+        switch (step.StepType)
+        {
+            case TutorialStepType.BuildBarrackInPanel:
+                _constructionPanel.SetTutorialAllowedBuilding(step.RequiredBuildingConfig);
+                break;
+
+            case TutorialStepType.WaitWarriorSpawn:
+                _playerArmyCountBeforeSpawn = _armyUnitRegistry.CurrentPlayerArmyUnits;
+                break;
+        }
+    }
+
+    private void TryStartStepPresentation(TutorialStepData step)
+    {
+        if (step.StepType is TutorialStepType.FocusEnemy or TutorialStepType.AttackEnemy)
+        {
+            Transform enemyTarget = ResolveEnemyWarriorTarget();
+
+            if (enemyTarget != null)
+                _cameraFocus.TutorialFocusOn(enemyTarget);
+        }
+    }
+
+    private Component ResolveAllowedSelectionRoot(Transform worldTarget)
+    {
+        return worldTarget;
+    }
+
+    private RectTransform ResolveUiTarget(TutorialHighlightTarget target, TutorialStepData step)
+    {
+        return target switch
+        {
+            TutorialHighlightTarget.AssignAllWoodButton => _housePanel.AssignAllWoodButtonRect,
+            TutorialHighlightTarget.ProductionHireButton => _productionBuildingPanel.HireButtonRect,
+            TutorialHighlightTarget.ProductionBuildingPanel => _productionBuildingPanel.PanelRect,
+            TutorialHighlightTarget.ConstructionPanel => _constructionPanel.PanelRect,
+            _ => null
+        };
+    }
+
+    private Transform ResolveWorldTarget(TutorialHighlightTarget target, TutorialStepData step)
+    {
+        return target switch
+        {
+            TutorialHighlightTarget.HouseOnMap => _houseHighlightTarget,
+            TutorialHighlightTarget.ConstructionSlot => _constructionSlotHighlightTarget,
+            TutorialHighlightTarget.BuiltBarrack => ResolveBuiltBarrackTarget(step),
+            TutorialHighlightTarget.PlayerWarrior => ResolvePlayerWarriorTarget(),
+            TutorialHighlightTarget.EnemyWarrior => ResolveEnemyWarriorTarget(),
+            _ => null
+        };
+    }
+
+    private Transform ResolveBuiltBarrackTarget(TutorialStepData step)
+    {
+        if (_builtBarrackTarget != null)
+            return _builtBarrackTarget;
+
+        return FindBuiltBuildingTransform(step.RequiredBuildingConfig);
+    }
+
+    private Transform ResolvePlayerWarriorTarget()
+    {
+        if (_playerWarriorHighlightTarget != null)
+            return _playerWarriorHighlightTarget;
+
+        ArmyUnit warrior = FindFirstPlayerWarrior();
+
+        return warrior != null ? warrior.transform : null;
+    }
+
+    private Transform ResolveEnemyWarriorTarget()
+    {
+        if (_enemyWarriorHighlightTarget != null)
+            return _enemyWarriorHighlightTarget;
+
+        ArmyUnit warrior = FindFirstEnemyWarrior();
+
+        return warrior != null ? warrior.transform : null;
+    }
+
+    private ArmyUnit FindFirstPlayerWarrior()
+    {
+        _armyUnitRegistry.GetAllPlayerUnitsNonAlloc(_armyUnitBuffer);
+
+        for (int i = 0; i < _armyUnitBuffer.Count; i++)
+        {
+            ArmyUnit unit = _armyUnitBuffer[i];
+
+            if (unit != null && !unit.IsDead)
+                return unit;
+        }
+
+        return null;
+    }
+
+    private ArmyUnit FindFirstEnemyWarrior()
+    {
+        IReadOnlyList<ArmyUnit> allUnits = _armyUnitRegistry.AllUnits;
+
+        for (int i = 0; i < allUnits.Count; i++)
+        {
+            ArmyUnit unit = allUnits[i];
+
+            if (unit == null || unit.IsDead || unit.IsPlayerUnit())
+                continue;
+
+            return unit;
+        }
+
+        return null;
+    }
+
+    private Transform FindBuiltBuildingTransform(BuildingConfig buildingConfig)
+    {
+        return _buildingRegistry.FindBuiltBuildingTransform(buildingConfig);
     }
 
     private TutorialStepData GetCurrentStep()
     {
-        if (_steps == null)
-            return null;
-
         if (_currentStepIndex < 0 || _currentStepIndex >= _steps.Count)
             return null;
 
         return _steps[_currentStepIndex];
     }
 
+    private bool TryGetRunningStep(out TutorialStepData step)
+    {
+        step = GetCurrentStep();
+        return _isRunning && step != null;
+    }
+
     private void EnsureMinimumResources(TutorialStepData step)
     {
-        if (_resourceStorage == null || step == null)
-            return;
-
         EnsureResource(ResourceType.Wood, step.MinimumWood);
         EnsureResource(ResourceType.Gold, step.MinimumGold);
         EnsureResource(ResourceType.Meat, step.MinimumMeat);
@@ -235,13 +418,18 @@ public sealed class TutorialController : ValidatedMonoBehaviour
         if (currentAmount >= minimumAmount)
             return;
 
-        int amountToAdd = minimumAmount - currentAmount;
+        _resourceStorage.AddResource(resourceType, minimumAmount - currentAmount);
+    }
 
-        _resourceStorage.AddResource(resourceType, amountToAdd);
+    private void ClearTutorialRestrictions()
+    {
+        TutorialInputGuard.Clear();
+        ClearConstructionTutorialRestrictions();
+    }
 
-        Debug.Log(
-            $"[TutorialController] Добавлено {amountToAdd} ресурса {resourceType}, чтобы tutorial не застрял.",
-            this);
+    private void ClearConstructionTutorialRestrictions()
+    {
+        _constructionPanel.SetTutorialAllowedBuilding(null);
     }
 
     private void SubscribeToGameplayEvents()
@@ -249,23 +437,14 @@ public sealed class TutorialController : ValidatedMonoBehaviour
         if (_subscribedToGameplayEvents)
             return;
 
-        if (_selectionSystem != null)
-            _selectionSystem.SelectionChanged += OnSelectionChanged;
-
-        if (_housePanel != null)
-            _housePanel.AllWorkersJobAssigned += OnAllWorkersJobAssigned;
-
-        if (_buildingRegistry != null)
-            _buildingRegistry.BuildingBuilt += OnBuildingBuilt;
-
-        if (_armyUnitRegistry != null)
-            _armyUnitRegistry.OnArmyChanged += OnArmyChanged;
-
-        if (_commandSystem != null)
-            _commandSystem.AttackCommandIssued += OnAttackCommandIssued;
-
-        if (_gameResultController != null)
-            _gameResultController.GameFinished += OnGameFinished;
+        _selectionSystem.SelectionChanged += OnSelectionChanged;
+        _housePanel.AllWorkersJobAssigned += OnAllWorkersJobAssigned;
+        _constructionPanel.ConstructionStarted += OnConstructionStarted;
+        _buildingRegistry.BuildingBuilt += OnBuildingBuilt;
+        _productionBuildingPanel.UnitHired += OnUnitHired;
+        _armyUnitRegistry.OnArmyChanged += OnArmyChanged;
+        _commandSystem.AttackCommandIssued += OnAttackCommandIssued;
+        _gameResultController.GameFinished += OnGameFinished;
 
         _subscribedToGameplayEvents = true;
     }
@@ -275,41 +454,35 @@ public sealed class TutorialController : ValidatedMonoBehaviour
         if (!_subscribedToGameplayEvents)
             return;
 
-        if (_selectionSystem != null)
-            _selectionSystem.SelectionChanged -= OnSelectionChanged;
-
-        if (_housePanel != null)
-            _housePanel.AllWorkersJobAssigned -= OnAllWorkersJobAssigned;
-
-        if (_buildingRegistry != null)
-            _buildingRegistry.BuildingBuilt -= OnBuildingBuilt;
-
-        if (_armyUnitRegistry != null)
-            _armyUnitRegistry.OnArmyChanged -= OnArmyChanged;
-
-        if (_commandSystem != null)
-            _commandSystem.AttackCommandIssued -= OnAttackCommandIssued;
-
-        if (_gameResultController != null)
-            _gameResultController.GameFinished -= OnGameFinished;
+        _selectionSystem.SelectionChanged -= OnSelectionChanged;
+        _housePanel.AllWorkersJobAssigned -= OnAllWorkersJobAssigned;
+        _constructionPanel.ConstructionStarted -= OnConstructionStarted;
+        _buildingRegistry.BuildingBuilt -= OnBuildingBuilt;
+        _productionBuildingPanel.UnitHired -= OnUnitHired;
+        _armyUnitRegistry.OnArmyChanged -= OnArmyChanged;
+        _commandSystem.AttackCommandIssued -= OnAttackCommandIssued;
+        _gameResultController.GameFinished -= OnGameFinished;
 
         _subscribedToGameplayEvents = false;
     }
 
     private void OnSelectionChanged(UnitSelectable selectable)
     {
-        if (!_isRunning)
-            return;
-
-        TutorialStepData currentStep = GetCurrentStep();
-
-        if (currentStep == null)
+        if (!TryGetRunningStep(out TutorialStepData currentStep))
             return;
 
         switch (currentStep.StepType)
         {
             case TutorialStepType.SelectHouse:
                 TryCompleteSelectHouse(selectable);
+                break;
+
+            case TutorialStepType.SelectConstructionSlot:
+                TryCompleteSelectConstructionSlot(selectable);
+                break;
+
+            case TutorialStepType.SelectBuiltBarrack:
+                TryCompleteSelectBuiltBarrack(selectable);
                 break;
 
             case TutorialStepType.SelectArmy:
@@ -320,9 +493,34 @@ public sealed class TutorialController : ValidatedMonoBehaviour
 
     private void TryCompleteSelectHouse(UnitSelectable selectable)
     {
-        House house = FindComponentNearSelectable<House>(selectable);
+        if (selectable == null)
+            return;
 
-        if (house == null)
+        if (SelectableUtility.FindNear<House>(selectable) == null)
+            return;
+
+        AdvanceStep();
+    }
+
+    private void TryCompleteSelectConstructionSlot(UnitSelectable selectable)
+    {
+        if (selectable == null)
+            return;
+
+        if (SelectableUtility.FindNear<ConstructionSlot>(selectable) == null)
+            return;
+
+        AdvanceStep();
+    }
+
+    private void TryCompleteSelectBuiltBarrack(UnitSelectable selectable)
+    {
+        if (selectable == null || !TryGetRunningStep(out TutorialStepData currentStep))
+            return;
+
+        ProductionBuildingBase building = SelectableUtility.FindNear<ProductionBuildingBase>(selectable);
+
+        if (building == null || !currentStep.IsRequiredBuilding(building.Config))
             return;
 
         AdvanceStep();
@@ -330,20 +528,26 @@ public sealed class TutorialController : ValidatedMonoBehaviour
 
     private void TryCompleteSelectArmy()
     {
-        if (!HasSelectedPlayerArmyUnit())
+        if (!ArmyUnitSelectionUtility.HasAnyPlayerArmyUnit(_selectionSystem.SelectedUnits))
             return;
 
         AdvanceStep();
     }
 
-    private void OnAllWorkersJobAssigned(WorkerJobType job)
+    private void TryCompleteWaitBuildingConstructed(TutorialStepData step)
     {
-        if (!_isRunning)
+        Transform built = FindBuiltBuildingTransform(step.RequiredBuildingConfig);
+
+        if (built == null)
             return;
 
-        TutorialStepData currentStep = GetCurrentStep();
+        _builtBarrackTarget = built;
+        AdvanceStep();
+    }
 
-        if (currentStep == null)
+    private void OnAllWorkersJobAssigned(WorkerJobType job)
+    {
+        if (!TryGetRunningStep(out TutorialStepData currentStep))
             return;
 
         if (currentStep.StepType != TutorialStepType.AssignWorkersToWood)
@@ -355,17 +559,12 @@ public sealed class TutorialController : ValidatedMonoBehaviour
         AdvanceStep();
     }
 
-    private void OnBuildingBuilt(BuildingConfig buildingConfig)
+    private void OnConstructionStarted(BuildingConfig buildingConfig)
     {
-        if (!_isRunning)
+        if (!TryGetRunningStep(out TutorialStepData currentStep))
             return;
 
-        TutorialStepData currentStep = GetCurrentStep();
-
-        if (currentStep == null)
-            return;
-
-        if (currentStep.StepType != TutorialStepType.BuildRequiredBuilding)
+        if (currentStep.StepType != TutorialStepType.BuildBarrackInPanel)
             return;
 
         if (!currentStep.IsRequiredBuilding(buildingConfig))
@@ -374,36 +573,52 @@ public sealed class TutorialController : ValidatedMonoBehaviour
         AdvanceStep();
     }
 
-    private void OnArmyChanged()
+    private void OnBuildingBuilt(BuildingConfig buildingConfig)
     {
-        if (!_isRunning)
+        if (!TryGetRunningStep(out TutorialStepData currentStep))
             return;
 
-        TutorialStepData currentStep = GetCurrentStep();
+        if (currentStep.StepType != TutorialStepType.WaitBuildingConstructed)
+            return;
 
-        if (currentStep == null)
+        if (!currentStep.IsRequiredBuilding(buildingConfig))
+            return;
+
+        _builtBarrackTarget = FindBuiltBuildingTransform(buildingConfig);
+        AdvanceStep();
+    }
+
+    private void OnUnitHired()
+    {
+        if (!TryGetRunningStep(out TutorialStepData currentStep))
             return;
 
         if (currentStep.StepType != TutorialStepType.HireArmyUnit)
             return;
 
-        if (_armyUnitRegistry == null)
-            return;
-
-        if (_armyUnitRegistry.CurrentPlayerArmyUnits <= 0)
-            return;
-
         AdvanceStep();
+    }
+
+    private void OnArmyChanged()
+    {
+        if (!TryGetRunningStep(out TutorialStepData currentStep))
+            return;
+
+        if (currentStep.StepType == TutorialStepType.WaitWarriorSpawn)
+        {
+            if (_armyUnitRegistry.CurrentPlayerArmyUnits > _playerArmyCountBeforeSpawn)
+                AdvanceStep();
+
+            return;
+        }
+
+        if (currentStep.StepType == TutorialStepType.SelectArmy)
+            RefreshCurrentStepPresentation();
     }
 
     private void OnAttackCommandIssued(IDamageable target)
     {
-        if (!_isRunning)
-            return;
-
-        TutorialStepData currentStep = GetCurrentStep();
-
-        if (currentStep == null)
+        if (!TryGetRunningStep(out TutorialStepData currentStep))
             return;
 
         if (currentStep.StepType != TutorialStepType.AttackEnemy)
@@ -412,17 +627,19 @@ public sealed class TutorialController : ValidatedMonoBehaviour
         if (target == null || target.IsDead)
             return;
 
+        _trackedWarrior = FindFirstPlayerWarrior();
         AdvanceStep();
     }
 
     private void OnGameFinished(bool victory)
     {
-        if (!_isRunning)
+        if (_awaitVictoryToSave && victory)
+        {
+            CompleteTutorial();
             return;
+        }
 
-        TutorialStepData currentStep = GetCurrentStep();
-
-        if (currentStep == null)
+        if (!TryGetRunningStep(out TutorialStepData currentStep))
             return;
 
         if (currentStep.StepType != TutorialStepType.WinLevel)
@@ -434,115 +651,72 @@ public sealed class TutorialController : ValidatedMonoBehaviour
         CompleteTutorial();
     }
 
+    private void UpdateWaitBattleReachStep()
+    {
+        if (_trackedWarrior == null)
+            _trackedWarrior = FindFirstPlayerWarrior();
+
+        if (_trackedWarrior != null && !_cameraFocus.IsTutorialFollowActive)
+        {
+            _cameraFocus.TutorialFollow(
+                _trackedWarrior.transform,
+                () => _trackedWarrior == null || _trackedWarrior.IsDead);
+        }
+
+        if (_trackedWarrior != null && !_trackedWarrior.IsDead)
+            return;
+
+        _cameraFocus.StopTutorialCamera();
+        AdvanceStep();
+    }
+
+    private void RefreshCurrentStepPresentation()
+    {
+        if (!_isRunning)
+            return;
+
+        ShowCurrentStep();
+    }
+
+    /// <summary>
+    /// Р•СЃР»Рё РёРіСЂРѕРє СѓР¶Рµ РІС‹РїРѕР»РЅРёР» РґРµР№СЃС‚РІРёРµ РґРѕ РїРѕРєР°Р·Р° С€Р°РіР° вЂ” РїРµСЂРµС…РѕРґРёРј РґР°Р»СЊС€Рµ Р±РµР· Р»РёС€РЅРµРіРѕ РєР»РёРєР°.
+    /// </summary>
     private void TryAutoCompleteCurrentStepFromCurrentState()
     {
-        TutorialStepData currentStep = GetCurrentStep();
-
-        if (currentStep == null)
+        if (!TryGetRunningStep(out TutorialStepData currentStep))
             return;
 
         switch (currentStep.StepType)
         {
             case TutorialStepType.SelectHouse:
-                TryAutoCompleteSelectHouse();
+                TryCompleteSelectHouse(_selectionSystem.CurrentSelection);
                 break;
 
-            case TutorialStepType.HireArmyUnit:
-                TryAutoCompleteHireArmyUnit();
+            case TutorialStepType.SelectConstructionSlot:
+                TryCompleteSelectConstructionSlot(_selectionSystem.CurrentSelection);
+                break;
+
+            case TutorialStepType.SelectBuiltBarrack:
+                TryCompleteSelectBuiltBarrack(_selectionSystem.CurrentSelection);
+                break;
+
+            case TutorialStepType.WaitWarriorSpawn:
+                if (_armyUnitRegistry.CurrentPlayerArmyUnits > _playerArmyCountBeforeSpawn)
+                    AdvanceStep();
                 break;
 
             case TutorialStepType.SelectArmy:
-                TryAutoCompleteSelectArmy();
+                TryCompleteSelectArmy();
+                break;
+
+            case TutorialStepType.WaitBuildingConstructed:
+                TryCompleteWaitBuildingConstructed(currentStep);
                 break;
         }
-    }
-
-    private void TryAutoCompleteSelectHouse()
-    {
-        if (_selectionSystem == null)
-            return;
-
-        UnitSelectable currentSelection = _selectionSystem.CurrentSelection;
-
-        if (currentSelection == null)
-            return;
-
-        House house = FindComponentNearSelectable<House>(currentSelection);
-
-        if (house == null)
-            return;
-
-        AdvanceStep();
-    }
-
-    private void TryAutoCompleteHireArmyUnit()
-    {
-        if (_armyUnitRegistry == null)
-            return;
-
-        if (_armyUnitRegistry.CurrentPlayerArmyUnits <= 0)
-            return;
-
-        AdvanceStep();
-    }
-
-    private void TryAutoCompleteSelectArmy()
-    {
-        if (!HasSelectedPlayerArmyUnit())
-            return;
-
-        AdvanceStep();
     }
 
     private bool HasSelectedPlayerArmyUnit()
     {
-        if (_selectionSystem == null)
-            return false;
-
-        IReadOnlyList<UnitSelectable> selectedUnits = _selectionSystem.SelectedUnits;
-
-        if (selectedUnits == null || selectedUnits.Count == 0)
-            return false;
-
-        for (int i = 0; i < selectedUnits.Count; i++)
-        {
-            UnitSelectable selectable = selectedUnits[i];
-
-            if (selectable == null)
-                continue;
-
-            ArmyUnit armyUnit = FindComponentNearSelectable<ArmyUnit>(selectable);
-
-            if (armyUnit == null)
-                continue;
-
-            if (!armyUnit.IsPlayerUnit())
-                continue;
-
-            if (armyUnit.IsDead)
-                continue;
-
-            return true;
-        }
-
-        return false;
-    }
-
-    private T FindComponentNearSelectable<T>(UnitSelectable selectable) where T : Component
-    {
-        if (selectable == null)
-            return null;
-
-        T component = selectable.GetComponent<T>();
-
-        if (component != null)
-            return component;
-
-        component = selectable.GetComponentInParent<T>();
-
-        if (component != null)
-            return component;
-
-        return selectable.GetComponentInChildren<T>();
+        return ArmyUnitSelectionUtility.HasAnyPlayerArmyUnit(_selectionSystem.SelectedUnits);
     }
 }

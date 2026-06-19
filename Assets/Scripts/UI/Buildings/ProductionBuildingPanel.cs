@@ -1,10 +1,11 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
 
 /// <summary>
-/// UI панель производственного здания
+/// РџР°РЅРµР»СЊ РїСЂРѕРёР·РІРѕРґСЃС‚РІРµРЅРЅРѕРіРѕ Р·РґР°РЅРёСЏ: РЅР°Р№Рј СЋРЅРёС‚РѕРІ Рё СЃРЅРѕСЃ.
 /// </summary>
 public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
 {
@@ -19,24 +20,40 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
     [SerializeField] private Image _iconImage;
     [SerializeField] private SimplePanelTween _panelTween;
 
-    private ProductionBuildingBase _currentBuilding;
-    private ProductionBuildingBase _subscribedBuilding;
+    private readonly EntityEventSubscription<ProductionBuildingBase> _buildingEvents = new();
 
+    private ProductionBuildingBase _currentBuilding;
     private ArmyUnitRegistry _armyUnitRegistry;
-    private SelectionSystem _selectionSystem;
+    private ResourceStorage _resourceStorage;
+    private BuildingDemolishService _buildingDemolishService;
+
+    public RectTransform HireButtonRect => _hireButton != null
+        ? _hireButton.transform as RectTransform
+        : null;
+
+    public RectTransform PanelRect => _root != null
+        ? _root.transform as RectTransform
+        : null;
+
+    public SimplePanelTween PanelTween => _panelTween;
+
+    public event Action UnitHired;
 
     [Inject]
     private void Construct(
         ArmyUnitRegistry armyUnitRegistry,
-        SelectionSystem selectionSystem)
+        ResourceStorage resourceStorage,
+        BuildingDemolishService buildingDemolishService)
     {
         _armyUnitRegistry = armyUnitRegistry;
-        _selectionSystem = selectionSystem;
+        _resourceStorage = resourceStorage;
+        _buildingDemolishService = buildingDemolishService;
     }
 
     protected override void Awake()
     {
         base.Awake();
+        ClearText();
     }
 
     protected override bool ValidateInternal()
@@ -59,22 +76,24 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
     private void OnEnable()
     {
         _hireButton.onClick.AddListener(HireUnit);
-        _demolishButton.onClick.AddListener(DemolishBuilding);
+        _demolishButton.onClick.AddListener(RequestDemolishBuilding);
 
         _armyUnitRegistry.OnArmyChanged += Refresh;
+        _resourceStorage.ResourcesChanged += Refresh;
 
-        SubscribeToCurrentBuilding();
+        BindCurrentBuildingEvents();
         Refresh();
     }
 
     private void OnDisable()
     {
         _hireButton.onClick.RemoveListener(HireUnit);
-        _demolishButton.onClick.RemoveListener(DemolishBuilding);
+        _demolishButton.onClick.RemoveListener(RequestDemolishBuilding);
 
         _armyUnitRegistry.OnArmyChanged -= Refresh;
+        _resourceStorage.ResourcesChanged -= Refresh;
 
-        UnsubscribeFromCurrentBuilding();
+        ClearBuildingSubscription();
     }
 
     public void Show(ProductionBuildingBase building)
@@ -85,27 +104,34 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
             return;
         }
 
-        if (_currentBuilding != building)
+        if (_buildingEvents.IsBoundTo(building))
         {
-            UnsubscribeFromCurrentBuilding();
-
-            _currentBuilding = building;
-
-            SubscribeToCurrentBuilding();
+            Refresh();
+            return;
         }
 
-        _panelTween.Show();
+        ClearBuildingSubscription();
+
+        _currentBuilding = building;
+        BindCurrentBuildingEvents();
         Refresh();
     }
 
     public void Hide()
     {
-        UnsubscribeFromCurrentBuilding();
+        ClearBuildingSubscription();
 
         _currentBuilding = null;
 
         ClearText();
-        _panelTween.Hide();
+    }
+
+    public void Dismiss()
+    {
+        Hide();
+
+        if (_panelTween != null)
+            _panelTween.Hide();
     }
 
     private void HireUnit()
@@ -113,23 +139,19 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
         if (_currentBuilding == null)
             return;
 
-        _currentBuilding.TryHireUnit();
-        Refresh();
+        if (!_currentBuilding.TryHireUnit())
+            return;
+
+        UnitHired?.Invoke();
+        Dismiss();
     }
 
-    private void DemolishBuilding()
+    private void RequestDemolishBuilding()
     {
         if (_currentBuilding == null)
             return;
 
-        ProductionBuildingBase building = _currentBuilding;
-
-        if (_selectionSystem != null)
-            _selectionSystem.ClearSelection();
-        else
-            Hide();
-
-        building.Demolish();
+        _buildingDemolishService.RequestDemolish(_currentBuilding);
     }
 
     private void Refresh()
@@ -145,21 +167,18 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
         _unitNameText.text = config.DisplayName;
         _descriptionText.text = config.Description;
         _statsText.text = config.GetPreviewStatsText();
-
-        _queueText.text =
-            $"В очереди: {_currentBuilding.QueueCount}/{_currentBuilding.MaxQueue}\n" +
-            $"Армия: {_armyUnitRegistry.CommittedPlayerArmySlots}/{_armyUnitRegistry.MaxPlayerArmyUnits}";
+        _queueText.text = BuildQueueText(
+            _currentBuilding.QueueCount,
+            _currentBuilding.MaxQueue,
+            _armyUnitRegistry.CommittedPlayerArmySlots,
+            _armyUnitRegistry.MaxPlayerArmyUnits);
 
         string blockReason = _currentBuilding.GetHireBlockReason();
 
-        _costText.text =
-            $"Стоимость: дерево {config.WoodCost} / мясо {config.MeatCost}";
-
-        if (!string.IsNullOrEmpty(blockReason))
-            _costText.text += $"\n{blockReason}";
+        _costText.text = BuildCostText(config.WoodCost, config.MeatCost, blockReason);
 
         _hireButton.interactable = _currentBuilding.CanEnqueue();
-        _demolishButton.interactable = true;
+        BuildingDemolishRules.RefreshButton(_demolishButton, _currentBuilding);
 
         _iconImage.sprite = config.Icon;
     }
@@ -169,8 +188,8 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
         _unitNameText.text = string.Empty;
         _descriptionText.text = string.Empty;
         _statsText.text = string.Empty;
-        _queueText.text = "В очереди: 0";
-        _costText.text = "Стоимость: -";
+        _queueText.text = BuildQueueText(0, 0, 0, 0);
+        _costText.text = "РЎС‚РѕРёРјРѕСЃС‚СЊ: -";
 
         _hireButton.interactable = false;
         _demolishButton.interactable = false;
@@ -178,24 +197,31 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
         _iconImage.sprite = null;
     }
 
-    private void SubscribeToCurrentBuilding()
+    private static string BuildQueueText(int queueCount, int maxQueue, int armySlots, int maxArmySlots)
     {
-        if (_currentBuilding == null)
-            return;
-
-        if (_subscribedBuilding == _currentBuilding)
-            return;
-
-        _currentBuilding.OnQueueChanged += Refresh;
-        _subscribedBuilding = _currentBuilding;
+        return $"Р’ РѕС‡РµСЂРµРґРё: {queueCount}/{maxQueue}\nРђСЂРјРёСЏ: {armySlots}/{maxArmySlots}";
     }
 
-    private void UnsubscribeFromCurrentBuilding()
+    private static string BuildCostText(int woodCost, int meatCost, string blockReason)
     {
-        if (_subscribedBuilding == null)
-            return;
+        string text = $"РЎС‚РѕРёРјРѕСЃС‚СЊ: РґРµСЂРµРІРѕ {woodCost} / РјСЏСЃРѕ {meatCost}";
 
-        _subscribedBuilding.OnQueueChanged -= Refresh;
-        _subscribedBuilding = null;
+        if (!string.IsNullOrEmpty(blockReason))
+            text += "\n" + blockReason;
+
+        return text;
+    }
+
+    private void BindCurrentBuildingEvents()
+    {
+        _buildingEvents.Bind(
+            _currentBuilding,
+            b => b.OnQueueChanged += Refresh,
+            b => b.OnQueueChanged -= Refresh);
+    }
+
+    private void ClearBuildingSubscription()
+    {
+        _buildingEvents.Clear(b => b.OnQueueChanged -= Refresh);
     }
 }

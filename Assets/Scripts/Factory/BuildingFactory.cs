@@ -2,7 +2,7 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Фабрика для создания объектов строительства и готовых зданий через Zenject
+/// Р¤Р°Р±СЂРёРєР° РґР»СЏ СЃРѕР·РґР°РЅРёСЏ РѕР±СЉРµРєС‚РѕРІ СЃС‚СЂРѕРёС‚РµР»СЊСЃС‚РІР° Рё РіРѕС‚РѕРІС‹С… Р·РґР°РЅРёР№ С‡РµСЂРµР· Zenject
 /// </summary>
 public sealed class BuildingFactory
 {
@@ -18,7 +18,7 @@ public sealed class BuildingFactory
     {
         if (prefab == null)
         {
-            Debug.LogError("BuildingFactory: prefab ConstructionSite не назначен.");
+            Debug.LogError("BuildingFactory: prefab ConstructionSite РЅРµ РЅР°Р·РЅР°С‡РµРЅ.");
             return null;
         }
 
@@ -31,7 +31,7 @@ public sealed class BuildingFactory
     {
         if (prefab == null)
         {
-            Debug.LogError("BuildingFactory: prefab здания не назначен.");
+            Debug.LogError("BuildingFactory: prefab Р·РґР°РЅРёСЏ РЅРµ РЅР°Р·РЅР°С‡РµРЅ.");
             return null;
         }
 

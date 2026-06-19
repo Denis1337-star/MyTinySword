@@ -1,6 +1,6 @@
 
 /// <summary>
-/// Приоритет типа цели 
+/// РџСЂРёРѕСЂРёС‚РµС‚ С‚РёРїР° С†РµР»Рё 
 /// </summary>
 public enum TargetPriorityType
 {

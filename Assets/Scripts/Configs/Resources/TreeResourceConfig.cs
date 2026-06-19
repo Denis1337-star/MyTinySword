@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Конфиг дерева
+/// РљРѕРЅС„РёРі РґРµСЂРµРІР°
 /// </summary>
 [CreateAssetMenu(menuName = "MyTinySword/Configs/Resources/Tree Config")]
 public sealed class TreeResourceConfig : ResourceConfig

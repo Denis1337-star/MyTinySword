@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Конфиг юнита дальнего боя
+/// РљРѕРЅС„РёРі СЋРЅРёС‚Р° РґР°Р»СЊРЅРµРіРѕ Р±РѕСЏ.
 /// </summary>
 [CreateAssetMenu(menuName = "MyTinySword/Configs/Units/Ranged Unit Config")]
 public sealed class RangedUnitConfig : UnitConfig
@@ -32,10 +32,7 @@ public sealed class RangedUnitConfig : UnitConfig
 
     public override string GetPreviewStatsText()
     {
-        return
-            base.GetPreviewStatsText() + "\n" +
-            $"Урон: {_damage}\n" +
-            $"Дистанция атаки: {_attackRange}\n";
+        return base.GetPreviewStatsText() + "\n" + FormatAttackStats(_damage, _attackRange);
     }
 
     protected override void OnValidate()

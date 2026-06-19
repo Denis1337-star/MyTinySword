@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Audio;
 
 /// <summary>
-/// Главный конфиг звука
+/// Р“Р»Р°РІРЅС‹Р№ РєРѕРЅС„РёРі Р·РІСѓРєР°
 /// </summary>
 [CreateAssetMenu(
     fileName = "AudioConfig",

@@ -3,9 +3,9 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// UI элемент выбора здания в панели строительства
+/// Р­Р»РµРјРµРЅС‚ СЃРїРёСЃРєР° Р·РґР°РЅРёР№ РІ ConstructionPanel.
 /// </summary>
-public sealed class ConstructionOptionItem : ValidatedMonoBehaviour
+public sealed class ConstructionOptionItem : MonoBehaviour
 {
     [SerializeField] private Image _iconImage;
     [SerializeField] private Button _button;
@@ -13,52 +13,59 @@ public sealed class ConstructionOptionItem : ValidatedMonoBehaviour
 
     private BuildingConfig _config;
     private Action<BuildingConfig> _onSelected;
+    private Func<BuildingConfig, bool> _canSelect;
 
     public BuildingConfig Config => _config;
 
-    protected override bool ValidateInternal()
+    public RectTransform RectTransform => transform as RectTransform;
+
+    private void Awake()
     {
-        bool valid = true;
-
-        valid &= ValidationUtility.IsAssigned(this, _iconImage, nameof(_iconImage));
-        valid &= ValidationUtility.IsAssigned(this, _button, nameof(_button));
-        valid &= ValidationUtility.IsAssigned(this, _selectedFrame, nameof(_selectedFrame));
-
-        return valid;
+        if (_button != null)
+            _button.onClick.AddListener(HandleClicked);
     }
 
-    private void OnEnable()
+    private void OnDestroy()
     {
-        _button.onClick.AddListener(HandleClick);
+        if (_button != null)
+            _button.onClick.RemoveListener(HandleClicked);
     }
 
-    private void OnDisable()
-    {
-        _button.onClick.RemoveListener(HandleClick);
-    }
-
-    /// <summary>
-    /// Привязывает item к config здания
-    /// </summary>
-    public void Bind(BuildingConfig config, Action<BuildingConfig> onSelected)
+    public void Bind(
+        BuildingConfig config,
+        Action<BuildingConfig> onSelected,
+        Func<BuildingConfig, bool> canSelect)
     {
         _config = config;
         _onSelected = onSelected;
+        _canSelect = canSelect;
 
-        _iconImage.sprite = _config != null ? _config.Icon : null;
-        _button.interactable = _config != null;
+        if (_iconImage != null)
+            _iconImage.sprite = config != null ? config.Icon : null;
 
-        SetSelected(false);
+        RefreshInteractable();
     }
 
-    public void SetSelected(bool value)
+    public void SetSelected(bool selected)
     {
-        _selectedFrame.SetActive(value);
+        if (_selectedFrame != null)
+            _selectedFrame.SetActive(selected);
     }
 
-    private void HandleClick()
+    public void RefreshInteractable()
+    {
+        if (_button == null)
+            return;
+
+        _button.interactable = _canSelect == null || _canSelect.Invoke(_config);
+    }
+
+    private void HandleClicked()
     {
         if (_config == null)
+            return;
+
+        if (_canSelect != null && !_canSelect(_config))
             return;
 
         _onSelected?.Invoke(_config);

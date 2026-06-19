@@ -2,8 +2,8 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Спавнит и обновляет HP bar над объектом.
-/// HP bar может показываться при выборе, получении урона или inspect-клике по врагу.
+/// РЎРѕР·РґР°С‘С‚ Рё СѓРїСЂР°РІР»СЏРµС‚ HP bar РЅР°Рґ СЋРЅРёС‚РѕРј.
+/// HP bar РІРёРґРµРЅ РїСЂРё РІС‹Р±РѕСЂРµ, РїРѕСЃР»Рµ СѓСЂРѕРЅР° РёР»Рё РїСЂРё inspect-РєР»РёРєРµ РїРѕ РІСЂР°РіСѓ.
 /// </summary>
 public sealed class HealthBarSpawner : ValidatedMonoBehaviour
 {
@@ -34,14 +34,7 @@ public sealed class HealthBarSpawner : ValidatedMonoBehaviour
 
     protected override void Awake()
     {
-        ResolveReferences();
-
         base.Awake();
-    }
-
-    private void OnValidate()
-    {
-        ResolveReferences();
     }
 
     private void OnEnable()
@@ -52,11 +45,8 @@ public sealed class HealthBarSpawner : ValidatedMonoBehaviour
 
     private void OnDisable()
     {
-        if (_health != null)
-        {
-            _health.OnHealthChanged -= OnHealthChanged;
-            _health.OnDied -= OnDied;
-        }
+        _health.OnHealthChanged -= OnHealthChanged;
+        _health.OnDied -= OnDied;
 
         _inspected = false;
         DestroyBar();
@@ -74,7 +64,7 @@ public sealed class HealthBarSpawner : ValidatedMonoBehaviour
 
     private void Update()
     {
-        if (_health == null || _health.IsDead)
+        if (_health.IsDead)
             return;
 
         bool shouldShow = ShouldShowBar();
@@ -91,7 +81,7 @@ public sealed class HealthBarSpawner : ValidatedMonoBehaviour
 
     public void ShowInspected()
     {
-        if (_health == null || _health.IsDead)
+        if (_health.IsDead)
             return;
 
         _inspected = true;
@@ -135,7 +125,6 @@ public sealed class HealthBarSpawner : ValidatedMonoBehaviour
 
         bool damaged = _showWhenDamaged &&
                        _damagedOnce &&
-                       _health != null &&
                        _health.CurrentHealth < _health.MaxHealth;
 
         return selected || damaged || _inspected;
@@ -145,12 +134,6 @@ public sealed class HealthBarSpawner : ValidatedMonoBehaviour
     {
         if (_spawnedBar != null)
             return;
-
-        if (_screenCanvas == null || _mainCamera == null)
-        {
-            Debug.LogWarning($"{name}: HPBar не может появиться — нет Canvas или Camera.", this);
-            return;
-        }
 
         _spawnedBar = Instantiate(_healthBarPrefab, _screenCanvas.transform);
 
@@ -180,7 +163,7 @@ public sealed class HealthBarSpawner : ValidatedMonoBehaviour
 
     private void RefreshBar()
     {
-        if (_spawnedBar == null || _health == null)
+        if (_spawnedBar == null)
             return;
 
         float normalized = _health.MaxHealth > 0
@@ -211,20 +194,5 @@ public sealed class HealthBarSpawner : ValidatedMonoBehaviour
         return _factionMember.Faction == FactionType.Enemy
             ? Color.red
             : Color.green;
-    }
-
-    private void ResolveReferences()
-    {
-        if (_health == null)
-            _health = GetComponent<Health>();
-
-        if (_factionMember == null)
-            _factionMember = GetComponent<FactionMember>();
-
-        if (_selectable == null)
-            _selectable = GetComponent<UnitSelectable>();
-
-        if (_anchor == null)
-            _anchor = GetComponentInChildren<WorldHealthBarAnchor>();
     }
 }

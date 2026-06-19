@@ -4,8 +4,7 @@ using UnityEngine.UI;
 using Zenject;
 
 /// <summary>
-/// Универсальная панель действий для простых зданий.
-/// Например: Tower, Castle или другие здания без отдельной панели.
+/// РЈРЅРёРІРµСЂСЃР°Р»СЊРЅР°СЏ РїР°РЅРµР»СЊ РґРµР№СЃС‚РІРёР№ РґР»СЏ РїСЂРѕСЃС‚С‹С… Р·РґР°РЅРёР№.
 /// </summary>
 public sealed class BuildingActionPanel : ValidatedMonoBehaviour
 {
@@ -17,27 +16,27 @@ public sealed class BuildingActionPanel : ValidatedMonoBehaviour
     [SerializeField] private TMP_Text _titleText;
 
     [Header("Demolish")]
-    [SerializeField] private GameObject _demolishButtonRoot;
     [SerializeField] private Button _demolishButton;
-    [SerializeField] private TMP_Text _cannotDemolishText;
 
     private BuildingBase _currentBuilding;
-    private SelectionSystem _selectionSystem;
+    private BuildingDemolishService _buildingDemolishService;
+
+    public SimplePanelTween PanelTween => _panelTween;
 
     [Inject]
-    private void Construct(SelectionSystem selectionSystem)
+    private void Construct(BuildingDemolishService buildingDemolishService)
     {
-        _selectionSystem = selectionSystem;
+        _buildingDemolishService = buildingDemolishService;
     }
 
     private void OnEnable()
     {
-        _demolishButton.onClick.AddListener(DemolishBuilding);
+        _demolishButton.onClick.AddListener(RequestDemolishBuilding);
     }
 
     private void OnDisable()
     {
-        _demolishButton.onClick.RemoveListener(DemolishBuilding);
+        _demolishButton.onClick.RemoveListener(RequestDemolishBuilding);
     }
 
     protected override bool ValidateInternal()
@@ -47,9 +46,7 @@ public sealed class BuildingActionPanel : ValidatedMonoBehaviour
         valid &= ValidationUtility.IsAssigned(this, _root, nameof(_root));
         valid &= ValidationUtility.IsAssigned(this, _panelTween, nameof(_panelTween));
         valid &= ValidationUtility.IsAssigned(this, _titleText, nameof(_titleText));
-        valid &= ValidationUtility.IsAssigned(this, _demolishButtonRoot, nameof(_demolishButtonRoot));
         valid &= ValidationUtility.IsAssigned(this, _demolishButton, nameof(_demolishButton));
-        valid &= ValidationUtility.IsAssigned(this, _cannotDemolishText, nameof(_cannotDemolishText));
 
         return valid;
     }
@@ -65,7 +62,6 @@ public sealed class BuildingActionPanel : ValidatedMonoBehaviour
         _currentBuilding = building;
 
         Refresh();
-        _panelTween.Show();
     }
 
     public void Hide()
@@ -73,7 +69,6 @@ public sealed class BuildingActionPanel : ValidatedMonoBehaviour
         _currentBuilding = null;
 
         ClearView();
-        _panelTween.Hide();
     }
 
     private void Refresh()
@@ -86,48 +81,20 @@ public sealed class BuildingActionPanel : ValidatedMonoBehaviour
 
         _titleText.text = _currentBuilding.DisplayName;
 
-        RefreshDemolishView();
+        BuildingDemolishRules.RefreshButton(_demolishButton, _currentBuilding);
     }
 
-    private void RefreshDemolishView()
-    {
-        bool canDemolish = _currentBuilding != null &&
-                           _currentBuilding.CanBeDemolishedByButton;
-
-        _demolishButtonRoot.SetActive(canDemolish);
-        _demolishButton.interactable = canDemolish;
-
-        _cannotDemolishText.gameObject.SetActive(!canDemolish);
-        _cannotDemolishText.text = "Это здание снести нельзя";
-    }
-
-    private void DemolishBuilding()
+    private void RequestDemolishBuilding()
     {
         if (_currentBuilding == null)
             return;
 
-        BuildingBase building = _currentBuilding;
-
-        if (!building.TryDemolishByButton())
-        {
-            RefreshDemolishView();
-            return;
-        }
-
-        if (_selectionSystem != null)
-            _selectionSystem.ClearSelection();
-        else
-            Hide();
+        _buildingDemolishService.RequestDemolish(_currentBuilding);
     }
 
     private void ClearView()
     {
         _titleText.text = string.Empty;
-
         _demolishButton.interactable = false;
-        _demolishButtonRoot.SetActive(false);
-
-        _cannotDemolishText.text = string.Empty;
-        _cannotDemolishText.gameObject.SetActive(false);
     }
 }

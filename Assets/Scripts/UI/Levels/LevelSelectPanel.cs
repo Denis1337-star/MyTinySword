@@ -3,8 +3,8 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Панель выбора уровней.
-/// Создаёт элементы уровней из LevelCatalog и запускает выбранный уровень.
+/// РџР°РЅРµР»СЊ РІС‹Р±РѕСЂР° СѓСЂРѕРІРЅРµР№.
+/// РЎРѕР·РґР°С‘С‚ СЌР»РµРјРµРЅС‚С‹ СѓСЂРѕРІРЅРµР№ РёР· LevelCatalog Рё Р·Р°РїСѓСЃРєР°РµС‚ РІС‹Р±СЂР°РЅРЅС‹Р№ СѓСЂРѕРІРµРЅСЊ.
 /// </summary>
 public sealed class LevelSelectPanel : ValidatedMonoBehaviour
 {

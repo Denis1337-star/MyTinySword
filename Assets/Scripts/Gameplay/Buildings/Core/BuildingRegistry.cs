@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Реестр зданий на сцене.
-/// Хранит построенные и строящиеся здания.
+/// Р РµРµСЃС‚СЂ Р·РґР°РЅРёР№ РЅР° СЃС†РµРЅРµ.
+/// РҐСЂР°РЅРёС‚ РїРѕСЃС‚СЂРѕРµРЅРЅС‹Рµ Рё СЃС‚СЂРѕСЏС‰РёРµСЃСЏ Р·РґР°РЅРёСЏ.
 /// </summary>
 public sealed class BuildingRegistry : MonoBehaviour
 {
     private readonly HashSet<string> _builtBuildingIds = new();
     private readonly HashSet<string> _constructingBuildingIds = new();
+    private readonly Dictionary<string, BuildingBase> _builtBuildingsById = new();
 
     public event Action<BuildingConfig> BuildingBuilt;
 
@@ -38,13 +39,16 @@ public sealed class BuildingRegistry : MonoBehaviour
         _constructingBuildingIds.Remove(config.BuildingId);
     }
 
-    public void RegisterBuilt(BuildingConfig config)
+    public void RegisterBuilt(BuildingConfig config, BuildingBase building = null)
     {
         if (!IsValidConfig(config))
             return;
 
         _constructingBuildingIds.Remove(config.BuildingId);
         _builtBuildingIds.Add(config.BuildingId);
+
+        if (building != null)
+            _builtBuildingsById[config.BuildingId] = building;
 
         BuildingBuilt?.Invoke(config);
     }
@@ -55,6 +59,26 @@ public sealed class BuildingRegistry : MonoBehaviour
             return;
 
         _builtBuildingIds.Remove(config.BuildingId);
+        _builtBuildingsById.Remove(config.BuildingId);
+    }
+
+    public Transform FindBuiltBuildingTransform(BuildingConfig config)
+    {
+        if (!TryGetBuiltBuilding(config, out BuildingBase building))
+            return null;
+
+        return building.transform;
+    }
+
+    public bool TryGetBuiltBuilding(BuildingConfig config, out BuildingBase building)
+    {
+        building = null;
+
+        if (!IsValidConfig(config))
+            return false;
+
+        return _builtBuildingsById.TryGetValue(config.BuildingId, out building) &&
+               building != null;
     }
 
     private static bool IsValidConfig(BuildingConfig config)
@@ -67,6 +91,7 @@ public sealed class BuildingRegistry : MonoBehaviour
     {
         _builtBuildingIds.Clear();
         _constructingBuildingIds.Clear();
+        _builtBuildingsById.Clear();
         BuildingBuilt = null;
     }
 }

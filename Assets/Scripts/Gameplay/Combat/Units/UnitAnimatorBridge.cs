@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Связывает боевого юнита с Animator
+/// РЎРІСЏР·С‹РІР°РµС‚ Р±РѕРµРІРѕРіРѕ СЋРЅРёС‚Р° СЃ Animator
 /// </summary>
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(UnitMovement))]

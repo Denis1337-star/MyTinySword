@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -5,7 +6,7 @@ using UnityEngine.UI;
 using Zenject;
 
 /// <summary>
-/// UI панель строительства
+/// РџР°РЅРµР»СЊ РІС‹Р±РѕСЂР° Рё РїРѕСЃС‚СЂРѕР№РєРё Р·РґР°РЅРёСЏ РЅР° СЃР»РѕС‚Рµ.
 /// </summary>
 public sealed class ConstructionPanel : ValidatedMonoBehaviour
 {
@@ -26,6 +27,15 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
     private ConstructionSlot _currentSlot;
     private BuildingConfig _selectedConfig;
     private DiContainer _container;
+    private BuildingConfig _tutorialAllowedBuilding;
+
+    public event Action<BuildingConfig> ConstructionStarted;
+
+    public RectTransform PanelRect => _root != null ? _root.transform as RectTransform : null;
+
+    public SimplePanelTween PanelTween => _panelTween;
+
+    public bool IsVisible => _panelTween != null && _panelTween.IsVisible;
 
     [Inject]
     private void Construct(ResourceStorage resourceStorage, DiContainer container)
@@ -80,21 +90,75 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
         _selectedConfig = null;
 
         BuildOptions(slot.AvailableBuildings);
-        SelectFirstAvailableConfig(slot.AvailableBuildings);
 
-        _panelTween.Show();
+        if (_tutorialAllowedBuilding != null)
+            SelectConfig(_tutorialAllowedBuilding);
+        else
+            SelectFirstAvailableConfig(slot.AvailableBuildings);
+
         Refresh();
+    }
+
+    /// <summary>
+    /// РћРіСЂР°РЅРёС‡РёРІР°РµС‚ РІС‹Р±РѕСЂ Р·РґР°РЅРёСЏ РЅР° С€Р°РіРµ РѕР±СѓС‡РµРЅРёСЏ.
+    /// </summary>
+    public void SetTutorialAllowedBuilding(BuildingConfig allowedBuilding)
+    {
+        _tutorialAllowedBuilding = allowedBuilding;
+        Refresh();
+    }
+
+    public bool AllowsBuilding(BuildingConfig buildingConfig)
+    {
+        if (_tutorialAllowedBuilding == null)
+            return true;
+
+        if (buildingConfig == null)
+            return false;
+
+        return BuildingConfigUtility.Matches(_tutorialAllowedBuilding, buildingConfig);
+    }
+
+    public RectTransform GetOptionRect(BuildingConfig config)
+    {
+        if (config == null)
+            return null;
+
+        for (int i = 0; i < _optionItems.Count; i++)
+        {
+            ConstructionOptionItem item = _optionItems[i];
+
+            if (item == null || item.Config == null)
+                continue;
+
+            if (BuildingConfigUtility.Matches(config, item.Config))
+                return item.RectTransform;
+        }
+
+        return null;
     }
 
     public void Hide()
     {
+        ClearState();
+    }
+
+    public void Dismiss()
+    {
+        ClearState();
+
+        if (_panelTween != null)
+            _panelTween.Hide();
+    }
+
+    private void ClearState()
+    {
         _currentSlot = null;
         _selectedConfig = null;
+        _tutorialAllowedBuilding = null;
 
         ClearOptions();
         ClearInfo();
-
-        _panelTween.Hide();
     }
 
     private void BuildOptions(IReadOnlyList<BuildingConfig> configs)
@@ -112,7 +176,7 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
                 continue;
 
             ConstructionOptionItem item = CreateItem();
-            item.Bind(config, SelectConfig);
+            item.Bind(config, SelectConfig, AllowsBuilding);
 
             _optionItems.Add(item);
         }
@@ -121,8 +185,8 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
     private ConstructionOptionItem CreateItem()
     {
         return _container.InstantiatePrefabForComponent<ConstructionOptionItem>(
-       _optionPrefab,
-       _contentRoot);
+            _optionPrefab,
+            _contentRoot);
     }
 
     private void SelectFirstAvailableConfig(IReadOnlyList<BuildingConfig> configs)
@@ -144,6 +208,9 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
 
     private void SelectConfig(BuildingConfig config)
     {
+        if (!AllowsBuilding(config))
+            return;
+
         _selectedConfig = config;
         Refresh();
     }
@@ -165,7 +232,7 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
 
         _titleText.text = _selectedConfig.DisplayName;
         _descriptionText.text = _selectedConfig.Description;
-        _buildTimeText.text = $"Строится: {_selectedConfig.BuildTime:0.#} секунд";
+        _buildTimeText.text = $"РџРѕСЃС‚СЂРѕР№РєР°: {_selectedConfig.BuildTime:0.#} СЃРµРєСѓРЅРґ";
 
         RefreshCostText();
 
@@ -176,18 +243,18 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
     {
         if (_selectedConfig == null)
         {
-            _costText.text = "Стоимость: -";
+            _costText.text = "РЎС‚РѕРёРјРѕСЃС‚СЊ: -";
             return;
         }
 
         if (_currentSlot != null && _currentSlot.IsUniqueBuildingBlocked(_selectedConfig))
         {
-            _costText.text = $"{_selectedConfig.DisplayName} уже построено";
+            _costText.text = $"{_selectedConfig.DisplayName} СѓР¶Рµ РїРѕСЃС‚СЂРѕРµРЅРѕ";
             return;
         }
 
         _costText.text =
-            $"Стоимость\n" +
+            $"РЎС‚РѕРёРјРѕСЃС‚СЊ\n" +
             $"Wood: {_resourceStorage.Wood}/{_selectedConfig.WoodCost}\n" +
             $"Gold: {_resourceStorage.Gold}/{_selectedConfig.GoldCost}";
     }
@@ -196,7 +263,7 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
     {
         string blockReason = _currentSlot != null
             ? _currentSlot.GetBuildBlockReason(_selectedConfig)
-            : "Слот не выбран";
+            : "РЎР»РѕС‚ РЅРµ РІС‹Р±СЂР°РЅ";
 
         _buildButton.interactable = string.IsNullOrEmpty(blockReason);
     }
@@ -211,6 +278,7 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
                 continue;
 
             item.SetSelected(item.Config == _selectedConfig);
+            item.RefreshInteractable();
         }
     }
 
@@ -227,15 +295,16 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
             return;
         }
 
-        Hide();
+        ConstructionStarted?.Invoke(_selectedConfig);
+        Dismiss();
     }
 
     private void ClearInfo()
     {
-        _titleText.text = "Здание не выбрано";
+        _titleText.text = "Р—РґР°РЅРёРµ РЅРµ РІС‹Р±СЂР°РЅРѕ";
         _descriptionText.text = string.Empty;
-        _buildTimeText.text = "Строится: -";
-        _costText.text = "Стоимость: -";
+        _buildTimeText.text = "РџРѕСЃС‚СЂРѕР№РєР°: -";
+        _costText.text = "РЎС‚РѕРёРјРѕСЃС‚СЊ: -";
         _previewImage.sprite = null;
         _buildButton.interactable = false;
     }

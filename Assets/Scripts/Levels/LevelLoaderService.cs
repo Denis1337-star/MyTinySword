@@ -2,9 +2,9 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Сервис загрузки уровней.
-/// Проверяет прогресс игрока, запоминает выбранный LevelConfig
-/// и грузит сцену уровня.
+/// РЎРµСЂРІРёСЃ Р·Р°РіСЂСѓР·РєРё СѓСЂРѕРІРЅРµР№.
+/// РџСЂРѕРІРµСЂСЏРµС‚ РїСЂРѕРіСЂРµСЃСЃ РёРіСЂРѕРєР°, Р·Р°РїРѕРјРёРЅР°РµС‚ РІС‹Р±СЂР°РЅРЅС‹Р№ LevelConfig
+/// Рё РіСЂСѓР·РёС‚ СЃС†РµРЅСѓ СѓСЂРѕРІРЅСЏ.
 /// </summary>
 public sealed class LevelLoaderService
 {
@@ -31,27 +31,27 @@ public sealed class LevelLoaderService
     {
         if (levelConfig == null)
         {
-            Debug.LogError("[LevelLoaderService] LevelConfig не задан.");
+            Debug.LogError("[LevelLoaderService] LevelConfig РЅРµ Р·Р°РґР°РЅ.");
             return false;
         }
 
         if (!levelConfig.IsValid())
         {
-            Debug.LogError($"[LevelLoaderService] LevelConfig некорректен: {levelConfig.name}.", levelConfig);
+            Debug.LogError($"[LevelLoaderService] LevelConfig РЅРµРєРѕСЂСЂРµРєС‚РµРЅ: {levelConfig.name}.", levelConfig);
             return false;
         }
 
         if (!CanLoadLevel(levelConfig))
         {
             Debug.LogWarning(
-                $"[LevelLoaderService] Уровень закрыт: {levelConfig.DisplayName}. " +
-                $"Нужен индекс {levelConfig.LevelIndex}, открыт до {_levelProgressService.LastUnlockedLevelIndex}.");
+                $"[LevelLoaderService] РЈСЂРѕРІРµРЅСЊ Р·Р°РєСЂС‹С‚: {levelConfig.DisplayName}. " +
+                $"РќСѓР¶РµРЅ РёРЅРґРµРєСЃ {levelConfig.LevelIndex}, РѕС‚РєСЂС‹С‚ РґРѕ {_levelProgressService.LastUnlockedLevelIndex}.");
 
             return false;
         }
 
-        // Запоминаем выбранный уровень до загрузки сцены.
-        // После загрузки Level_1 другие системы смогут узнать, какой LevelConfig активен.
+        // Р—Р°РїРѕРјРёРЅР°РµРј РІС‹Р±СЂР°РЅРЅС‹Р№ СѓСЂРѕРІРµРЅСЊ РґРѕ Р·Р°РіСЂСѓР·РєРё СЃС†РµРЅС‹.
+        // РџРѕСЃР»Рµ Р·Р°РіСЂСѓР·РєРё Level_1 РґСЂСѓРіРёРµ СЃРёСЃС‚РµРјС‹ СЃРјРѕРіСѓС‚ СѓР·РЅР°С‚СЊ, РєР°РєРѕР№ LevelConfig Р°РєС‚РёРІРµРЅ.
         _levelRuntimeService.SetCurrentLevel(levelConfig);
 
         Time.timeScale = 1f;

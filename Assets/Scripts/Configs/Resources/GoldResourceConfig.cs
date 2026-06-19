@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Конфиг золота
+/// РљРѕРЅС„РёРі Р·РѕР»РѕС‚Р°
 /// </summary>
 [CreateAssetMenu(menuName = "MyTinySword/Configs/Resources/Gold Config")]
 public sealed class GoldResourceConfig : ResourceConfig

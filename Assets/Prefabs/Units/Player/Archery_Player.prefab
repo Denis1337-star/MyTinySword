@@ -264,6 +264,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f5d94c9c3a34294ebc5e64bacecf08c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _unit: {fileID: 5449414990829867981}
 --- !u!114 &8587532437177846562
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -322,7 +323,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _health: {fileID: 2183831151812560486}
-  _soundOrigin: {fileID: 4832809711137508371}
   _damageSoundId: 200
   _deathSoundId: 201
   _playDamageSound: 1

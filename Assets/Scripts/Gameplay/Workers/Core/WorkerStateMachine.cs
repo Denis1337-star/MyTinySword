@@ -29,7 +29,7 @@ public sealed class WorkerStateMachine
     }
 
     /// <summary>
-    /// Меняет текущее состояние worker
+    /// РњРµРЅСЏРµС‚ С‚РµРєСѓС‰РµРµ СЃРѕСЃС‚РѕСЏРЅРёРµ worker
     /// </summary>
     public bool ChangeState(WorkerStateType stateType)
     {
@@ -51,7 +51,7 @@ public sealed class WorkerStateMachine
     }
 
     /// <summary>
-    /// Обновляет текущее состояние
+    /// РћР±РЅРѕРІР»СЏРµС‚ С‚РµРєСѓС‰РµРµ СЃРѕСЃС‚РѕСЏРЅРёРµ
     /// </summary>
     public void Update()
     {

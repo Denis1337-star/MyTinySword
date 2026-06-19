@@ -3,7 +3,7 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Управляет animator параметрами worker
+/// РЈРїСЂР°РІР»СЏРµС‚ animator РїР°СЂР°РјРµС‚СЂР°РјРё worker
 /// </summary>
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(UnitMovement))]
@@ -14,9 +14,9 @@ public sealed class WorkerAnimator : MonoBehaviour
     private static readonly int EquipmentHash = Animator.StringToHash("Equipment");
 
     [SerializeField] private EquipmentWorkSound[] _workSounds;
+    [SerializeField] private Animator _animator;
+    [SerializeField] private UnitMovement _movement;
 
-    private Animator _animator;
-    private UnitMovement _movement;
     private GameAudioService _audioService;
     private bool _isWorking;
     private bool _lastIsMoving;
@@ -28,19 +28,13 @@ public sealed class WorkerAnimator : MonoBehaviour
         _audioService = audioService;
     }
 
-    private void Awake()
-    {
-        _animator = GetComponent<Animator>();
-        _movement = GetComponent<UnitMovement>();
-    }
-
     private void Update()
     {
         UpdateMovingState();
     }
 
     /// <summary>
-    /// Включает или выключает рабочую анимацию
+    /// Р’РєР»СЋС‡Р°РµС‚ РёР»Рё РІС‹РєР»СЋС‡Р°РµС‚ СЂР°Р±РѕС‡СѓСЋ Р°РЅРёРјР°С†РёСЋ
     /// </summary>
     public void SetWorking(bool value)
     {
@@ -58,7 +52,7 @@ public sealed class WorkerAnimator : MonoBehaviour
     }
 
     /// <summary>
-    /// Меняет визуальный инструмент 
+    /// РњРµРЅСЏРµС‚ РІРёР·СѓР°Р»СЊРЅС‹Р№ РёРЅСЃС‚СЂСѓРјРµРЅС‚ 
     /// </summary>
     public void SetEquipment(EquipmentType equipment)
     {
@@ -70,7 +64,7 @@ public sealed class WorkerAnimator : MonoBehaviour
     }
 
     /// <summary>
-    /// Вызывается Animation Event на кадре удара/работы
+    /// Р’С‹Р·С‹РІР°РµС‚СЃСЏ Animation Event РЅР° РєР°РґСЂРµ СѓРґР°СЂР°/СЂР°Р±РѕС‚С‹
     /// </summary>
     public void PlayWorkFrameSound()
     {

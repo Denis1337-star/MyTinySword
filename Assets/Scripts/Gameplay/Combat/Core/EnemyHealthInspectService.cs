@@ -1,8 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// Отвечает за просмотр HP врагов по клику.
-/// Не выбирает врага как управляемый объект, а только включает его HP bar.
+/// РћС‚РІРµС‡Р°РµС‚ Р·Р° РїСЂРѕСЃРјРѕС‚СЂ HP РІСЂР°РіРѕРІ РїРѕ РєР»РёРєСѓ.
+/// РќРµ РІС‹Р±РёСЂР°РµС‚ РІСЂР°РіР° РєР°Рє СѓРїСЂР°РІР»СЏРµРјС‹Р№ РѕР±СЉРµРєС‚, Р° С‚РѕР»СЊРєРѕ РІРєР»СЋС‡Р°РµС‚ РµРіРѕ HP bar.
 /// </summary>
 public sealed class EnemyHealthInspectService
 {
@@ -23,13 +23,9 @@ public sealed class EnemyHealthInspectService
     {
         inspectedHealth = null;
 
-        if (_mainCamera == null)
-            return false;
-
-        Vector2 worldPosition = TouchUtility.ScreenToWorld(_mainCamera, screenPosition);
-
-        int hitCount = Physics2D.OverlapPointNonAlloc(
-            worldPosition,
+        int hitCount = Physics2DHitUtility.OverlapAtScreen(
+            _mainCamera,
+            screenPosition,
             _hitBuffer);
 
         for (int i = 0; i < hitCount; i++)
@@ -72,7 +68,7 @@ public sealed class EnemyHealthInspectService
         _currentInspectedBar.ShowInspected();
     }
 
-    private bool TryGetEnemyHealthFromHit(
+    private static bool TryGetEnemyHealthFromHit(
         Collider2D hit,
         out Health health,
         out HealthBarSpawner healthBarSpawner)
@@ -80,17 +76,17 @@ public sealed class EnemyHealthInspectService
         health = null;
         healthBarSpawner = null;
 
-        Health foundHealth = hit.GetComponentInParent<Health>();
+        Health foundHealth = hit.GetComponent<Health>();
 
         if (foundHealth == null || foundHealth.IsDead)
             return false;
 
-        FactionMember factionMember = foundHealth.GetComponentInParent<FactionMember>();
+        FactionMember factionMember = hit.GetComponent<FactionMember>();
 
         if (factionMember == null || !factionMember.IsEnemy())
             return false;
 
-        HealthBarSpawner foundSpawner = foundHealth.GetComponentInParent<HealthBarSpawner>();
+        HealthBarSpawner foundSpawner = hit.GetComponent<HealthBarSpawner>();
 
         if (foundSpawner == null)
             return false;

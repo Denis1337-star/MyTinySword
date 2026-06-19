@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Базовый конфиг боевого юнита
+/// Р‘Р°Р·РѕРІС‹Р№ РєРѕРЅС„РёРі Р±РѕРµРІРѕРіРѕ СЋРЅРёС‚Р°.
 /// </summary>
 public abstract class UnitConfig : BaseConfig
 {
@@ -64,9 +64,14 @@ public abstract class UnitConfig : BaseConfig
     public virtual string GetPreviewStatsText()
     {
         return
-            $"Здоровье: {_maxHealth}\n" +
-            $"Скорость: {_moveSpeed}\n" +
-            $"Обзор: {_visionRange}";
+            $"Р—РґРѕСЂРѕРІСЊРµ: {_maxHealth}\n" +
+            $"РЎРєРѕСЂРѕСЃС‚СЊ: {_moveSpeed}\n" +
+            $"РћР±Р·РѕСЂ: {_visionRange}";
+    }
+
+    protected static string FormatAttackStats(int damage, float attackRange)
+    {
+        return $"РЈСЂРѕРЅ: {damage}\nР”РёСЃС‚Р°РЅС†РёСЏ Р°С‚Р°РєРё: {attackRange}\n";
     }
 
     protected virtual void OnValidate()

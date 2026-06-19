@@ -3,8 +3,8 @@ using UnityEngine;
 using YG;
 
 /// <summary>
-/// Сервис постоянного прогресса уровней
-/// Отвечает за отметку пройденных уровней и открытие следующих
+/// РЎРµСЂРІРёСЃ РїРѕСЃС‚РѕСЏРЅРЅРѕРіРѕ РїСЂРѕРіСЂРµСЃСЃР° СѓСЂРѕРІРЅРµР№
+/// РћС‚РІРµС‡Р°РµС‚ Р·Р° РѕС‚РјРµС‚РєСѓ РїСЂРѕР№РґРµРЅРЅС‹С… СѓСЂРѕРІРЅРµР№ Рё РѕС‚РєСЂС‹С‚РёРµ СЃР»РµРґСѓСЋС‰РёС…
 /// </summary>
 public sealed class LevelProgressService
 {
@@ -32,13 +32,13 @@ public sealed class LevelProgressService
     {
         if (string.IsNullOrWhiteSpace(levelId))
         {
-            Debug.LogError("[LevelProgressService] Level Id пустой. Прогресс не сохранён.");
+            Debug.LogError("[LevelProgressService] Level Id РїСѓСЃС‚РѕР№. РџСЂРѕРіСЂРµСЃСЃ РЅРµ СЃРѕС…СЂР°РЅС‘РЅ.");
             return;
         }
 
         if (levelIndex < FirstLevelIndex)
         {
-            Debug.LogError($"[LevelProgressService] Некорректный индекс уровня: {levelIndex}.");
+            Debug.LogError($"[LevelProgressService] РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ РёРЅРґРµРєСЃ СѓСЂРѕРІРЅСЏ: {levelIndex}.");
             return;
         }
 
@@ -54,11 +54,11 @@ public sealed class LevelProgressService
         if (nextLevelIndex > YG2.saves.lastUnlockedLevelIndex)
             YG2.saves.lastUnlockedLevelIndex = nextLevelIndex;
 
-        YG2.SaveProgress();
+        YandexSaveUtility.SaveProgress();
 
         Debug.Log(
-            $"[LevelProgressService] Уровень сохранён как пройденный: {levelId}. " +
-            $"Открыт уровень: {YG2.saves.lastUnlockedLevelIndex}.");
+            $"[LevelProgressService] РЈСЂРѕРІРµРЅСЊ СЃРѕС…СЂР°РЅС‘РЅ РєР°Рє РїСЂРѕР№РґРµРЅРЅС‹Р№: {levelId}. " +
+            $"РћС‚РєСЂС‹С‚ СѓСЂРѕРІРµРЅСЊ: {YG2.saves.lastUnlockedLevelIndex}.");
     }
 
     public bool IsLevelCompleted(string levelId)
@@ -87,8 +87,8 @@ public sealed class LevelProgressService
         YG2.saves.totalVictories = 0;
         YG2.saves.completedLevelIds ??= new List<string>();
 
-        YG2.SaveProgress();
+        YandexSaveUtility.SaveProgress();
 
-        Debug.Log("[LevelProgressService] Прогресс уровней инициализирован.");
+        Debug.Log("[LevelProgressService] РџСЂРѕРіСЂРµСЃСЃ СѓСЂРѕРІРЅРµР№ РёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°РЅ.");
     }
 }

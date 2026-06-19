@@ -1,5 +1,5 @@
 /// <summary>
-/// Локализация названий профессий worker для UI
+/// Р›РѕРєР°Р»РёР·Р°С†РёСЏ РЅР°Р·РІР°РЅРёР№ РїСЂРѕС„РµСЃСЃРёР№ worker РґР»СЏ UI
 /// </summary>
 public static class WorkerJobLocalization
 {
@@ -7,11 +7,11 @@ public static class WorkerJobLocalization
     {
         return jobType switch
         {
-            WorkerJobType.None => "Без работы",
-            WorkerJobType.ChopWood => "Рубка дерева",
-            WorkerJobType.MineGold => "Добыча золота",
-            WorkerJobType.HuntMeat => "Охота",
-            _ => "Неизвестно"
+            WorkerJobType.None => "Р‘РµР· СЂР°Р±РѕС‚С‹",
+            WorkerJobType.ChopWood => "Р СѓР±РєР° РґРµСЂРµРІР°",
+            WorkerJobType.MineGold => "Р”РѕР±С‹С‡Р° Р·РѕР»РѕС‚Р°",
+            WorkerJobType.HuntMeat => "РћС…РѕС‚Р°",
+            _ => "РќРµРёР·РІРµСЃС‚РЅРѕ"
         };
     }
 }

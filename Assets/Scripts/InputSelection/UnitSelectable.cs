@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Компонент визуального выделения объекта
+/// РљРѕРјРїРѕРЅРµРЅС‚ РІРёР·СѓР°Р»СЊРЅРѕРіРѕ РІС‹РґРµР»РµРЅРёСЏ РѕР±СЉРµРєС‚Р°
 /// </summary>
 public sealed class UnitSelectable : ValidatedMonoBehaviour
 {

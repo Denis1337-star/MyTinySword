@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Летит к цели и при попадании наносит урон
+/// Р›РµС‚РёС‚ Рє С†РµР»Рё Рё РїСЂРё РїРѕРїР°РґР°РЅРёРё РЅР°РЅРѕСЃРёС‚ СѓСЂРѕРЅ
 /// </summary>
 public sealed class ProjectileArrow : MonoBehaviour
 {

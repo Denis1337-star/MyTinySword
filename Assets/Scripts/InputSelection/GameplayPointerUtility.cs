@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 /// <summary>
-/// Общая утилита для gameplay pointer input
+/// РћР±С‰Р°СЏ СѓС‚РёР»РёС‚Р° РґР»СЏ gameplay pointer input
 /// </summary>
 public static class GameplayPointerUtility
 {

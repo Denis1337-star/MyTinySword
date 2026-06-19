@@ -2,7 +2,7 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Проигрывает world звуки урона и смерти для объекта с Health
+/// РџСЂРѕРёРіСЂС‹РІР°РµС‚ world Р·РІСѓРєРё СѓСЂРѕРЅР° Рё СЃРјРµСЂС‚Рё РґР»СЏ РѕР±СЉРµРєС‚Р° СЃ Health
 /// </summary>
 public sealed class HealthAudioFeedback : ValidatedMonoBehaviour
 {
@@ -17,7 +17,7 @@ public sealed class HealthAudioFeedback : ValidatedMonoBehaviour
     [SerializeField] private bool _playDamageSound = true;
     [SerializeField] private bool _playDeathSound = true;
 
-    [Tooltip("Минимальная пауза между звуками урона")]
+    [Tooltip("РњРёРЅРёРјР°Р»СЊРЅР°СЏ РїР°СѓР·Р° РјРµР¶РґСѓ Р·РІСѓРєР°РјРё СѓСЂРѕРЅР°")]
     [SerializeField, Min(0f)] private float _damageSoundCooldown = 0.08f;
 
     private GameAudioService _audioService;

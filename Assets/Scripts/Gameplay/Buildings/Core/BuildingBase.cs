@@ -2,8 +2,8 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Базовый класс для всех зданий.
-/// Отвечает за конфиг, здоровье, фракцию, выбор, снос и разрушение здания.
+/// Р‘Р°Р·РѕРІС‹Р№ РєР»Р°СЃСЃ РґР»СЏ РІСЃРµС… Р·РґР°РЅРёР№.
+/// РћС‚РІРµС‡Р°РµС‚ Р·Р° РєРѕРЅС„РёРі, Р·РґРѕСЂРѕРІСЊРµ, С„СЂР°РєС†РёСЋ, РІС‹Р±РѕСЂ, СЃРЅРѕСЃ Рё СЂР°Р·СЂСѓС€РµРЅРёРµ Р·РґР°РЅРёСЏ.
 /// </summary>
 [RequireComponent(typeof(FactionMember))]
 [RequireComponent(typeof(UnitSelectable))]
@@ -35,8 +35,8 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
     public FactionType Faction => factionMember.Faction;
 
     /// <summary>
-    /// Можно ли снести это здание через UI-кнопку.
-    /// Не влияет на уничтожение здания юнитами через Health.
+    /// РњРѕР¶РЅРѕ Р»Рё СЃРЅРµСЃС‚Рё СЌС‚Рѕ Р·РґР°РЅРёРµ С‡РµСЂРµР· UI-РєРЅРѕРїРєСѓ.
+    /// РќРµ РІР»РёСЏРµС‚ РЅР° СѓРЅРёС‡С‚РѕР¶РµРЅРёРµ Р·РґР°РЅРёСЏ СЋРЅРёС‚Р°РјРё С‡РµСЂРµР· Health.
     /// </summary>
     public bool CanBeDemolishedByButton => _canBeDemolishedByButton;
 
@@ -81,7 +81,7 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
 
         if (config != null && !config.IsValid())
         {
-            Debug.LogError($"{name}: BuildingConfig настроен некорректно.", this);
+            Debug.LogError($"{name}: BuildingConfig РЅР°СЃС‚СЂРѕРµРЅ РЅРµРєРѕСЂСЂРµРєС‚РЅРѕ.", this);
             valid = false;
         }
 
@@ -94,9 +94,9 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
     }
 
     /// <summary>
-    /// Сносит здание напрямую.
-    /// Используется внутренней логикой здания.
-    /// Для UI-кнопки лучше использовать TryDemolishByButton().
+    /// РЎРЅРѕСЃРёС‚ Р·РґР°РЅРёРµ РЅР°РїСЂСЏРјСѓСЋ.
+    /// РСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РІРЅСѓС‚СЂРµРЅРЅРµР№ Р»РѕРіРёРєРѕР№ Р·РґР°РЅРёСЏ.
+    /// Р”Р»СЏ UI-РєРЅРѕРїРєРё Р»СѓС‡С€Рµ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ TryDemolishByButton().
     /// </summary>
     public void Demolish()
     {
@@ -105,14 +105,14 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
     }
 
     /// <summary>
-    /// Пытается снести здание через UI-кнопку.
-    /// Если здание защищено от ручного сноса, ничего не делает.
+    /// РџС‹С‚Р°РµС‚СЃСЏ СЃРЅРµСЃС‚Рё Р·РґР°РЅРёРµ С‡РµСЂРµР· UI-РєРЅРѕРїРєСѓ.
+    /// Р•СЃР»Рё Р·РґР°РЅРёРµ Р·Р°С‰РёС‰РµРЅРѕ РѕС‚ СЂСѓС‡РЅРѕРіРѕ СЃРЅРѕСЃР°, РЅРёС‡РµРіРѕ РЅРµ РґРµР»Р°РµС‚.
     /// </summary>
     public bool TryDemolishByButton()
     {
         if (!_canBeDemolishedByButton)
         {
-            Debug.LogWarning($"{name}: это здание нельзя снести кнопкой.", this);
+            Debug.LogWarning($"{name}: СЌС‚Рѕ Р·РґР°РЅРёРµ РЅРµР»СЊР·СЏ СЃРЅРµСЃС‚Рё РєРЅРѕРїРєРѕР№.", this);
             return false;
         }
 

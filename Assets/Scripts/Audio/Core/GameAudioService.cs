@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Главный сервис звука
+/// Р“Р»Р°РІРЅС‹Р№ СЃРµСЂРІРёСЃ Р·РІСѓРєР°
 /// </summary>
 public sealed class GameAudioService : ValidatedMonoBehaviour
 {
@@ -107,7 +107,7 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
     }
 
     /// <summary>
-    /// Меняет громкость музыки
+    /// РњРµРЅСЏРµС‚ РіСЂРѕРјРєРѕСЃС‚СЊ РјСѓР·С‹РєРё
     /// </summary>
     public void SetMusicVolume(float volume)
     {
@@ -129,7 +129,7 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
     }
 
     /// <summary>
-    /// Меняет громкость SFX
+    /// РњРµРЅСЏРµС‚ РіСЂРѕРјРєРѕСЃС‚СЊ SFX
     /// </summary>
     public void SetSfxVolume(float volume)
     {
@@ -151,7 +151,7 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
     }
 
     /// <summary>
-    /// Включает или выключает mute музыки
+    /// Р’РєР»СЋС‡Р°РµС‚ РёР»Рё РІС‹РєР»СЋС‡Р°РµС‚ mute РјСѓР·С‹РєРё
     /// </summary>
     public void SetMusicMuted(bool muted)
     {
@@ -176,7 +176,7 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
     }
 
     /// <summary>
-    /// Включает или выключает mute SFX
+    /// Р’РєР»СЋС‡Р°РµС‚ РёР»Рё РІС‹РєР»СЋС‡Р°РµС‚ mute SFX
     /// </summary>
     public void SetSfxMuted(bool muted)
     {
@@ -201,7 +201,7 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
     }
 
     /// <summary>
-    /// Проигрывает UI звук
+    /// РџСЂРѕРёРіСЂС‹РІР°РµС‚ UI Р·РІСѓРє
     /// </summary>
     public void PlayUiSound(SoundId id)
     {
@@ -223,7 +223,7 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
     }
 
     /// <summary>
-    /// Проигрывает world звук в указанной 2D позиции
+    /// РџСЂРѕРёРіСЂС‹РІР°РµС‚ world Р·РІСѓРє РІ СѓРєР°Р·Р°РЅРЅРѕР№ 2D РїРѕР·РёС†РёРё
     /// </summary>
     public void PlayWorldSound(SoundId id, Vector2 worldPosition)
     {
@@ -231,7 +231,7 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
     }
 
     /// <summary>
-    /// Проигрывает world звук в указанной позиции
+    /// РџСЂРѕРёРіСЂС‹РІР°РµС‚ world Р·РІСѓРє РІ СѓРєР°Р·Р°РЅРЅРѕР№ РїРѕР·РёС†РёРё
     /// </summary>
     public void PlayWorldSound(SoundId id, Vector3 worldPosition)
     {
@@ -263,14 +263,14 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
         source.volume = entry.Volume;
         source.pitch = entry.GetPitch();
 
-        // PlayOneShot не требует Stop(), поэтому мы не обрываем звук резко.
+        // PlayOneShot РЅРµ С‚СЂРµР±СѓРµС‚ Stop(), РїРѕСЌС‚РѕРјСѓ РјС‹ РЅРµ РѕР±СЂС‹РІР°РµРј Р·РІСѓРє СЂРµР·РєРѕ.
         source.PlayOneShot(clip, entry.Volume);
 
         RegisterWorldSound(id, soundPosition);
     }
 
     /// <summary>
-    /// Включает музыку для указанной сцены
+    /// Р’РєР»СЋС‡Р°РµС‚ РјСѓР·С‹РєСѓ РґР»СЏ СѓРєР°Р·Р°РЅРЅРѕР№ СЃС†РµРЅС‹
     /// </summary>
     public void PlayMusicForScene(string sceneName)
     {
@@ -300,7 +300,7 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
     }
 
     /// <summary>
-    /// Останавливает текущую музыку
+    /// РћСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ С‚РµРєСѓС‰СѓСЋ РјСѓР·С‹РєСѓ
     /// </summary>
     public void StopMusic()
     {
@@ -419,8 +419,8 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
             return source;
         }
 
-        // Если все источники заняты, лучше пропустить новый звук,
-        // чем резко оборвать старый и получить щелчок/скрежет.
+        // Р•СЃР»Рё РІСЃРµ РёСЃС‚РѕС‡РЅРёРєРё Р·Р°РЅСЏС‚С‹, Р»СѓС‡С€Рµ РїСЂРѕРїСѓСЃС‚РёС‚СЊ РЅРѕРІС‹Р№ Р·РІСѓРє,
+        // С‡РµРј СЂРµР·РєРѕ РѕР±РѕСЂРІР°С‚СЊ СЃС‚Р°СЂС‹Р№ Рё РїРѕР»СѓС‡РёС‚СЊ С‰РµР»С‡РѕРє/СЃРєСЂРµР¶РµС‚.
         return null;
     }
     private bool CanPlayWorldSoundNow(SoundId soundId, Vector3 position)

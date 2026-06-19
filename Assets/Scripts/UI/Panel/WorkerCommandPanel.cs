@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// UI панель выбранного worker
+/// UI РїР°РЅРµР»СЊ РІС‹Р±СЂР°РЅРЅРѕРіРѕ worker
 /// </summary>
 public sealed class WorkerCommandPanel : ValidatedMonoBehaviour
 {
@@ -14,13 +14,11 @@ public sealed class WorkerCommandPanel : ValidatedMonoBehaviour
     [SerializeField] private Button _huntMeatButton;
     [SerializeField] private SimplePanelTween _panelTween;
 
-    private Worker _currentWorker;
-    private Worker _subscribedWorker;
+    private readonly EntityEventSubscription<Worker> _workerEvents = new();
 
-    protected override void Awake()
-    {
-        base.Awake();
-    }
+    private Worker _currentWorker;
+
+    public SimplePanelTween PanelTween => _panelTween;
 
     protected override bool ValidateInternal()
     {
@@ -38,14 +36,14 @@ public sealed class WorkerCommandPanel : ValidatedMonoBehaviour
     private void OnEnable()
     {
         SubscribeButtons();
-        SubscribeToCurrentWorker();
+        BindCurrentWorkerEvents();
         Refresh();
     }
 
     private void OnDisable()
     {
         UnsubscribeButtons();
-        UnsubscribeFromCurrentWorker();
+        ClearWorkerSubscription();
     }
 
     public void ShowForWorker(Worker worker)
@@ -56,30 +54,30 @@ public sealed class WorkerCommandPanel : ValidatedMonoBehaviour
             return;
         }
 
-        if (_currentWorker != worker)
+        if (_workerEvents.IsBoundTo(worker))
         {
-            UnsubscribeFromCurrentWorker();
-            _currentWorker = worker;
-
-            if (gameObject.activeInHierarchy)
-                SubscribeToCurrentWorker();
+            Refresh();
+            return;
         }
 
-        _panelTween.Show();
+        ClearWorkerSubscription();
+
+        _currentWorker = worker;
+
+        if (gameObject.activeInHierarchy)
+            BindCurrentWorkerEvents();
 
         Refresh();
     }
 
     public void Hide()
     {
-        UnsubscribeFromCurrentWorker();
+        ClearWorkerSubscription();
 
         _currentWorker = null;
 
         ClearText();
         RefreshButtons();
-
-        _panelTween.Hide();
     }
 
     private void OnChopWoodClicked()
@@ -116,11 +114,11 @@ public sealed class WorkerCommandPanel : ValidatedMonoBehaviour
         }
 
         _currentJobText.text =
-            $"Текущая работа: {WorkerJobLocalization.GetName(_currentWorker.CurrentJob)}";
+            $"РўРµРєСѓС‰Р°СЏ СЂР°Р±РѕС‚Р°: {WorkerJobLocalization.GetName(_currentWorker.CurrentJob)}";
 
         _pendingJobText.text = _currentWorker.HasPendingJob
-            ? $"Следующая работа: {WorkerJobLocalization.GetName(_currentWorker.PendingJob)}"
-            : "Следующая работа: нет";
+            ? $"РЎР»РµРґСѓСЋС‰Р°СЏ СЂР°Р±РѕС‚Р°: {WorkerJobLocalization.GetName(_currentWorker.PendingJob)}"
+            : "РЎР»РµРґСѓСЋС‰Р°СЏ СЂР°Р±РѕС‚Р°: РЅРµС‚";
 
         RefreshButtons();
     }
@@ -148,8 +146,8 @@ public sealed class WorkerCommandPanel : ValidatedMonoBehaviour
 
     private void ClearText()
     {
-        _currentJobText.text = "Текущая работа: нет";
-        _pendingJobText.text = "Следующая работа: нет";
+        _currentJobText.text = "РўРµРєСѓС‰Р°СЏ СЂР°Р±РѕС‚Р°: РЅРµС‚";
+        _pendingJobText.text = "РЎР»РµРґСѓСЋС‰Р°СЏ СЂР°Р±РѕС‚Р°: РЅРµС‚";
     }
 
     private void SubscribeButtons()
@@ -166,28 +164,28 @@ public sealed class WorkerCommandPanel : ValidatedMonoBehaviour
         _huntMeatButton.onClick.RemoveListener(OnHuntMeatClicked);
     }
 
-    private void SubscribeToCurrentWorker()
+    private void BindCurrentWorkerEvents()
     {
-        if (_currentWorker == null)
-            return;
-
-        if (_subscribedWorker == _currentWorker)
-            return;
-
-        _currentWorker.OnJobChanged += Refresh;
-        _currentWorker.OnActivityChanged += Refresh;
-
-        _subscribedWorker = _currentWorker;
+        _workerEvents.Bind(
+            _currentWorker,
+            w =>
+            {
+                w.OnJobChanged += Refresh;
+                w.OnActivityChanged += Refresh;
+            },
+            w =>
+            {
+                w.OnJobChanged -= Refresh;
+                w.OnActivityChanged -= Refresh;
+            });
     }
 
-    private void UnsubscribeFromCurrentWorker()
+    private void ClearWorkerSubscription()
     {
-        if (_subscribedWorker == null)
-            return;
-
-        _subscribedWorker.OnJobChanged -= Refresh;
-        _subscribedWorker.OnActivityChanged -= Refresh;
-
-        _subscribedWorker = null;
+        _workerEvents.Clear(w =>
+        {
+            w.OnJobChanged -= Refresh;
+            w.OnActivityChanged -= Refresh;
+        });
     }
 }

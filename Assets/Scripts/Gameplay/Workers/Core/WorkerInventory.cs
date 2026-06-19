@@ -1,5 +1,5 @@
 /// <summary>
-/// Инвентарь worker для переносимого ресурса
+/// РРЅРІРµРЅС‚Р°СЂСЊ worker РґР»СЏ РїРµСЂРµРЅРѕСЃРёРјРѕРіРѕ СЂРµСЃСѓСЂСЃР°
 /// </summary>
 public sealed class WorkerInventory
 {

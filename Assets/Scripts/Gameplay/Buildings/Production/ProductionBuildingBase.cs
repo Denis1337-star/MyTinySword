@@ -5,7 +5,7 @@ using UnityEngine.AI;
 using Zenject;
 
 /// <summary>
-/// Базовый класс производственного здания
+/// Р‘Р°Р·РѕРІС‹Р№ РєР»Р°СЃСЃ РїСЂРѕРёР·РІРѕРґСЃС‚РІРµРЅРЅРѕРіРѕ Р·РґР°РЅРёСЏ
 /// </summary>
 public abstract class ProductionBuildingBase : BuildingBase
 {
@@ -60,7 +60,7 @@ public abstract class ProductionBuildingBase : BuildingBase
 
         if (_unitConfig != null && !_unitConfig.IsValid())
         {
-            Debug.LogError($"{name}: UnitConfig настроен некорректно.", this);
+            Debug.LogError($"{name}: UnitConfig РЅР°СЃС‚СЂРѕРµРЅ РЅРµРєРѕСЂСЂРµРєС‚РЅРѕ.", this);
             valid = false;
         }
 
@@ -75,13 +75,13 @@ public abstract class ProductionBuildingBase : BuildingBase
     public string GetHireBlockReason()
     {
         if (_queueCount >= _maxQueue)
-            return "Очередь заполнена";
+            return "РћС‡РµСЂРµРґСЊ Р·Р°РїРѕР»РЅРµРЅР°";
 
         if (!_armyUnitRegistry.HasFreePlayerSlot())
-            return "Достигнут лимит армии";
+            return "Р”РѕСЃС‚РёРіРЅСѓС‚ Р»РёРјРёС‚ Р°СЂРјРёРё";
 
         if (!_resourceStorage.HasResources(_unitConfig.WoodCost, 0, _unitConfig.MeatCost))
-            return "Не хватает ресурсов";
+            return "РќРµ С…РІР°С‚Р°РµС‚ СЂРµСЃСѓСЂСЃРѕРІ";
 
         return string.Empty;
     }
@@ -159,7 +159,7 @@ public abstract class ProductionBuildingBase : BuildingBase
 
         if (armyUnit == null)
         {
-            Debug.LogError($"{name}: созданный prefab не содержит ArmyUnit.", spawnedObject);
+            Debug.LogError($"{name}: СЃРѕР·РґР°РЅРЅС‹Р№ prefab РЅРµ СЃРѕРґРµСЂР¶РёС‚ ArmyUnit.", spawnedObject);
             Destroy(spawnedObject);
             return false;
         }
@@ -167,7 +167,7 @@ public abstract class ProductionBuildingBase : BuildingBase
         if (!armyUnit.IsPlayerUnit())
         {
             Debug.LogWarning(
-                $"{name}: здание производства создало юнита не с Player-фракцией. Проверь FactionMember на prefab.",
+                $"{name}: Р·РґР°РЅРёРµ РїСЂРѕРёР·РІРѕРґСЃС‚РІР° СЃРѕР·РґР°Р»Рѕ СЋРЅРёС‚Р° РЅРµ СЃ Player-С„СЂР°РєС†РёРµР№. РџСЂРѕРІРµСЂСЊ FactionMember РЅР° prefab.",
                 spawnedObject);
 
             Destroy(spawnedObject);

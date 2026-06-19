@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using Zenject;
 
@@ -11,15 +11,18 @@ using Zenject;
 public sealed class Worker : ValidatedMonoBehaviour
 {
     [SerializeField] private WorkerConfig _config;
+    [SerializeField] private UnitMovement _movement;
+    [SerializeField] private WorkerAnimator _animator;
+    [SerializeField] private WorkerBrain _brain;
 
     private WorkerRegistry _workerRegistry;
     private ResourceStorage _resourceStorage;
 
     public WorkerStateMachine StateMachine { get; private set; }
-    public UnitMovement Movement { get; private set; }
-    public WorkerAnimator Animator { get; private set; }
+    public UnitMovement Movement => _movement;
+    public WorkerAnimator Animator => _animator;
     public WorkerInventory Inventory { get; private set; }
-    public WorkerBrain Brain { get; private set; }
+    public WorkerBrain Brain => _brain;
 
     public House Home { get; private set; }
 
@@ -50,10 +53,7 @@ public sealed class Worker : ValidatedMonoBehaviour
 
     protected override void Awake()
     {
-        Movement = GetComponent<UnitMovement>();
-        Animator = GetComponent<WorkerAnimator>();
         Inventory = new WorkerInventory();
-        Brain = GetComponent<WorkerBrain>();
 
         StateMachine = new WorkerStateMachine(this);
         StateMachine.StateChanged += HandleStateChanged;
@@ -68,6 +68,9 @@ public sealed class Worker : ValidatedMonoBehaviour
         bool valid = true;
 
         valid &= ValidationUtility.IsAssigned(this, _config, nameof(_config));
+        valid &= ValidationUtility.IsAssigned(this, _movement, nameof(_movement));
+        valid &= ValidationUtility.IsAssigned(this, _animator, nameof(_animator));
+        valid &= ValidationUtility.IsAssigned(this, _brain, nameof(_brain));
 
         if (_config != null && !_config.IsValid())
         {
@@ -174,14 +177,15 @@ public sealed class Worker : ValidatedMonoBehaviour
         _resourceStorage.AddResource(resourceType, amount);
     }
 
-    public bool HasValidResourceAssignmentForMove()
+    public void ResetToIdle()
     {
-        return WorkerResourceSelector.HasValidAssignmentForMove(this);
+        ClearCurrentAssignment();
+        StateMachine.ChangeState(WorkerStateType.Idle);
     }
 
-    public bool HasValidResourceAssignmentForWork()
+    public bool HasValidResourceAssignment()
     {
-        return WorkerResourceSelector.HasValidAssignmentForWork(this);
+        return WorkerResourceSelector.HasValidAssignment(this);
     }
 
     public float GetReachResourceDistance()

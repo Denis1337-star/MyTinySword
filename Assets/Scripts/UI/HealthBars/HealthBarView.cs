@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// UI представление полоски здоровья над world объектом
+/// UI РїСЂРµРґСЃС‚Р°РІР»РµРЅРёРµ РїРѕР»РѕСЃРєРё Р·РґРѕСЂРѕРІСЊСЏ РЅР°Рґ world РѕР±СЉРµРєС‚РѕРј
 /// </summary>
 public sealed class HealthBarView : ValidatedMonoBehaviour
 {

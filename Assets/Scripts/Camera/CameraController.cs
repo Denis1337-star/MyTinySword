@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 /// <summary>
-/// Управляет ручным перемещением и zoom камеры
+/// РЈРїСЂР°РІР»РµРЅРёРµ РєР°РјРµСЂРѕР№: РїРµСЂРµРјРµС‰РµРЅРёРµ Рё zoom РјС‹С€Рё.
 /// </summary>
 public sealed class CameraController : ValidatedMonoBehaviour
 {
@@ -30,8 +30,17 @@ public sealed class CameraController : ValidatedMonoBehaviour
     private bool _hasMousePress;
     private bool _isMouseDragActive;
     private bool _mousePressStartedOverUi;
+    private bool _inputEnabled = true;
 
     public bool IsDragging { get; private set; }
+
+    public void SetInputEnabled(bool enabled)
+    {
+        _inputEnabled = enabled;
+
+        if (!enabled)
+            ResetMouseDragState();
+    }
 
     protected override void Awake()
     {
@@ -66,6 +75,9 @@ public sealed class CameraController : ValidatedMonoBehaviour
 
     private void HandleInput()
     {
+        if (!_inputEnabled)
+            return;
+
         IsDragging = false;
 
         if (Touch.activeTouches.Count > 0)

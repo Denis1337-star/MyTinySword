@@ -4,45 +4,45 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 
 /// <summary>
-/// утилита для проверки обязательных ссылок 
+/// СѓС‚РёР»РёС‚Р° РґР»СЏ РїСЂРѕРІРµСЂРєРё РѕР±СЏР·Р°С‚РµР»СЊРЅС‹С… СЃСЃС‹Р»РѕРє 
 /// </summary>
 public static class ValidationUtility
 {
     private const string UnknownOwnerName = "Unknown Owner";
 
     /// <summary>
-    /// проверяет что обязательная ссылка назначена
+    /// РїСЂРѕРІРµСЂСЏРµС‚ С‡С‚Рѕ РѕР±СЏР·Р°С‚РµР»СЊРЅР°СЏ СЃСЃС‹Р»РєР° РЅР°Р·РЅР°С‡РµРЅР°
     /// </summary>
     public static bool IsAssigned(Object owner, Object value, string fieldName)
     {
         if (value != null)
             return true;
 
-        LogError(owner, fieldName, "не назначено");
+        LogError(owner, fieldName, "РЅРµ РЅР°Р·РЅР°С‡РµРЅРѕ");
         return false;
     }
 
     /// <summary>
-    /// проверяет что массив существует и содержит хотя бы один элемент
+    /// РїСЂРѕРІРµСЂСЏРµС‚ С‡С‚Рѕ РјР°СЃСЃРёРІ СЃСѓС‰РµСЃС‚РІСѓРµС‚ Рё СЃРѕРґРµСЂР¶РёС‚ С…РѕС‚СЏ Р±С‹ РѕРґРёРЅ СЌР»РµРјРµРЅС‚
     /// </summary>
     public static bool NotEmptyArray<T>(Object owner, T[] array, string fieldName)
     {
         if (array != null && array.Length > 0)
             return true;
 
-        LogError(owner, fieldName, "массив пустой или не назначен");
+        LogError(owner, fieldName, "РјР°СЃСЃРёРІ РїСѓСЃС‚РѕР№ РёР»Рё РЅРµ РЅР°Р·РЅР°С‡РµРЅ");
         return false;
     }
 
     /// <summary>
-    /// проверяет что список существует и содержит хотя бы один элемент
+    /// РїСЂРѕРІРµСЂСЏРµС‚ С‡С‚Рѕ СЃРїРёСЃРѕРє СЃСѓС‰РµСЃС‚РІСѓРµС‚ Рё СЃРѕРґРµСЂР¶РёС‚ С…РѕС‚СЏ Р±С‹ РѕРґРёРЅ СЌР»РµРјРµРЅС‚
     /// </summary>
     public static bool NotEmptyList<T>(Object owner, IReadOnlyList<T> list, string fieldName)
     {
         if (list != null && list.Count > 0)
             return true;
 
-        LogError(owner, fieldName, "список пустой или не назначен");
+        LogError(owner, fieldName, "СЃРїРёСЃРѕРє РїСѓСЃС‚РѕР№ РёР»Рё РЅРµ РЅР°Р·РЅР°С‡РµРЅ");
         return false;
     }
 
@@ -52,6 +52,6 @@ public static class ValidationUtility
             ? owner.name
             : UnknownOwnerName;
 
-        Debug.LogError($"{ownerName}: обязательное поле \"{fieldName}\" {reason}.", owner);
+        Debug.LogError($"{ownerName}: РѕР±СЏР·Р°С‚РµР»СЊРЅРѕРµ РїРѕР»Рµ \"{fieldName}\" {reason}.", owner);
     }
 }

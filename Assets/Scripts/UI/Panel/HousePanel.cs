@@ -5,14 +5,13 @@ using UnityEngine.UI;
 using Zenject;
 
 /// <summary>
-/// UI панель дома.
-/// Показывает рабочих, стоимость найма, кнопку найма и кнопку ручного сноса,
-/// если конкретный дом разрешено снести через кнопку.
+/// UI-РїР°РЅРµР»СЊ РґРѕРјР°: СЂР°Р±РѕС‡РёРµ, СЃС‚РѕРёРјРѕСЃС‚СЊ РЅР°Р№РјР°, РєРЅРѕРїРєРё РЅР°Р·РЅР°С‡РµРЅРёСЏ.
 /// </summary>
 public sealed class HousePanel : ValidatedMonoBehaviour
 {
     [Header("Root")]
     [SerializeField] private GameObject _root;
+    [SerializeField] private SimplePanelTween _panelTween;
 
     [Header("Info")]
     [SerializeField] private TMP_Text _workersLimitText;
@@ -21,54 +20,63 @@ public sealed class HousePanel : ValidatedMonoBehaviour
     [Header("Actions")]
     [SerializeField] private Button _hireButton;
     [SerializeField] private Button _demolishButton;
-    [SerializeField] private GameObject _demolishButtonRoot;
 
     [Header("Assign All Workers")]
     [SerializeField] private Button _assignAllWoodButton;
     [SerializeField] private Button _assignAllGoldButton;
     [SerializeField] private Button _assignAllMeatButton;
 
+    private readonly EntityEventSubscription<House> _houseEvents = new();
+
     private House _currentHouse;
     private WorkerListPanel _workerListPanel;
-    private SelectionSystem _selectionSystem;
+    private BuildingDemolishService _buildingDemolishService;
 
     public event Action<WorkerJobType> AllWorkersJobAssigned;
+
+    public RectTransform AssignAllWoodButtonRect => _assignAllWoodButton != null
+        ? _assignAllWoodButton.transform as RectTransform
+        : null;
+
+    public RectTransform AssignAllGoldButtonRect => _assignAllGoldButton != null
+        ? _assignAllGoldButton.transform as RectTransform
+        : null;
+
+    public RectTransform AssignAllMeatButtonRect => _assignAllMeatButton != null
+        ? _assignAllMeatButton.transform as RectTransform
+        : null;
+
+    public SimplePanelTween PanelTween => _panelTween;
 
     [Inject]
     private void Construct(
         WorkerListPanel workerListPanel,
-        SelectionSystem selectionSystem)
+        BuildingDemolishService buildingDemolishService)
     {
         _workerListPanel = workerListPanel;
-        _selectionSystem = selectionSystem;
-    }
-
-    protected override void Awake()
-    {
-        base.Awake();
+        _buildingDemolishService = buildingDemolishService;
     }
 
     private void OnEnable()
     {
         _hireButton.onClick.AddListener(HireWorker);
-        _demolishButton.onClick.AddListener(DemolishHouse);
+        _demolishButton.onClick.AddListener(RequestDemolishHouse);
 
         _assignAllWoodButton.onClick.AddListener(AssignAllToWood);
         _assignAllGoldButton.onClick.AddListener(AssignAllToGold);
         _assignAllMeatButton.onClick.AddListener(AssignAllToMeat);
-
     }
 
     private void OnDisable()
     {
         _hireButton.onClick.RemoveListener(HireWorker);
-        _demolishButton.onClick.RemoveListener(DemolishHouse);
+        _demolishButton.onClick.RemoveListener(RequestDemolishHouse);
 
         _assignAllWoodButton.onClick.RemoveListener(AssignAllToWood);
         _assignAllGoldButton.onClick.RemoveListener(AssignAllToGold);
         _assignAllMeatButton.onClick.RemoveListener(AssignAllToMeat);
 
-        UnsubscribeFromHouse();
+        ClearHouseSubscription();
     }
 
     protected override bool ValidateInternal()
@@ -76,11 +84,11 @@ public sealed class HousePanel : ValidatedMonoBehaviour
         bool valid = true;
 
         valid &= ValidationUtility.IsAssigned(this, _root, nameof(_root));
+        valid &= ValidationUtility.IsAssigned(this, _panelTween, nameof(_panelTween));
         valid &= ValidationUtility.IsAssigned(this, _workersLimitText, nameof(_workersLimitText));
         valid &= ValidationUtility.IsAssigned(this, _hireCostText, nameof(_hireCostText));
         valid &= ValidationUtility.IsAssigned(this, _hireButton, nameof(_hireButton));
         valid &= ValidationUtility.IsAssigned(this, _demolishButton, nameof(_demolishButton));
-        valid &= ValidationUtility.IsAssigned(this, _demolishButtonRoot, nameof(_demolishButtonRoot));
         valid &= ValidationUtility.IsAssigned(this, _assignAllWoodButton, nameof(_assignAllWoodButton));
         valid &= ValidationUtility.IsAssigned(this, _assignAllGoldButton, nameof(_assignAllGoldButton));
         valid &= ValidationUtility.IsAssigned(this, _assignAllMeatButton, nameof(_assignAllMeatButton));
@@ -96,35 +104,34 @@ public sealed class HousePanel : ValidatedMonoBehaviour
             return;
         }
 
-        if (_currentHouse == house)
+        if (_houseEvents.IsBoundTo(house))
         {
-            ShowRoot();
             Refresh();
             _workerListPanel?.Show(house);
             return;
         }
 
-        UnsubscribeFromHouse();
+        ClearHouseSubscription();
 
         _currentHouse = house;
-        _currentHouse.OnWorkersChanged += Refresh;
+        _houseEvents.Bind(
+            house,
+            h => h.OnWorkersChanged += HandleHouseWorkersChanged,
+            h => h.OnWorkersChanged -= HandleHouseWorkersChanged);
 
-        ShowRoot();
         Refresh();
-
         _workerListPanel?.Show(house);
     }
 
     public void Hide()
     {
-        UnsubscribeFromHouse();
+        ClearHouseSubscription();
 
         _currentHouse = null;
 
         _workerListPanel?.Hide();
 
         ClearText();
-        HideRoot();
     }
 
     private void HireWorker()
@@ -136,24 +143,14 @@ public sealed class HousePanel : ValidatedMonoBehaviour
         Refresh();
     }
 
-    private void DemolishHouse()
+    private void RequestDemolishHouse()
     {
         if (_currentHouse == null)
             return;
 
-        House house = _currentHouse;
-
-        if (!house.TryDemolishByButton())
-        {
-            RefreshDemolishButton();
-            return;
-        }
-
-        if (_selectionSystem != null)
-            _selectionSystem.ClearSelection();
-        else
-            Hide();
+        _buildingDemolishService.RequestDemolish(_currentHouse);
     }
+
     private void AssignAllToWood()
     {
         AssignAllWorkersToJob(WorkerJobType.ChopWood);
@@ -168,6 +165,7 @@ public sealed class HousePanel : ValidatedMonoBehaviour
     {
         AssignAllWorkersToJob(WorkerJobType.HuntMeat);
     }
+
     private void AssignAllWorkersToJob(WorkerJobType job)
     {
         if (_currentHouse == null)
@@ -178,7 +176,11 @@ public sealed class HousePanel : ValidatedMonoBehaviour
         AllWorkersJobAssigned?.Invoke(job);
 
         Refresh();
-        _workerListPanel?.Show(_currentHouse);
+    }
+
+    private void HandleHouseWorkersChanged()
+    {
+        Refresh();
     }
 
     private void Refresh()
@@ -190,25 +192,19 @@ public sealed class HousePanel : ValidatedMonoBehaviour
         }
 
         _workersLimitText.text =
-            $"Нанято: {_currentHouse.CurrentWorkers}/{_currentHouse.MaxWorkers}";
+            $"Р Р°Р±РѕС‡РёРµ: {_currentHouse.CurrentWorkers}/{_currentHouse.MaxWorkers}";
 
         _hireCostText.text =
-            $"Стоимость: Дерево {_currentHouse.CurrentWoodCost} / Золото {_currentHouse.CurrentGoldCost}";
+            $"РЎС‚РѕРёРјРѕСЃС‚СЊ: РґРµСЂРµРІРѕ {_currentHouse.CurrentWoodCost} / Р·РѕР»РѕС‚Рѕ {_currentHouse.CurrentGoldCost}";
 
         _hireButton.interactable = _currentHouse.CanHire();
 
-        RefreshDemolishButton();
+        BuildingDemolishRules.RefreshButton(_demolishButton, _currentHouse);
         RefreshAssignAllButtons();
+
+        _workerListPanel?.Rebuild();
     }
 
-    private void RefreshDemolishButton()
-    {
-        bool canDemolish = _currentHouse != null &&
-                           _currentHouse.CanBeDemolishedByButton;
-
-        _demolishButtonRoot.SetActive(canDemolish);
-        _demolishButton.interactable = canDemolish;
-    }
     private void RefreshAssignAllButtons()
     {
         bool hasWorkers = _currentHouse != null &&
@@ -221,37 +217,19 @@ public sealed class HousePanel : ValidatedMonoBehaviour
 
     private void ClearText()
     {
-        _workersLimitText.text = "Нанято: 0/0";
-        _hireCostText.text = "Стоимость: -";
+        _workersLimitText.text = "Р Р°Р±РѕС‡РёРµ: 0/0";
+        _hireCostText.text = "РЎС‚РѕРёРјРѕСЃС‚СЊ: -";
 
         _hireButton.interactable = false;
-
         _demolishButton.interactable = false;
-        _demolishButtonRoot.SetActive(false);
 
         _assignAllWoodButton.interactable = false;
         _assignAllGoldButton.interactable = false;
         _assignAllMeatButton.interactable = false;
     }
 
-    private void ShowRoot()
+    private void ClearHouseSubscription()
     {
-        _root.SetActive(true);
-        RefreshDemolishButton();
-
-        RefreshAssignAllButtons();
-    }
-
-    private void HideRoot()
-    {
-        _root.SetActive(false);
-    }
-
-    private void UnsubscribeFromHouse()
-    {
-        if (_currentHouse == null)
-            return;
-
-        _currentHouse.OnWorkersChanged -= Refresh;
+        _houseEvents.Clear(h => h.OnWorkersChanged -= HandleHouseWorkersChanged);
     }
 }

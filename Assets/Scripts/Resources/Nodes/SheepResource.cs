@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// Ресурсная точка овцы
+/// Р РµСЃСѓСЂСЃРЅР°СЏ С‚РѕС‡РєР° РѕРІС†С‹
 /// </summary>
 [RequireComponent(typeof(SheepAI))]
 [RequireComponent(typeof(SpriteRenderer))]
@@ -46,7 +46,7 @@ public sealed class SheepResource : ResourceNodeBase
 
         if (_config != null && !_config.IsValid())
         {
-            Debug.LogError($"{name}: SheepResourceConfig некорректный.", this);
+            Debug.LogError($"{name}: SheepResourceConfig РЅРµРєРѕСЂСЂРµРєС‚РЅС‹Р№.", this);
             valid = false;
         }
 
