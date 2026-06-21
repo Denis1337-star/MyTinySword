@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7dcbf511463a6d64794a656d70587b69, type: 3}
+  m_Name: ArmyCap
+  m_EditorClassIdentifier: 
+  _nodeId: ArmyCap
+  _displayName: "\u041B\u0438\u043C\u0438\u0442 \u0430\u0440\u043C\u0438\u0438"
+  _description: "\u0423\u0432\u0435\u043B\u0438\u0447\u0438\u0432\u0430\u0435\u0442
+    \u043E\u0431\u0449\u0438\u0439 \u043B\u0438\u043C\u0438\u0442 \u0430\u0440\u043C\u0438\u0438"
+  _maxLevel: 3
+  _upgradeSeconds: 4b000000960000002c010000
+  _bonusPerLevel: 5
+  _bonusPrefix: +
+  _bonusSuffix: 
+  _requirements:
+  - RequiredNode: {fileID: 11400000, guid: 0a44c65c1e03fcc4f93304c9abd2f6d4, type: 2}
+    RequiredLevel: 3

@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7dcbf511463a6d64794a656d70587b69, type: 3}
+  m_Name: BuildingHp
+  m_EditorClassIdentifier: 
+  _nodeId: BuildingHp
+  _displayName: "\u041F\u0440\u043E\u0447\u043D\u043E\u0441\u0442\u044C \u043F\u043E\u0441\u0442\u0440\u043E\u0435\u043A"
+  _description: "\u0423\u0432\u0435\u043B\u0438\u0447\u0438\u0432\u0430\u0435\u0442
+    \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0432\u0441\u0435\u0445 \u043F\u043E\u0441\u0442\u0440\u043E\u0435\u043A"
+  _maxLevel: 3
+  _upgradeSeconds: 3c00000078000000f0000000
+  _bonusPerLevel: 10
+  _bonusPrefix: +
+  _bonusSuffix: '%'
+  _requirements:
+  - RequiredNode: {fileID: 11400000, guid: 8b067bf8c4b0cc241974b804b56ab5bd, type: 2}
+    RequiredLevel: 2
+  - RequiredNode: {fileID: 11400000, guid: 6ea8493f9cc21c44e92a9f5a2224c0c9, type: 2}
+    RequiredLevel: 2

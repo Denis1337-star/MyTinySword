@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7dcbf511463a6d64794a656d70587b69, type: 3}
+  m_Name: WorkersGather
+  m_EditorClassIdentifier: 
+  _nodeId: WorkersGather
+  _displayName: "\u0421\u0431\u043E\u0440 \u0440\u0435\u0441\u0443\u0440\u0441\u043E\u0432"
+  _description: "\u0420\u0430\u0431\u043E\u0447\u0438\u0435 \u0431\u044B\u0441\u0442\u0440\u0435\u0435
+    \u0434\u043E\u0431\u044B\u0432\u0430\u044E\u0442 \u0440\u0435\u0441\u0443\u0440\u0441\u044B"
+  _maxLevel: 3
+  _upgradeSeconds: 5a000000b400000068010000
+  _bonusPerLevel: 5
+  _bonusPrefix: +
+  _bonusSuffix: '%'
+  _requirements:
+  - RequiredNode: {fileID: 11400000, guid: d1c48785879ad9340969c316ca49ec55, type: 2}
+    RequiredLevel: 2
+  - RequiredNode: {fileID: 11400000, guid: 4d8fce09c3c1e784c899517d1173e1ba, type: 2}
+    RequiredLevel: 2

@@ -51,5 +51,15 @@ public sealed class ProjectServicesInstaller : MonoInstaller
              .Bind<TutorialSaveService>()
              .AsSingle()
               .NonLazy();
+
+        Container
+            .Bind<TechTreeTimeService>()
+            .AsSingle()
+            .NonLazy();
+
+        Container
+           .Bind<TechTreeSaveService>()
+           .AsSingle()
+           .NonLazy();
     }
 }
