@@ -7,15 +7,126 @@
         false,
         false
     ],
-    "idSave": 198,
+    "idSave": 249,
     "tutorialCompleted": false,
     "audioSettingsInitialized": true,
-    "musicVolume": 0.2214857041835785,
+    "musicVolume": 0.800000011920929,
     "sfxVolume": 0.800000011920929,
     "musicMuted": false,
     "sfxMuted": false,
     "levelProgressInitialized": true,
     "lastUnlockedLevelIndex": 1,
     "totalVictories": 0,
-    "completedLevelIds": []
+    "completedLevelIds": [],
+    "techTree": {
+        "Initialized": true,
+        "Nodes": [
+            {
+                "NodeId": "StartWood",
+                "Level": 3,
+                "UpgradeEndUnixTime": 0
+            },
+            {
+                "NodeId": "StartGold",
+                "Level": 3,
+                "UpgradeEndUnixTime": 0
+            },
+            {
+                "NodeId": "StartMeat",
+                "Level": 2,
+                "UpgradeEndUnixTime": 0
+            },
+            {
+                "NodeId": "DemolishRefund",
+                "Level": 0,
+                "UpgradeEndUnixTime": 0
+            },
+            {
+                "NodeId": "StartWorkers",
+                "Level": 2,
+                "UpgradeEndUnixTime": 0
+            },
+            {
+                "NodeId": "WorkersSpeed",
+                "Level": 0,
+                "UpgradeEndUnixTime": 0
+            },
+            {
+                "NodeId": "WorkersYield",
+                "Level": 0,
+                "UpgradeEndUnixTime": 0
+            },
+            {
+                "NodeId": "WorkersGather",
+                "Level": 0,
+                "UpgradeEndUnixTime": 0
+            },
+            {
+                "NodeId": "BuildingHp",
+                "Level": 3,
+                "UpgradeEndUnixTime": 0
+            },
+            {
+                "NodeId": "BuildAll",
+                "Level": 0,
+                "UpgradeEndUnixTime": 0
+            },
+            {
+                "NodeId": "LimitBarrack",
+                "Level": 0,
+                "UpgradeEndUnixTime": 0
+            },
+            {
+                "NodeId": "LimitArchery",
+                "Level": 0,
+                "UpgradeEndUnixTime": 0
+            },
+            {
+                "NodeId": "LimitMonastery",
+                "Level": 0,
+                "UpgradeEndUnixTime": 0
+            },
+            {
+                "NodeId": "ArmyCap",
+                "Level": 0,
+                "UpgradeEndUnixTime": 0
+            },
+            {
+                "NodeId": "HireArmy",
+                "Level": 0,
+                "UpgradeEndUnixTime": 0
+            },
+            {
+                "NodeId": "TrainArmy",
+                "Level": 0,
+                "UpgradeEndUnixTime": 0
+            },
+            {
+                "NodeId": "StatsArmy",
+                "Level": 0,
+                "UpgradeEndUnixTime": 0
+            },
+            {
+                "NodeId": "QueueMilitaryBuildings",
+                "Level": 0,
+                "UpgradeEndUnixTime": 0
+            },
+            {
+                "NodeId": "TowerDamage",
+                "Level": 0,
+                "UpgradeEndUnixTime": 1782149607
+            },
+            {
+                "NodeId": "TowerRange",
+                "Level": 0,
+                "UpgradeEndUnixTime": 0
+            },
+            {
+                "NodeId": "TowerFireRate",
+                "Level": 0,
+                "UpgradeEndUnixTime": 0
+            }
+        ],
+        "LastKnownUnixTime": 1782149517
+    }
 }

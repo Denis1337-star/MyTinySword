@@ -14,6 +14,7 @@ public sealed class TechTreeNodeConfig : BaseConfig
     [Header("View")]
     [SerializeField] private string _displayName = "Новая нода";
     [SerializeField, TextArea] private string _description = "Описание ноды.";
+    [SerializeField] private Sprite _icon;
 
     [Header("Progress")]
     [SerializeField, Min(1)] private int _maxLevel = 3;
@@ -30,6 +31,7 @@ public sealed class TechTreeNodeConfig : BaseConfig
     public string NodeId => _nodeId;
     public string DisplayName => _displayName;
     public string Description => _description;
+    public Sprite Icon => _icon;
     public int MaxLevel => _maxLevel;
     public float BonusPerLevel => _bonusPerLevel;
     public string BonusPrefix => _bonusPrefix;

@@ -16,6 +16,7 @@ MonoBehaviour:
   _displayName: "\u041B\u0438\u043C\u0438\u0442 \u0430\u0440\u043C\u0438\u0438"
   _description: "\u0423\u0432\u0435\u043B\u0438\u0447\u0438\u0432\u0430\u0435\u0442
     \u043E\u0431\u0449\u0438\u0439 \u043B\u0438\u043C\u0438\u0442 \u0430\u0440\u043C\u0438\u0438"
+  _icon: {fileID: 21300000, guid: 2334fa2b3b6b3492281b0993c123cfac, type: 3}
   _maxLevel: 3
   _upgradeSeconds: 4b000000960000002c010000
   _bonusPerLevel: 5

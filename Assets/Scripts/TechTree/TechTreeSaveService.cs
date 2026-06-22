@@ -69,14 +69,40 @@ public sealed class TechTreeSaveService
     public bool CanStartUpgrade(TechTreeNodeConfig config)
     {
         TechTreeNodeSaveData node = GetOrCreateNode(config);
-
         if (node.IsUpgrading)
             return false;
-
+        if (HasAnyActiveUpgrade())
+            return false;
         if (node.Level >= config.MaxLevel)
             return false;
-
         return AreRequirementsMet(config);
+    }
+    public bool HasAnyActiveUpgrade()
+    {
+        EnsureInitialized();
+
+        List<TechTreeNodeSaveData> nodes = YG2.saves.techTree.Nodes;
+
+        if (nodes == null)
+            return false;
+
+        long currentUnixTime = _timeService.GetCurrentUnixTime();
+
+        for (int i = 0; i < nodes.Count; i++)
+        {
+            TechTreeNodeSaveData node = nodes[i];
+
+            if (node == null)
+                continue;
+
+            if (!node.IsUpgrading)
+                continue;
+
+            if (node.UpgradeEndUnixTime > currentUnixTime)
+                return true;
+        }
+
+        return false;
     }
 
     public bool TryStartUpgrade(TechTreeNodeConfig config)
