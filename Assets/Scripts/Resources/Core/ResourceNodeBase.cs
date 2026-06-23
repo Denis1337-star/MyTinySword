@@ -10,15 +10,19 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour
     [SerializeField] private WorkSlot _workSlot;
 
     private ResourceRegistry _resourceRegistry;
+    private TechTreeBonusService _techTreeBonusService;
 
     protected bool _isAvailable = true;
 
     public bool IsAvailable => _isAvailable;
 
     [Inject]
-    private void Construct(ResourceRegistry resourceRegistry)
+    private void Construct(
+        ResourceRegistry resourceRegistry,
+        TechTreeBonusService techTreeBonusService)
     {
         _resourceRegistry = resourceRegistry;
+        _techTreeBonusService = techTreeBonusService;
     }
 
     protected virtual void Start()
@@ -106,6 +110,17 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour
     protected void SetAvailable(bool available)
     {
         _isAvailable = available;
+    }
+    protected float GetWorkTimeWithGatherBonus(float baseWorkTime)
+    {
+        if (_techTreeBonusService == null)
+            return baseWorkTime;
+
+        float finalWorkTime = _techTreeBonusService.ApplyPercentReduction(
+            baseWorkTime,
+            TechTreeBonusType.WorkersGather);
+
+        return Mathf.Max(0.1f, finalWorkTime);
     }
 
     protected abstract void StartWorkRoutine(Action<int> onFinished);

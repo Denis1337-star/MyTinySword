@@ -19,6 +19,7 @@ MonoBehaviour:
   _icon: {fileID: 21300000, guid: 5bdc3e2b64c8049f4a66e1061f28dd70, type: 3}
   _maxLevel: 3
   _upgradeSeconds: 5a000000b400000068010000
+  _bonusType: 12
   _bonusPerLevel: 1
   _bonusPrefix: +
   _bonusSuffix: 

@@ -74,7 +74,7 @@ public sealed class TreeResource : ResourceNodeBase
 
     private IEnumerator WorkRoutine(Action<int> onFinished)
     {
-        yield return new WaitForSeconds(_config.WorkTime);
+        yield return new WaitForSeconds(GetWorkTimeWithGatherBonus(_config.WorkTime));
 
         onFinished?.Invoke(_config.RewardAmount);
 

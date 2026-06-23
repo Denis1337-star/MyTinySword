@@ -91,7 +91,7 @@ public sealed class GoldResource : ResourceNodeBase
 
     private IEnumerator WorkRoutine(Action<int> onFinished)
     {
-        yield return new WaitForSeconds(_config.WorkTime);
+        yield return new WaitForSeconds(GetWorkTimeWithGatherBonus(_config.WorkTime));
 
         int amount = Mathf.Max(1, (int)_size);
 

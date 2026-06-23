@@ -75,3 +75,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _audioServicePrefab: {fileID: 6157505055885317041, guid: e2a82ca0ad0e43f44981c5812a1eb0e7, type: 3}
+  _techTreeCatalog: {fileID: 11400000, guid: ea838534078a4324e958a7d054d5b362, type: 2}

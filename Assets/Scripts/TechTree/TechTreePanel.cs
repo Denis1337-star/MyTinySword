@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using Zenject;
@@ -26,14 +25,19 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
 
     private TechTreeSaveService _saveService;
     private TechTreeNodeView _selectedNodeView;
+    private TechTreeCatalogConfig _catalog;
 
     private float _nextRefreshTime;
 
     [Inject]
-    private void Construct(TechTreeSaveService saveService)
+    private void Construct(
+    TechTreeSaveService saveService,
+    TechTreeCatalogConfig catalog)
     {
         _saveService = saveService;
+        _catalog = catalog;
     }
+
 
     protected override bool ValidateInternal()
     {
@@ -183,17 +187,9 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
 
     private void CompleteReadyUpgrades()
     {
-        List<TechTreeNodeConfig> configs = new();
-
-        for (int i = 0; i < _nodeViews.Length; i++)
-        {
-            TechTreeNodeView nodeView = _nodeViews[i];
-
-            if (nodeView != null && nodeView.Config != null)
-                configs.Add(nodeView.Config);
-        }
-
-        _saveService.CompleteReadyUpgrades(configs);
+        if (_catalog == null)
+            return;
+        _saveService.CompleteReadyUpgrades(_catalog.Nodes);
     }
 
     private void RefreshNodes()
@@ -240,12 +236,18 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
         long remainingSeconds = _saveService.GetRemainingSeconds(config);
         string requirementsText = BuildRequirementsText(config);
 
+        bool anotherNodeUpgrading =
+    _saveService.HasAnyActiveUpgrade() &&
+    state != TechTreeNodeState.Upgrading;
+
         _infoPanel.Refresh(
             config,
             saveData,
             state,
             requirementsText,
-            remainingSeconds);
+            remainingSeconds,
+            anotherNodeUpgrading);
+
     }
 
     private TechTreeNodeState GetVisualState(TechTreeNodeView nodeView)

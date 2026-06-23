@@ -21,6 +21,7 @@ public sealed class TechTreeNodeConfig : BaseConfig
     [SerializeField] private int[] _upgradeSeconds = { 30, 60, 120 };
 
     [Header("Bonus")]
+    [SerializeField] private TechTreeBonusType _bonusType = TechTreeBonusType.None;
     [SerializeField] private float _bonusPerLevel = 1f;
     [SerializeField] private string _bonusPrefix = "+";
     [SerializeField] private string _bonusSuffix = "%";
@@ -33,6 +34,7 @@ public sealed class TechTreeNodeConfig : BaseConfig
     public string Description => _description;
     public Sprite Icon => _icon;
     public int MaxLevel => _maxLevel;
+    public TechTreeBonusType BonusType => _bonusType;
     public float BonusPerLevel => _bonusPerLevel;
     public string BonusPrefix => _bonusPrefix;
     public string BonusSuffix => _bonusSuffix;

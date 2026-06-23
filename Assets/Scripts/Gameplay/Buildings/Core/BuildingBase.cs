@@ -23,6 +23,7 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
     private BuildingRegistry _buildingRegistry;
     private GameAudioService _audioService;
     private ConstructionSlot _sourceSlot;
+    private TechTreeBonusService _techTreeBonusService;
 
     private bool _isDestroying;
 
@@ -43,10 +44,12 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
     [Inject]
     private void Construct(
         BuildingRegistry buildingRegistry,
-        GameAudioService audioService)
+        GameAudioService audioService,
+        TechTreeBonusService techTreeBonusService)
     {
         _buildingRegistry = buildingRegistry;
         _audioService = audioService;
+        _techTreeBonusService = techTreeBonusService;
     }
 
     protected override void Awake()
@@ -135,7 +138,16 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
 
     private void ApplyConfig()
     {
-        health.Initialize(config.MaxHealth);
+        int maxHealth = config.MaxHealth;
+
+        if (factionMember != null && factionMember.Faction == FactionType.Player)
+        {
+            maxHealth = Mathf.RoundToInt(_techTreeBonusService.ApplyPercentBonus(
+                maxHealth,
+                TechTreeBonusType.BuildingHp));
+        }
+
+        health.Initialize(maxHealth);
     }
 
     private void PlayDemolishSound()

@@ -11,6 +11,7 @@ public sealed class ConstructionSite : MonoBehaviour
     private BuildingRegistry _buildingRegistry;
     private BuildingFactory _buildingFactory;
     private GameAudioService _audioService;
+    private TechTreeBonusService _techTreeBonusService;
 
     private float _progress;
     private float _buildTime;
@@ -22,9 +23,12 @@ public sealed class ConstructionSite : MonoBehaviour
     public BuildingConfig Config => _config;
 
     [Inject]
-    private void Construct(GameAudioService audioService)
+    private void Construct(
+        GameAudioService audioService,
+        TechTreeBonusService techTreeBonusService)
     {
         _audioService = audioService;
+        _techTreeBonusService = techTreeBonusService;
     }
 
     public void Initialize(
@@ -38,7 +42,12 @@ public sealed class ConstructionSite : MonoBehaviour
         _buildingRegistry = buildingRegistry;
         _buildingFactory = buildingFactory;
 
-        _buildTime = config.BuildTime;
+        _buildTime = _techTreeBonusService.ApplyPercentReduction(
+         config.BuildTime,
+         TechTreeBonusType.BuildAll);
+
+        _buildTime = Mathf.Max(0.1f, _buildTime);
+
         _progress = 0f;
         _finished = false;
         _completionAttempted = false;

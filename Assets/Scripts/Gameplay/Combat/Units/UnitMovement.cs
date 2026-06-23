@@ -15,6 +15,7 @@ public sealed class UnitMovement : MonoBehaviour
     private const float MovingVelocitySqrThreshold = 0.01f;
 
     private NavMeshAgent _agent;
+    public float Speed => _speed;
 
     public bool HasTarget
     {

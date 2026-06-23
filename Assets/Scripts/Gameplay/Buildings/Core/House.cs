@@ -195,6 +195,21 @@ public sealed class House : BuildingBase
             _isHiringInProgress = false;
         }
     }
+    public void AddFreeWorkers(int amount)
+    {
+        if (amount <= 0)
+            return;
+
+        for (int i = 0; i < amount; i++)
+        {
+            if (CurrentWorkers >= MaxWorkers)
+                break;
+
+            SpawnWorker();
+        }
+
+        OnWorkersChanged?.Invoke();
+    }
     public void AssignAllWorkersToJob(WorkerJobType job)
     {
         for (int i = 0; i < _workers.Count; i++)

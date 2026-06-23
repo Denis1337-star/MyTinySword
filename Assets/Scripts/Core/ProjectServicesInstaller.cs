@@ -7,6 +7,7 @@ using Zenject;
 public sealed class ProjectServicesInstaller : MonoInstaller
 {
     [SerializeField] private GameAudioService _audioServicePrefab;
+    [SerializeField] private TechTreeCatalogConfig _techTreeCatalog;
 
     public override void InstallBindings()
     {
@@ -61,5 +62,17 @@ public sealed class ProjectServicesInstaller : MonoInstaller
            .Bind<TechTreeSaveService>()
            .AsSingle()
            .NonLazy();
+
+        Container
+      .Bind<TechTreeCatalogConfig>()
+      .FromInstance(_techTreeCatalog)
+      .AsSingle()
+      .NonLazy();
+
+        Container
+     .Bind<TechTreeBonusService>()
+     .AsSingle()
+     .NonLazy();
+
     }
 }

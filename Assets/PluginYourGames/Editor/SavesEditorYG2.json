@@ -7,7 +7,7 @@
         false,
         false
     ],
-    "idSave": 249,
+    "idSave": 281,
     "tutorialCompleted": false,
     "audioSettingsInitialized": true,
     "musicVolume": 0.800000011920929,
@@ -33,7 +33,7 @@
             },
             {
                 "NodeId": "StartMeat",
-                "Level": 2,
+                "Level": 3,
                 "UpgradeEndUnixTime": 0
             },
             {
@@ -43,23 +43,23 @@
             },
             {
                 "NodeId": "StartWorkers",
-                "Level": 2,
+                "Level": 3,
                 "UpgradeEndUnixTime": 0
             },
             {
                 "NodeId": "WorkersSpeed",
-                "Level": 0,
+                "Level": 2,
                 "UpgradeEndUnixTime": 0
             },
             {
                 "NodeId": "WorkersYield",
-                "Level": 0,
+                "Level": 2,
                 "UpgradeEndUnixTime": 0
             },
             {
                 "NodeId": "WorkersGather",
                 "Level": 0,
-                "UpgradeEndUnixTime": 0
+                "UpgradeEndUnixTime": 1782236459
             },
             {
                 "NodeId": "BuildingHp",
@@ -68,7 +68,7 @@
             },
             {
                 "NodeId": "BuildAll",
-                "Level": 0,
+                "Level": 1,
                 "UpgradeEndUnixTime": 0
             },
             {
@@ -113,8 +113,8 @@
             },
             {
                 "NodeId": "TowerDamage",
-                "Level": 0,
-                "UpgradeEndUnixTime": 1782149607
+                "Level": 1,
+                "UpgradeEndUnixTime": 0
             },
             {
                 "NodeId": "TowerRange",
@@ -127,6 +127,6 @@
                 "UpgradeEndUnixTime": 0
             }
         ],
-        "LastKnownUnixTime": 1782149517
+        "LastKnownUnixTime": 1782236369
     }
 }

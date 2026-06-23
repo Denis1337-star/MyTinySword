@@ -17,6 +17,7 @@ public sealed class Worker : ValidatedMonoBehaviour
 
     private WorkerRegistry _workerRegistry;
     private ResourceStorage _resourceStorage;
+    private TechTreeBonusService _techTreeBonusService;
 
     public WorkerStateMachine StateMachine { get; private set; }
     public UnitMovement Movement => _movement;
@@ -45,10 +46,12 @@ public sealed class Worker : ValidatedMonoBehaviour
     [Inject]
     private void Construct(
         WorkerRegistry workerRegistry,
-        ResourceStorage resourceStorage)
+        ResourceStorage resourceStorage,
+        TechTreeBonusService techTreeBonusService)
     {
         _workerRegistry = workerRegistry;
         _resourceStorage = resourceStorage;
+        _techTreeBonusService = techTreeBonusService;
     }
 
     protected override void Awake()
@@ -61,6 +64,10 @@ public sealed class Worker : ValidatedMonoBehaviour
         CurrentJob = WorkerJobType.None;
 
         base.Awake();
+    }
+    private void Start()
+    {
+        ApplyMovementSpeedBonus();
     }
 
     protected override bool ValidateInternal()
@@ -175,6 +182,26 @@ public sealed class Worker : ValidatedMonoBehaviour
 
         int amount = Inventory.TakeCargo(out ResourceType resourceType);
         _resourceStorage.AddResource(resourceType, amount);
+    }
+    public int ApplyYieldBonus(int baseAmount)
+    {
+        if (baseAmount <= 0)
+            return 0;
+
+        int bonusAmount = _techTreeBonusService.GetBonusInt(TechTreeBonusType.WorkersYield);
+
+        return baseAmount + bonusAmount;
+    }
+    private void ApplyMovementSpeedBonus()
+    {
+        if (_movement == null)
+            return;
+
+        float speed = _techTreeBonusService.ApplyPercentBonus(
+            _movement.Speed,
+            TechTreeBonusType.WorkersSpeed);
+
+        _movement.SetSpeed(speed);
     }
 
     public void ResetToIdle()

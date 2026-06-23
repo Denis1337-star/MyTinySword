@@ -96,7 +96,7 @@ public sealed class SheepResource : ResourceNodeBase
     {
         SetFrozen(true);
 
-        yield return new WaitForSeconds(_config.WorkTime);
+        yield return new WaitForSeconds(GetWorkTimeWithGatherBonus(_config.WorkTime));
 
         onFinished?.Invoke(_config.MeatAmount);
 
