@@ -221,7 +221,7 @@ public sealed class HousePanel : ValidatedMonoBehaviour
         _hireCostText.text = "Стоимость: -";
 
         _hireButton.interactable = false;
-        _demolishButton.interactable = false;
+        _demolishButton.gameObject.SetActive(false);
 
         _assignAllWoodButton.interactable = false;
         _assignAllGoldButton.interactable = false;

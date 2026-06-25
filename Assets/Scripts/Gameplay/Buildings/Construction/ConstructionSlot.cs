@@ -52,7 +52,7 @@ public sealed class ConstructionSlot : ValidatedMonoBehaviour
         if (_currentConstruction != null)
             return "Уже строится";
 
-        if (config.UniqueBuilding && _buildingRegistry.IsBuiltOrConstructing(config))
+        if (_buildingRegistry.IsLimitReached(config))
             return "Лимит достигнут";
 
         if (!_resourceStorage.HasResources(config.WoodCost, config.GoldCost, 0))
@@ -68,9 +68,8 @@ public sealed class ConstructionSlot : ValidatedMonoBehaviour
         if (!config.UniqueBuilding)
             return false;
 
-        return _buildingRegistry.IsBuiltOrConstructing(config);
+        return _buildingRegistry.IsLimitReached(config);
     }
-
     public bool StartConstruction(BuildingConfig config)
     {
         if (config == null)

@@ -7,7 +7,7 @@
         false,
         false
     ],
-    "idSave": 281,
+    "idSave": 320,
     "tutorialCompleted": false,
     "audioSettingsInitialized": true,
     "musicVolume": 0.800000011920929,
@@ -58,8 +58,8 @@
             },
             {
                 "NodeId": "WorkersGather",
-                "Level": 0,
-                "UpgradeEndUnixTime": 1782236459
+                "Level": 1,
+                "UpgradeEndUnixTime": 0
             },
             {
                 "NodeId": "BuildingHp",
@@ -73,7 +73,7 @@
             },
             {
                 "NodeId": "LimitBarrack",
-                "Level": 0,
+                "Level": 1,
                 "UpgradeEndUnixTime": 0
             },
             {
@@ -88,27 +88,27 @@
             },
             {
                 "NodeId": "ArmyCap",
-                "Level": 0,
+                "Level": 2,
                 "UpgradeEndUnixTime": 0
             },
             {
                 "NodeId": "HireArmy",
-                "Level": 0,
+                "Level": 2,
                 "UpgradeEndUnixTime": 0
             },
             {
                 "NodeId": "TrainArmy",
-                "Level": 0,
+                "Level": 2,
                 "UpgradeEndUnixTime": 0
             },
             {
                 "NodeId": "StatsArmy",
                 "Level": 0,
-                "UpgradeEndUnixTime": 0
+                "UpgradeEndUnixTime": 1782412230
             },
             {
                 "NodeId": "QueueMilitaryBuildings",
-                "Level": 0,
+                "Level": 1,
                 "UpgradeEndUnixTime": 0
             },
             {
@@ -127,6 +127,6 @@
                 "UpgradeEndUnixTime": 0
             }
         ],
-        "LastKnownUnixTime": 1782236369
+        "LastKnownUnixTime": 1782412110
     }
 }

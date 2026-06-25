@@ -596,6 +596,7 @@ public sealed class TutorialController : ValidatedMonoBehaviour
         if (currentStep.StepType != TutorialStepType.HireArmyUnit)
             return;
 
+        _productionBuildingPanel.Dismiss();
         AdvanceStep();
     }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Zenject;
 
 /// <summary>
 /// Реестр зданий на сцене.
@@ -8,19 +9,60 @@ using UnityEngine;
 /// </summary>
 public sealed class BuildingRegistry : MonoBehaviour
 {
-    private readonly HashSet<string> _builtBuildingIds = new();
-    private readonly HashSet<string> _constructingBuildingIds = new();
+    private readonly Dictionary<string, int> _builtBuildingCounts = new();
+    private readonly Dictionary<string, int> _constructingBuildingCounts = new();
     private readonly Dictionary<string, BuildingBase> _builtBuildingsById = new();
+
+    private TechTreeBonusService _techTreeBonusService;
 
     public event Action<BuildingConfig> BuildingBuilt;
 
+    [Inject]
+    private void Construct(TechTreeBonusService techTreeBonusService)
+    {
+        _techTreeBonusService = techTreeBonusService;
+    }
+
     public bool IsBuiltOrConstructing(BuildingConfig config)
+    {
+        return GetBuiltOrConstructingCount(config) > 0;
+    }
+
+    public bool IsLimitReached(BuildingConfig config)
     {
         if (!IsValidConfig(config))
             return false;
 
-        return _builtBuildingIds.Contains(config.BuildingId) ||
-               _constructingBuildingIds.Contains(config.BuildingId);
+        if (!config.UniqueBuilding)
+            return false;
+
+        return GetBuiltOrConstructingCount(config) >= GetAllowedCount(config);
+    }
+
+    public int GetBuiltOrConstructingCount(BuildingConfig config)
+    {
+        if (!IsValidConfig(config))
+            return 0;
+
+        string buildingId = config.BuildingId;
+
+        return GetCount(_builtBuildingCounts, buildingId) +
+               GetCount(_constructingBuildingCounts, buildingId);
+    }
+
+    public int GetAllowedCount(BuildingConfig config)
+    {
+        if (!IsValidConfig(config))
+            return 0;
+
+        if (!config.UniqueBuilding)
+            return int.MaxValue;
+
+        int bonusLimit = config.LimitBonusType != TechTreeBonusType.None
+            ? _techTreeBonusService.GetBonusInt(config.LimitBonusType)
+            : 0;
+
+        return Mathf.Max(1, 1 + bonusLimit);
     }
 
     public void RegisterConstruction(BuildingConfig config)
@@ -28,7 +70,7 @@ public sealed class BuildingRegistry : MonoBehaviour
         if (!IsValidConfig(config))
             return;
 
-        _constructingBuildingIds.Add(config.BuildingId);
+        AddCount(_constructingBuildingCounts, config.BuildingId);
     }
 
     public void UnregisterConstruction(BuildingConfig config)
@@ -36,7 +78,7 @@ public sealed class BuildingRegistry : MonoBehaviour
         if (!IsValidConfig(config))
             return;
 
-        _constructingBuildingIds.Remove(config.BuildingId);
+        RemoveCount(_constructingBuildingCounts, config.BuildingId);
     }
 
     public void RegisterBuilt(BuildingConfig config, BuildingBase building = null)
@@ -44,10 +86,10 @@ public sealed class BuildingRegistry : MonoBehaviour
         if (!IsValidConfig(config))
             return;
 
-        _constructingBuildingIds.Remove(config.BuildingId);
-        _builtBuildingIds.Add(config.BuildingId);
+        RemoveCount(_constructingBuildingCounts, config.BuildingId);
+        AddCount(_builtBuildingCounts, config.BuildingId);
 
-        if (building != null)
+        if (building != null && !_builtBuildingsById.ContainsKey(config.BuildingId))
             _builtBuildingsById[config.BuildingId] = building;
 
         BuildingBuilt?.Invoke(config);
@@ -58,8 +100,10 @@ public sealed class BuildingRegistry : MonoBehaviour
         if (!IsValidConfig(config))
             return;
 
-        _builtBuildingIds.Remove(config.BuildingId);
-        _builtBuildingsById.Remove(config.BuildingId);
+        RemoveCount(_builtBuildingCounts, config.BuildingId);
+
+        if (GetCount(_builtBuildingCounts, config.BuildingId) <= 0)
+            _builtBuildingsById.Remove(config.BuildingId);
     }
 
     public Transform FindBuiltBuildingTransform(BuildingConfig config)
@@ -81,6 +125,50 @@ public sealed class BuildingRegistry : MonoBehaviour
                building != null;
     }
 
+    private static int GetCount(
+        Dictionary<string, int> counts,
+        string buildingId)
+    {
+        if (counts == null || string.IsNullOrWhiteSpace(buildingId))
+            return 0;
+
+        return counts.TryGetValue(buildingId, out int count)
+            ? count
+            : 0;
+    }
+
+    private static void AddCount(
+        Dictionary<string, int> counts,
+        string buildingId)
+    {
+        if (string.IsNullOrWhiteSpace(buildingId))
+            return;
+
+        counts.TryGetValue(buildingId, out int count);
+        counts[buildingId] = count + 1;
+    }
+
+    private static void RemoveCount(
+        Dictionary<string, int> counts,
+        string buildingId)
+    {
+        if (string.IsNullOrWhiteSpace(buildingId))
+            return;
+
+        if (!counts.TryGetValue(buildingId, out int count))
+            return;
+
+        count--;
+
+        if (count <= 0)
+        {
+            counts.Remove(buildingId);
+            return;
+        }
+
+        counts[buildingId] = count;
+    }
+
     private static bool IsValidConfig(BuildingConfig config)
     {
         return config != null &&
@@ -89,8 +177,8 @@ public sealed class BuildingRegistry : MonoBehaviour
 
     private void OnDestroy()
     {
-        _builtBuildingIds.Clear();
-        _constructingBuildingIds.Clear();
+        _builtBuildingCounts.Clear();
+        _constructingBuildingCounts.Clear();
         _builtBuildingsById.Clear();
         BuildingBuilt = null;
     }

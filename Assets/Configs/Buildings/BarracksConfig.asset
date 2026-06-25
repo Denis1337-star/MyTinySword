@@ -25,3 +25,4 @@ MonoBehaviour:
   _maxHealth: 150
   _buildTime: 9
   _uniqueBuilding: 1
+  _limitBonusType: 11

@@ -8,12 +8,19 @@ using Zenject;
 /// </summary>
 public sealed class BuildingActionPanel : ValidatedMonoBehaviour
 {
+    private const string CanDemolishText =
+        "Это здание можно снести.\nРесурсы не будут возвращены.";
+
+    private const string CannotDemolishText =
+        "Это здание нельзя снести.";
+
     [Header("Root")]
     [SerializeField] private GameObject _root;
     [SerializeField] private SimplePanelTween _panelTween;
 
     [Header("UI")]
     [SerializeField] private TMP_Text _titleText;
+    [SerializeField] private TMP_Text _descriptionText;
 
     [Header("Demolish")]
     [SerializeField] private Button _demolishButton;
@@ -46,6 +53,7 @@ public sealed class BuildingActionPanel : ValidatedMonoBehaviour
         valid &= ValidationUtility.IsAssigned(this, _root, nameof(_root));
         valid &= ValidationUtility.IsAssigned(this, _panelTween, nameof(_panelTween));
         valid &= ValidationUtility.IsAssigned(this, _titleText, nameof(_titleText));
+        valid &= ValidationUtility.IsAssigned(this, _descriptionText, nameof(_descriptionText));
         valid &= ValidationUtility.IsAssigned(this, _demolishButton, nameof(_demolishButton));
 
         return valid;
@@ -81,6 +89,12 @@ public sealed class BuildingActionPanel : ValidatedMonoBehaviour
 
         _titleText.text = _currentBuilding.DisplayName;
 
+        bool canDemolish = BuildingDemolishRules.CanDemolish(_currentBuilding);
+
+        _descriptionText.text = canDemolish
+            ? CanDemolishText
+            : CannotDemolishText;
+
         BuildingDemolishRules.RefreshButton(_demolishButton, _currentBuilding);
     }
 
@@ -95,6 +109,9 @@ public sealed class BuildingActionPanel : ValidatedMonoBehaviour
     private void ClearView()
     {
         _titleText.text = string.Empty;
+        _descriptionText.text = string.Empty;
+
         _demolishButton.interactable = false;
+        _demolishButton.gameObject.SetActive(false);
     }
 }

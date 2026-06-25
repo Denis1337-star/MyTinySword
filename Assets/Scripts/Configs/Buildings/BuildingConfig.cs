@@ -19,6 +19,7 @@ public sealed class BuildingConfig : BaseConfig
     [SerializeField, Min(1)] private int _maxHealth;
     [SerializeField, Min(0.1f)] private float _buildTime;
     [SerializeField] private bool _uniqueBuilding;
+    [SerializeField] private TechTreeBonusType _limitBonusType = TechTreeBonusType.None;
 
     public string BuildingId => _buildingId;
     public string DisplayName => _displayName;
@@ -32,6 +33,7 @@ public sealed class BuildingConfig : BaseConfig
     public int MaxHealth => _maxHealth;
     public float BuildTime => _buildTime;
     public bool UniqueBuilding => _uniqueBuilding;
+    public TechTreeBonusType LimitBonusType => _limitBonusType;
 
     public override bool IsValid()
     {

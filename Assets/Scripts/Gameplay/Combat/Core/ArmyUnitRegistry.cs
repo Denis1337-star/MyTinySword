@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Zenject;
 
 /// <summary>
 /// Глобальный реестр всех боевых юнитов 
@@ -12,10 +13,11 @@ public sealed class ArmyUnitRegistry : MonoBehaviour
     private readonly List<ArmyUnit> _allUnits = new();
 
     private int _reservedPlayerArmySlots;
+    private TechTreeBonusService _techTreeBonusService;
 
     public IReadOnlyList<ArmyUnit> AllUnits => _allUnits;
 
-    public int MaxPlayerArmyUnits => _maxPlayerArmyUnits;
+    public int MaxPlayerArmyUnits => _maxPlayerArmyUnits + GetArmyCapBonus();
 
     public int CurrentPlayerArmyUnits => CountPlayerUnits();
 
@@ -32,6 +34,12 @@ public sealed class ArmyUnitRegistry : MonoBehaviour
     private void OnValidate()
     {
         _maxPlayerArmyUnits = Mathf.Max(1, _maxPlayerArmyUnits);
+    }
+
+    [Inject]
+    private void Construct(TechTreeBonusService techTreeBonusService)
+    {
+        _techTreeBonusService = techTreeBonusService;
     }
 
     public void Register(ArmyUnit unit)
@@ -145,5 +153,12 @@ public sealed class ArmyUnitRegistry : MonoBehaviour
         _allUnits.Clear();
         _reservedPlayerArmySlots = 0;
         OnArmyChanged = null;
+    }
+    private int GetArmyCapBonus()
+    {
+        if (_techTreeBonusService == null)
+            return 0;
+
+        return _techTreeBonusService.GetBonusInt(TechTreeBonusType.ArmyCap);
     }
 }

@@ -143,7 +143,7 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
             return;
 
         UnitHired?.Invoke();
-        Dismiss();
+        Refresh();
     }
 
     private void RequestDemolishBuilding()
@@ -192,7 +192,7 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
         _costText.text = "Стоимость: -";
 
         _hireButton.interactable = false;
-        _demolishButton.interactable = false;
+        _demolishButton.gameObject.SetActive(false);
 
         _iconImage.sprite = null;
     }
