@@ -5,7 +5,7 @@ using Zenject;
 /// Отвечает за назначение работы
 /// </summary>
 [RequireComponent(typeof(Worker))]
-public sealed class WorkerBrain : MonoBehaviour
+public sealed class WorkerBrain : ValidatedMonoBehaviour
 {
     [SerializeField] private Worker _worker;
 
@@ -24,13 +24,29 @@ public sealed class WorkerBrain : MonoBehaviour
         _mineGoldJob = new MineGoldJob(_resourceRegistry);
         _huntMeatJob = new HuntMeatJob(_resourceRegistry);
     }
+    protected override bool ValidateInternal()
+    {
+        bool valid = true;
+
+        valid &= ValidationUtility.IsAssigned(this, _worker, nameof(_worker));
+
+        return valid;
+    }
+    protected override void Awake()
+    {
+        base.Awake();
+
+        if (!enabled)
+            return;
+
+    }
 
     /// <summary>
     /// Назначает новую работу worker
     /// </summary>
     public void AssignJob(WorkerJobType job)
     {
-        if (_worker == null || _worker.Home == null)
+        if (_worker.Home == null)
             return;
 
         if (_worker.CurrentJob == job && _worker.PendingJob == WorkerJobType.None)
@@ -57,9 +73,6 @@ public sealed class WorkerBrain : MonoBehaviour
     /// </summary>
     public void ApplyPendingJobIfAny()
     {
-        if (_worker == null)
-            return;
-
         if (_worker.PendingJob == WorkerJobType.None)
             return;
 
@@ -74,9 +87,6 @@ public sealed class WorkerBrain : MonoBehaviour
     /// </summary>
     public void ApplyJobImmediately(WorkerJobType job)
     {
-        if (_worker == null)
-            return;
-
         IWorkerJob logic = GetJobLogic(job);
 
         _worker.ResetTaskState();

@@ -20,6 +20,7 @@ public abstract class ProductionBuildingBase : BuildingBase
     private ResourceStorage _resourceStorage;
     private ArmyUnitRegistry _armyUnitRegistry;
     private ArmyUnitFactory _armyUnitFactory;
+    private TechTreeBonusService _techTreeBonusService;
 
     private bool _isProducing;
     private Coroutine _productionRoutine;
@@ -27,21 +28,27 @@ public abstract class ProductionBuildingBase : BuildingBase
     private int _spawnedUnitsCount;
 
     public UnitConfig UnitConfig => _unitConfig;
+    public int CurrentWoodCost => GetReducedCost(_unitConfig.WoodCost);
+    public int CurrentMeatCost => GetReducedCost(_unitConfig.MeatCost);
+    public float CurrentBuildTime => GetCurrentBuildTime();
     public int QueueCount => _queueCount;
-    public int MaxQueue => _maxQueue;
+    public int MaxQueue => _maxQueue + GetQueueBonus();
     public bool IsProducing => _isProducing;
 
     public event Action OnQueueChanged;
 
     [Inject]
-    private void Construct( ResourceStorage resourceStorage,
-        ArmyUnitRegistry armyUnitRegistry, ArmyUnitFactory armyUnitFactory)
+    private void Construct(
+        ResourceStorage resourceStorage,
+        ArmyUnitRegistry armyUnitRegistry,
+        ArmyUnitFactory armyUnitFactory,
+        TechTreeBonusService techTreeBonusService)
     {
         _resourceStorage = resourceStorage;
         _armyUnitRegistry = armyUnitRegistry;
         _armyUnitFactory = armyUnitFactory;
+        _techTreeBonusService = techTreeBonusService;
     }
-
     protected override void OnValidate()
     {
         base.OnValidate();
@@ -55,14 +62,8 @@ public abstract class ProductionBuildingBase : BuildingBase
     {
         bool valid = base.ValidateInternal();
 
-        valid &= ValidationUtility.IsAssigned(this, _unitConfig, nameof(_unitConfig));
+        valid &= ValidationUtility.IsValidConfig(this, _unitConfig, nameof(_unitConfig));
         valid &= ValidationUtility.IsAssigned(this, _spawnPoint, nameof(_spawnPoint));
-
-        if (_unitConfig != null && !_unitConfig.IsValid())
-        {
-            Debug.LogError($"{name}: UnitConfig настроен некорректно.", this);
-            valid = false;
-        }
 
         return valid;
     }
@@ -74,13 +75,13 @@ public abstract class ProductionBuildingBase : BuildingBase
 
     public string GetHireBlockReason()
     {
-        if (_queueCount >= _maxQueue)
+        if (_queueCount >= MaxQueue)
             return "Очередь заполнена";
 
         if (!_armyUnitRegistry.HasFreePlayerSlot())
             return "Достигнут лимит армии";
 
-        if (!_resourceStorage.HasResources(_unitConfig.WoodCost, 0, _unitConfig.MeatCost))
+        if (!_resourceStorage.HasResources(CurrentWoodCost, 0, CurrentMeatCost))
             return "Не хватает ресурсов";
 
         return string.Empty;
@@ -100,9 +101,9 @@ public abstract class ProductionBuildingBase : BuildingBase
             return false;
 
         bool spent = _resourceStorage.TrySpendResources(
-            _unitConfig.WoodCost,
+            CurrentWoodCost,
             0,
-            _unitConfig.MeatCost);
+            CurrentMeatCost);
 
         if (!spent)
         {
@@ -125,7 +126,7 @@ public abstract class ProductionBuildingBase : BuildingBase
 
         while (_queueCount > 0)
         {
-            yield return new WaitForSeconds(_unitConfig.BuildTime);
+            yield return new WaitForSeconds(GetCurrentBuildTime());
 
             bool spawned = SpawnUnit(_unitConfig);
 
@@ -144,7 +145,7 @@ public abstract class ProductionBuildingBase : BuildingBase
 
     protected virtual bool SpawnUnit(UnitConfig unitConfig)
     {
-        if (unitConfig == null || unitConfig.Prefab == null)
+        if (unitConfig.Prefab == null)
             return false;
 
         Vector3 spawnPosition = GetNextSpawnPosition();
@@ -196,6 +197,30 @@ public abstract class ProductionBuildingBase : BuildingBase
         }
 
         return center;
+    }
+
+    private int GetReducedCost(int baseCost)
+    {
+        if (baseCost <= 0)
+            return 0;
+
+        float reducedCost = _techTreeBonusService.ApplyPercentReduction(
+            baseCost,
+            TechTreeBonusType.HireArmy);
+
+        return Mathf.Max(0, Mathf.CeilToInt(reducedCost));
+    }
+    private float GetCurrentBuildTime()
+    {
+        float buildTime = _techTreeBonusService.ApplyPercentReduction(
+            _unitConfig.BuildTime,
+            TechTreeBonusType.TrainArmy);
+
+        return Mathf.Max(0.1f, buildTime);
+    }
+    private int GetQueueBonus()
+    {
+        return _techTreeBonusService.GetBonusInt(TechTreeBonusType.QueueMilitaryBuildings);
     }
 
     protected virtual void OnDestroy()

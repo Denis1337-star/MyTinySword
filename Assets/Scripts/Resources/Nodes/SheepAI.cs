@@ -16,25 +16,15 @@ public sealed class SheepAI : MonoBehaviour
 
     [SerializeField] private float eatTime = 3f;
     [SerializeField] private SheepTerritory territory;
-
-    private UnitMovement _movement;
-    private Animator _animator;
-    private NavMeshAgent _agent;
+    [SerializeField] private UnitMovement _movement;
+    [SerializeField] private Animator _animator;
+    [SerializeField] private NavMeshAgent _agent;
 
     private float _timer;
     private bool _isEating;
     private bool _isFrozen;
     private bool _lastIsMoving;
     private Vector2 _targetPoint;
-
-    private void Awake()
-    {
-        _movement = GetComponent<UnitMovement>();
-        _animator = GetComponent<Animator>();
-        _agent = GetComponent<NavMeshAgent>();
-
-        eatTime = Mathf.Max(0.1f, eatTime);
-    }
 
     private IEnumerator Start()
     {
@@ -120,9 +110,6 @@ public sealed class SheepAI : MonoBehaviour
 
     private void SetMovingAnimation(bool isMoving)
     {
-        if (_animator == null)
-            return;
-
         if (_lastIsMoving == isMoving)
             return;
 

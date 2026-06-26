@@ -11,6 +11,9 @@ public sealed class ProjectServicesInstaller : MonoInstaller
 
     public override void InstallBindings()
     {
+        if (!ValidateReferences())
+            return;
+
         Container
          .Bind<GameAudioService>()
          .FromComponentInNewPrefab(_audioServicePrefab)
@@ -74,5 +77,14 @@ public sealed class ProjectServicesInstaller : MonoInstaller
      .AsSingle()
      .NonLazy();
 
+    }
+    private bool ValidateReferences()
+    {
+        bool valid = true;
+
+        valid &= ValidationUtility.IsAssigned(this, _audioServicePrefab, nameof(_audioServicePrefab));
+        valid &= ValidationUtility.IsValidConfig(this, _techTreeCatalog, nameof(_techTreeCatalog));
+
+        return valid;
     }
 }

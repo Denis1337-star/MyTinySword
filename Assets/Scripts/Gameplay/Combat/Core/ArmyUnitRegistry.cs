@@ -44,9 +44,6 @@ public sealed class ArmyUnitRegistry : MonoBehaviour
 
     public void Register(ArmyUnit unit)
     {
-        if (unit == null)
-            return;
-
         if (_allUnits.Contains(unit))
             return;
 
@@ -60,9 +57,6 @@ public sealed class ArmyUnitRegistry : MonoBehaviour
 
     public void Unregister(ArmyUnit unit)
     {
-        if (unit == null)
-            return;
-
         if (!_allUnits.Remove(unit))
             return;
 
@@ -156,9 +150,6 @@ public sealed class ArmyUnitRegistry : MonoBehaviour
     }
     private int GetArmyCapBonus()
     {
-        if (_techTreeBonusService == null)
-            return 0;
-
         return _techTreeBonusService.GetBonusInt(TechTreeBonusType.ArmyCap);
     }
 }

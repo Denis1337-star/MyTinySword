@@ -141,8 +141,7 @@ public sealed class AudioSettingsPanel : ValidatedMonoBehaviour
         if (!_audioServiceSubscribed)
             return;
 
-        if (_audioService != null)
-            _audioService.SettingsChanged -= RefreshFromService;
+        _audioService.SettingsChanged -= RefreshFromService;
 
         _audioServiceSubscribed = false;
     }

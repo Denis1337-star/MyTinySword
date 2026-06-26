@@ -37,12 +37,9 @@ public sealed class LevelSelectPanel : ValidatedMonoBehaviour
 
         valid &= ValidationUtility.IsAssigned(this, _root, nameof(_root));
         valid &= ValidationUtility.IsAssigned(this, _panelTween, nameof(_panelTween));
-        valid &= ValidationUtility.IsAssigned(this, _levelCatalog, nameof(_levelCatalog));
+        valid &= ValidationUtility.IsValidConfig(this, _levelCatalog, nameof(_levelCatalog));
         valid &= ValidationUtility.IsAssigned(this, _itemPrefab, nameof(_itemPrefab));
         valid &= ValidationUtility.IsAssigned(this, _itemsRoot, nameof(_itemsRoot));
-
-        if (_levelCatalog != null)
-            valid &= _levelCatalog.IsValid();
 
         return valid;
     }
@@ -83,18 +80,8 @@ public sealed class LevelSelectPanel : ValidatedMonoBehaviour
     {
         ClearItems();
 
-        if (_levelCatalog == null)
-            return;
-
         for (int i = 0; i < _levelCatalog.Levels.Count; i++)
-        {
-            LevelConfig level = _levelCatalog.Levels[i];
-
-            if (level == null)
-                continue;
-
-            CreateItem(level);
-        }
+            CreateItem(_levelCatalog.Levels[i]);
     }
 
     private void CreateItem(LevelConfig levelConfig)

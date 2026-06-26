@@ -21,7 +21,7 @@ public sealed class TechTreeStartingWorkersApplier : ValidatedMonoBehaviour
 
     protected override bool ValidateInternal()
     {
-        return ValidationUtility.NotEmptyArray(this, _targetHouses, nameof(_targetHouses));
+        return ValidationUtility.ValidArray(this, _targetHouses, nameof(_targetHouses));
     }
 
     private void Start()
@@ -42,14 +42,7 @@ public sealed class TechTreeStartingWorkersApplier : ValidatedMonoBehaviour
             return;
 
         for (int i = 0; i < _targetHouses.Length; i++)
-        {
-            House house = _targetHouses[i];
-
-            if (house == null)
-                continue;
-
-            house.AddFreeWorkers(bonusWorkers);
-        }
+            _targetHouses[i].AddFreeWorkers(bonusWorkers);
 
         Debug.Log($"[TechTreeStartingWorkersApplier] Добавлены стартовые рабочие: +{bonusWorkers}.");
     }

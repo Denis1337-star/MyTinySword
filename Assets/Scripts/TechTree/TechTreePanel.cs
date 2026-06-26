@@ -46,8 +46,8 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
         valid &= ValidationUtility.IsAssigned(this, _root, nameof(_root));
         valid &= ValidationUtility.IsAssigned(this, _infoPanel, nameof(_infoPanel));
         valid &= ValidationUtility.IsAssigned(this, _mapPanController, nameof(_mapPanController));
-        valid &= ValidationUtility.NotEmptyArray(this, _nodeViews, nameof(_nodeViews));
-        valid &= ValidationUtility.NotEmptyArray(this, _connectionViews, nameof(_connectionViews));
+        valid &= ValidationUtility.ValidArray(this, _nodeViews, nameof(_nodeViews));
+        valid &= ValidationUtility.ValidArray(this, _connectionViews, nameof(_connectionViews));
 
         return valid;
     }
@@ -120,12 +120,7 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
     private void Subscribe()
     {
         for (int i = 0; i < _nodeViews.Length; i++)
-        {
-            TechTreeNodeView nodeView = _nodeViews[i];
-
-            if (nodeView != null)
-                nodeView.Initialize(HandleNodeClicked);
-        }
+            _nodeViews[i].Initialize(HandleNodeClicked);
 
         _infoPanel.UpgradeClicked += HandleUpgradeClicked;
         _mapPanController.DragStarted += HandleMapDragStarted;
@@ -139,9 +134,6 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
 
     private void HandleNodeClicked(TechTreeNodeView nodeView)
     {
-        if (nodeView == null || nodeView.Config == null)
-            return;
-
         _selectedNodeView = nodeView;
 
         RefreshAll();
@@ -151,7 +143,7 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
 
     private void HandleUpgradeClicked()
     {
-        if (_selectedNodeView == null || _selectedNodeView.Config == null)
+        if (_selectedNodeView == null)
             return;
 
         bool started = _saveService.TryStartUpgrade(_selectedNodeView.Config);
@@ -187,8 +179,6 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
 
     private void CompleteReadyUpgrades()
     {
-        if (_catalog == null)
-            return;
         _saveService.CompleteReadyUpgrades(_catalog.Nodes);
     }
 
@@ -197,10 +187,6 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
         for (int i = 0; i < _nodeViews.Length; i++)
         {
             TechTreeNodeView nodeView = _nodeViews[i];
-
-            if (nodeView == null || nodeView.Config == null)
-                continue;
-
             TechTreeNodeConfig config = nodeView.Config;
             TechTreeNodeSaveData saveData = _saveService.GetOrCreateNode(config);
             TechTreeNodeState state = GetVisualState(nodeView);
@@ -216,10 +202,6 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
         for (int i = 0; i < _connectionViews.Length; i++)
         {
             TechTreeConnectionView connectionView = _connectionViews[i];
-
-            if (connectionView == null || connectionView.ToNode == null)
-                continue;
-
             TechTreeNodeState toNodeState = _saveService.GetNodeState(connectionView.ToNode);
             connectionView.Refresh(toNodeState);
         }
@@ -227,7 +209,7 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
 
     private void RefreshInfoPanel()
     {
-        if (_selectedNodeView == null || _selectedNodeView.Config == null)
+        if (_selectedNodeView == null)
             return;
 
         TechTreeNodeConfig config = _selectedNodeView.Config;
@@ -265,27 +247,23 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
         TechTreeRequirement[] requirements = config.Requirements;
 
         if (requirements == null || requirements.Length == 0)
-            return "Нет требований";
+            return "Требований нет";
 
         _stringBuilder.Clear();
 
         for (int i = 0; i < requirements.Length; i++)
         {
             TechTreeRequirement requirement = requirements[i];
-
-            if (requirement == null || requirement.RequiredNode == null)
-                continue;
-
             TechTreeNodeSaveData requiredSaveData = _saveService.GetOrCreateNode(requirement.RequiredNode);
 
+            bool completed = requiredSaveData.Level >= requirement.RequiredLevel;
+
+            _stringBuilder.Append(completed ? "✓ " : "• ");
             _stringBuilder.Append(requirement.RequiredNode.DisplayName);
             _stringBuilder.Append(": ");
             _stringBuilder.Append(requiredSaveData.Level);
             _stringBuilder.Append("/");
             _stringBuilder.Append(requirement.RequiredLevel);
-
-            if (requiredSaveData.Level >= requirement.RequiredLevel)
-                _stringBuilder.Append(" ✓");
 
             if (i < requirements.Length - 1)
                 _stringBuilder.AppendLine();

@@ -8,9 +8,6 @@ public sealed class YandexAudioSaveService
 {
     public void LoadTo(GameAudioService audioService)
     {
-        if (audioService == null)
-            return;
-
         if (!YG2.saves.audioSettingsInitialized)
         {
             SaveFrom(audioService);
@@ -25,9 +22,6 @@ public sealed class YandexAudioSaveService
 
     public void SaveFrom(GameAudioService audioService)
     {
-        if (audioService == null)
-            return;
-
         YG2.saves.audioSettingsInitialized = true;
         YG2.saves.musicVolume = audioService.MusicVolume;
         YG2.saves.sfxVolume = audioService.SfxVolume;

@@ -77,16 +77,10 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
     {
         bool valid = true;
 
-        valid &= ValidationUtility.IsAssigned(this, config, nameof(config));
+        valid &= ValidationUtility.IsValidConfig(this, config, nameof(config));
         valid &= ValidationUtility.IsAssigned(this, factionMember, nameof(factionMember));
         valid &= ValidationUtility.IsAssigned(this, health, nameof(health));
         valid &= ValidationUtility.IsAssigned(this, selectable, nameof(selectable));
-
-        if (config != null && !config.IsValid())
-        {
-            Debug.LogError($"{name}: BuildingConfig настроен некорректно.", this);
-            valid = false;
-        }
 
         return valid;
     }
@@ -97,9 +91,7 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
     }
 
     /// <summary>
-    /// Сносит здание напрямую.
-    /// Используется внутренней логикой здания.
-    /// Для UI-кнопки лучше использовать TryDemolishByButton().
+    /// Сносит здание напрямую
     /// </summary>
     public void Demolish()
     {
@@ -108,8 +100,7 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
     }
 
     /// <summary>
-    /// Пытается снести здание через UI-кнопку.
-    /// Если здание защищено от ручного сноса, ничего не делает.
+    /// Пытается снести здание через UI-кнопку
     /// </summary>
     public bool TryDemolishByButton()
     {
@@ -140,7 +131,7 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
     {
         int maxHealth = config.MaxHealth;
 
-        if (factionMember != null && factionMember.Faction == FactionType.Player)
+        if (factionMember.Faction == FactionType.Player)
         {
             maxHealth = Mathf.RoundToInt(_techTreeBonusService.ApplyPercentBonus(
                 maxHealth,

@@ -5,7 +5,7 @@ using UnityEngine;
 /// DOTween анимация названия игры в главном меню
 /// </summary>
 [RequireComponent(typeof(CanvasGroup))]
-public sealed class MainMenuTitleTween : MonoBehaviour
+public sealed class MainMenuTitleTween : ValidatedMonoBehaviour
 {
     [Header("Intro Animation")]
     [SerializeField, Min(0.01f)] private float _showDuration = 0.45f;
@@ -17,14 +17,23 @@ public sealed class MainMenuTitleTween : MonoBehaviour
     [SerializeField, Min(0.01f)] private float _idleScale = 1.03f;
     [SerializeField, Min(0.1f)] private float _idleDuration = 1.4f;
 
-    private CanvasGroup _canvasGroup;
+    [SerializeField] private CanvasGroup _canvasGroup;
+
     private Sequence _sequence;
 
-    private void Awake()
+    protected override void Awake()
     {
-        _canvasGroup = GetComponent<CanvasGroup>();
+        base.Awake();
+
+        if (!enabled)
+            return;
 
         PrepareInitialState();
+    }
+
+    protected override bool ValidateInternal()
+    {
+        return ValidationUtility.IsAssigned(this, _canvasGroup, nameof(_canvasGroup));
     }
 
     private void Start()
@@ -88,6 +97,6 @@ public sealed class MainMenuTitleTween : MonoBehaviour
         }
 
         transform.DOKill();
-        _canvasGroup?.DOKill();
+        _canvasGroup.DOKill();
     }
 }

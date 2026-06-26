@@ -9,7 +9,7 @@ using Zenject;
 public sealed class BuildingActionPanel : ValidatedMonoBehaviour
 {
     private const string CanDemolishText =
-        "Это здание можно снести.\nРесурсы не будут возвращены.";
+        "Это здание можно снести.";
 
     private const string CannotDemolishText =
         "Это здание нельзя снести.";

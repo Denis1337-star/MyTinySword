@@ -6,8 +6,8 @@ using YG;
 using Zenject;
 
 /// <summary>
-/// Отправляет события разметки игры в PluginYG2 / Yandex Games
-/// и связывает потерю фокуса приложения с игровой паузой.
+///      PluginYG2 / Yandex Games
+///        .
 /// </summary>
 public sealed class YandexGameEventsBridge : MonoBehaviour
 {
@@ -108,7 +108,7 @@ public sealed class YandexGameEventsBridge : MonoBehaviour
 
     private IEnumerator HandleSceneLoadedNextFrame(Scene scene)
     {
-        // Ждём 1 кадр, чтобы UI и основные объекты сцены успели включиться.
+        //  1 ,  UI      .
         yield return null;
 
         SendGameReadyIfNeeded();

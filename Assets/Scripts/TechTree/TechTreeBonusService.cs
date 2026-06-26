@@ -19,17 +19,11 @@ public sealed class TechTreeBonusService
         if (bonusType == TechTreeBonusType.None)
             return 0f;
 
-        if (_catalog == null || _catalog.Nodes == null)
-            return 0f;
-
         float totalBonus = 0f;
 
         for (int i = 0; i < _catalog.Nodes.Count; i++)
         {
             TechTreeNodeConfig config = _catalog.Nodes[i];
-
-            if (config == null)
-                continue;
 
             if (config.BonusType != bonusType)
                 continue;

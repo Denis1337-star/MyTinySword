@@ -27,13 +27,9 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
     private ResourceStorage _resourceStorage;
     private BuildingDemolishService _buildingDemolishService;
 
-    public RectTransform HireButtonRect => _hireButton != null
-        ? _hireButton.transform as RectTransform
-        : null;
+    public RectTransform HireButtonRect => _hireButton.transform as RectTransform;
 
-    public RectTransform PanelRect => _root != null
-        ? _root.transform as RectTransform
-        : null;
+    public RectTransform PanelRect => _root.transform as RectTransform;
 
     public SimplePanelTween PanelTween => _panelTween;
 
@@ -69,6 +65,7 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
         valid &= ValidationUtility.IsAssigned(this, _hireButton, nameof(_hireButton));
         valid &= ValidationUtility.IsAssigned(this, _demolishButton, nameof(_demolishButton));
         valid &= ValidationUtility.IsAssigned(this, _iconImage, nameof(_iconImage));
+        valid &= ValidationUtility.IsAssigned(this, _panelTween, nameof(_panelTween));
 
         return valid;
     }
@@ -129,9 +126,7 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
     public void Dismiss()
     {
         Hide();
-
-        if (_panelTween != null)
-            _panelTween.Hide();
+        _panelTween.Hide();
     }
 
     private void HireUnit()
@@ -171,11 +166,15 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
             _currentBuilding.QueueCount,
             _currentBuilding.MaxQueue,
             _armyUnitRegistry.CommittedPlayerArmySlots,
-            _armyUnitRegistry.MaxPlayerArmyUnits);
+            _armyUnitRegistry.MaxPlayerArmyUnits,
+            _currentBuilding.CurrentBuildTime); ;
 
         string blockReason = _currentBuilding.GetHireBlockReason();
 
-        _costText.text = BuildCostText(config.WoodCost, config.MeatCost, blockReason);
+        _costText.text = BuildCostText(
+            _currentBuilding.CurrentWoodCost,
+            _currentBuilding.CurrentMeatCost,
+            blockReason);
 
         _hireButton.interactable = _currentBuilding.CanEnqueue();
         BuildingDemolishRules.RefreshButton(_demolishButton, _currentBuilding);
@@ -188,7 +187,7 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
         _unitNameText.text = string.Empty;
         _descriptionText.text = string.Empty;
         _statsText.text = string.Empty;
-        _queueText.text = BuildQueueText(0, 0, 0, 0);
+        _queueText.text = BuildQueueText(0, 0, 0, 0, 0f);
         _costText.text = "Стоимость: -";
 
         _hireButton.interactable = false;
@@ -197,11 +196,17 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
         _iconImage.sprite = null;
     }
 
-    private static string BuildQueueText(int queueCount, int maxQueue, int armySlots, int maxArmySlots)
+    private static string BuildQueueText(
+     int queueCount,
+     int maxQueue,
+     int armySlots,
+     int maxArmySlots,
+     float buildTime)
     {
-        return $"В очереди: {queueCount}/{maxQueue}\nАрмия: {armySlots}/{maxArmySlots}";
+        return
+            $"В очереди: {queueCount}/{maxQueue}  Армия: {armySlots}/{maxArmySlots}\n" +
+            $"Обучение: {buildTime:0.#} сек.";
     }
-
     private static string BuildCostText(int woodCost, int meatCost, string blockReason)
     {
         string text = $"Стоимость: дерево {woodCost} / мясо {meatCost}";

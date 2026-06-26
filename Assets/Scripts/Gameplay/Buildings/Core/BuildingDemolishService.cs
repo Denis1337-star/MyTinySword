@@ -14,12 +14,20 @@ public sealed class BuildingDemolishService : ValidatedMonoBehaviour
     [SerializeField] private BuildingDemolishConfirmPanel _confirmPanel;
 
     private SelectionSystem _selectionSystem;
+    private ResourceStorage _resourceStorage;
+    private TechTreeBonusService _techTreeBonusService;
+
     private BuildingBase _pendingBuilding;
 
     [Inject]
-    private void Construct(SelectionSystem selectionSystem)
+    private void Construct(
+        SelectionSystem selectionSystem,
+        ResourceStorage resourceStorage,
+        TechTreeBonusService techTreeBonusService)
     {
         _selectionSystem = selectionSystem;
+        _resourceStorage = resourceStorage;
+        _techTreeBonusService = techTreeBonusService;
     }
 
     protected override bool ValidateInternal()
@@ -54,7 +62,7 @@ public sealed class BuildingDemolishService : ValidatedMonoBehaviour
         }
 
         _confirmPanel.ShowAllowed(
-            DefaultDemolishMessage,
+            BuildDemolishMessage(building),
             ConfirmDemolish,
             CancelDemolish);
     }
@@ -70,14 +78,53 @@ public sealed class BuildingDemolishService : ValidatedMonoBehaviour
             return;
         }
 
+        int woodRefund = GetRefundAmount(building.Config.WoodCost);
+        int goldRefund = GetRefundAmount(building.Config.GoldCost);
+
         if (!building.TryDemolishByButton())
         {
             _confirmPanel.Hide();
             return;
         }
 
+        AddRefund(ResourceType.Wood, woodRefund);
+        AddRefund(ResourceType.Gold, goldRefund);
+
         _selectionSystem.ClearSelection();
         _confirmPanel.Hide();
+    }
+    private string BuildDemolishMessage(BuildingBase building)
+    {
+        int woodRefund = GetRefundAmount(building.Config.WoodCost);
+        int goldRefund = GetRefundAmount(building.Config.GoldCost);
+
+        if (woodRefund <= 0 && goldRefund <= 0)
+            return DefaultDemolishMessage;
+
+        return
+            "Вы уверены, что хотите снести здание?\n" +
+            "При сносе будет возвращено:\n" +
+            $"Дерево: {woodRefund}\n" +
+            $"Золото: {goldRefund}";
+    }
+
+    private int GetRefundAmount(int cost)
+    {
+        if (cost <= 0)
+            return 0;
+
+        float refundPercent = _techTreeBonusService.GetBonusValue(TechTreeBonusType.DemolishRefund);
+        float refund = cost * refundPercent / 100f;
+
+        return Mathf.FloorToInt(refund);
+    }
+
+    private void AddRefund(ResourceType resourceType, int amount)
+    {
+        if (amount <= 0)
+            return;
+
+        _resourceStorage.AddResource(resourceType, amount);
     }
 
     private void CancelDemolish()

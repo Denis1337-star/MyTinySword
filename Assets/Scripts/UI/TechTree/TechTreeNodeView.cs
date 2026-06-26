@@ -45,7 +45,7 @@ public sealed class TechTreeNodeView : ValidatedMonoBehaviour
     {
         bool valid = true;
 
-        valid &= ValidationUtility.IsAssigned(this, _config, nameof(_config));
+        valid &= ValidationUtility.IsValidConfig(this, _config, nameof(_config));
         valid &= ValidationUtility.IsAssigned(this, _button, nameof(_button));
         valid &= ValidationUtility.IsAssigned(this, _nodeImage, nameof(_nodeImage));
         valid &= ValidationUtility.IsAssigned(this, _levelText, nameof(_levelText));
@@ -76,7 +76,7 @@ public sealed class TechTreeNodeView : ValidatedMonoBehaviour
         long remainingSeconds)
     {
         int level = saveData != null ? saveData.Level : 0;
-        int maxLevel = _config != null ? _config.MaxLevel : 1;
+        int maxLevel = _config.MaxLevel;
 
         _levelText.text = $"{level}/{maxLevel}";
 

@@ -12,9 +12,8 @@ public sealed class GoldResource : ResourceNodeBase
     private static readonly int SizeHash = Animator.StringToHash("Size");
 
     [SerializeField] private GoldResourceConfig _config;
-
-    private Animator _animator;
-    private SpriteRenderer _spriteRenderer;
+    [SerializeField] private Animator _animator;
+    [SerializeField] private SpriteRenderer _spriteRenderer;
 
     private ResourceSize _size = ResourceSize.Tiny;
     private Coroutine _growRoutine;
@@ -22,8 +21,6 @@ public sealed class GoldResource : ResourceNodeBase
 
     protected override void Awake()
     {
-        ResolveReferences();
-
         base.Awake();
 
         UpdateVisual();
@@ -48,15 +45,9 @@ public sealed class GoldResource : ResourceNodeBase
     {
         bool valid = base.ValidateInternal();
 
-        valid &= ValidationUtility.IsAssigned(this, _config, nameof(_config));
+        valid &= ValidationUtility.IsValidConfig(this, _config, nameof(_config));
         valid &= ValidationUtility.IsAssigned(this, _animator, nameof(_animator));
         valid &= ValidationUtility.IsAssigned(this, _spriteRenderer, nameof(_spriteRenderer));
-
-        if (_config != null && !_config.IsValid())
-        {
-            Debug.LogError($"{name}: GoldResourceConfig некорректный.", this);
-            valid = false;
-        }
 
         return valid;
     }
@@ -78,13 +69,6 @@ public sealed class GoldResource : ResourceNodeBase
     {
         StopGrowRoutine();
         StopWorkRoutine();
-
-        if (_config == null || !_config.IsValid())
-        {
-            SetAvailable(true);
-            onFinished?.Invoke(0);
-            return;
-        }
 
         _workRoutine = StartCoroutine(WorkRoutine(onFinished));
     }
@@ -136,9 +120,6 @@ public sealed class GoldResource : ResourceNodeBase
     {
         StopGrowRoutine();
 
-        if (_config == null || !_config.IsValid())
-            return;
-
         if (!IsAvailable)
             return;
 
@@ -173,19 +154,5 @@ public sealed class GoldResource : ResourceNodeBase
     private void SetVisible(bool value)
     {
         _spriteRenderer.enabled = value;
-    }
-
-    private void ResolveReferences()
-    {
-        if (_animator == null)
-            _animator = GetComponent<Animator>();
-
-        if (_spriteRenderer == null)
-            _spriteRenderer = GetComponent<SpriteRenderer>();
-    }
-
-    private void OnValidate()
-    {
-        ResolveReferences();
     }
 }

@@ -4,13 +4,13 @@ using UnityEngine;
 /// Задаёт прямоугольную территорию внутри которой может перемещаться овца
 /// </summary>
 [RequireComponent(typeof(BoxCollider2D))]
-public sealed class SheepTerritory : MonoBehaviour
+public sealed class SheepTerritory : ValidatedMonoBehaviour
 {
-    private BoxCollider2D _box;
+    [SerializeField] private BoxCollider2D _box;
 
-    private void Awake()
+    protected override bool ValidateInternal()
     {
-        _box = GetComponent<BoxCollider2D>();
+        return ValidationUtility.IsAssigned(this, _box, nameof(_box));
     }
 
     public Vector2 GetRandomPoint()

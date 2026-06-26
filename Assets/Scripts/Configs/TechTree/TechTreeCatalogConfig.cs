@@ -21,7 +21,7 @@ public sealed class TechTreeCatalogConfig : BaseConfig
         {
             TechTreeNodeConfig node = _nodes[i];
 
-            if (node != null && node.BonusType == bonusType)
+            if (node.BonusType == bonusType)
                 return node;
         }
 
@@ -30,13 +30,10 @@ public sealed class TechTreeCatalogConfig : BaseConfig
 
     public override bool IsValid()
     {
-        bool valid = true;
+        bool valid = ValidationUtility.ValidList(this, _nodes, nameof(_nodes));
 
-        if (_nodes == null || _nodes.Count == 0)
-        {
-            Debug.LogError($"{name}: список нод дерева развития пуст.", this);
+        if (!valid)
             return false;
-        }
 
         HashSet<string> nodeIds = new();
         HashSet<TechTreeBonusType> bonusTypes = new();
@@ -44,13 +41,6 @@ public sealed class TechTreeCatalogConfig : BaseConfig
         for (int i = 0; i < _nodes.Count; i++)
         {
             TechTreeNodeConfig node = _nodes[i];
-
-            if (node == null)
-            {
-                Debug.LogError($"{name}: Node Config с индексом {i} не назначен.", this);
-                valid = false;
-                continue;
-            }
 
             valid &= node.IsValid();
 

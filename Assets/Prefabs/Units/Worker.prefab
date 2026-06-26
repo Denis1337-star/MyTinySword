@@ -228,6 +228,7 @@ MonoBehaviour:
   _stoppingDistance: 0.35
   _agentRadius: 0.3
   _areaMask: -1
+  _agent: {fileID: 4803159699397084767}
 --- !u!114 &8358571350735867512
 MonoBehaviour:
   m_ObjectHideFlags: 0

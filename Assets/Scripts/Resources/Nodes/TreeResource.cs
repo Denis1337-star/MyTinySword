@@ -11,14 +11,11 @@ public sealed class TreeResource : ResourceNodeBase
     private static readonly int StumpHash = Animator.StringToHash("Stump");
 
     [SerializeField] private TreeResourceConfig _config;
-
-    private Animator _animator;
+    [SerializeField] private Animator _animator;
     private Coroutine _workRoutine;
 
     protected override void Awake()
     {
-        ResolveReferences();
-
         base.Awake();
 
         SetTreeVisual();
@@ -35,14 +32,8 @@ public sealed class TreeResource : ResourceNodeBase
     {
         bool valid = base.ValidateInternal();
 
-        valid &= ValidationUtility.IsAssigned(this, _config, nameof(_config));
+        valid &= ValidationUtility.IsValidConfig(this, _config, nameof(_config));
         valid &= ValidationUtility.IsAssigned(this, _animator, nameof(_animator));
-
-        if (_config != null && !_config.IsValid())
-        {
-            Debug.LogError($"{name}: TreeResourceConfig некорректный.", this);
-            valid = false;
-        }
 
         return valid;
     }
@@ -61,13 +52,6 @@ public sealed class TreeResource : ResourceNodeBase
     protected override void StartWorkRoutine(Action<int> onFinished)
     {
         StopWorkRoutine();
-
-        if (_config == null || !_config.IsValid())
-        {
-            SetAvailable(true);
-            onFinished?.Invoke(0);
-            return;
-        }
 
         _workRoutine = StartCoroutine(WorkRoutine(onFinished));
     }
@@ -110,16 +94,5 @@ public sealed class TreeResource : ResourceNodeBase
 
         StopCoroutine(_workRoutine);
         _workRoutine = null;
-    }
-
-    private void ResolveReferences()
-    {
-        if (_animator == null)
-            _animator = GetComponent<Animator>();
-    }
-
-    private void OnValidate()
-    {
-        ResolveReferences();
     }
 }

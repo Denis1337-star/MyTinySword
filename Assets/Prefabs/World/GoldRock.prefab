@@ -213,6 +213,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _workSlot: {fileID: 4298725028402502053}
   _config: {fileID: 11400000, guid: 7d3c93d12f8fcbc43a0805e633de2408, type: 2}
+  _animator: {fileID: 1966730817650815987}
+  _spriteRenderer: {fileID: 7077493542845092937}
 --- !u!208 &4721321524432157419
 NavMeshObstacle:
   m_ObjectHideFlags: 0

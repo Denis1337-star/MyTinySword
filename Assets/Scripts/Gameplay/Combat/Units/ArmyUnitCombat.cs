@@ -37,7 +37,7 @@ public sealed class ArmyUnitCombat
         }
 
         PlayAttackSound(SoundId.MeleeHit);
-        target.TakeDamage(_unit.Config.Damage);
+        target.TakeDamage(_unit.GetDamage());
     }
 
     public void PerformHeal(Health target)
@@ -48,7 +48,7 @@ public sealed class ArmyUnitCombat
         if (!CanHealTarget(target))
             return;
 
-        int healedAmount = target.Heal(_unit.Config.HealAmount);
+        int healedAmount = target.Heal(_unit.GetHealAmount());
 
         if (healedAmount <= 0)
             return;
@@ -82,8 +82,8 @@ public sealed class ArmyUnitCombat
 
         arrow.Initialize(
             target,
-            _unit.Config.Damage,
-            _unit.Config.ArrowSpeed);
+            _unit.GetDamage(),
+            _unit.GetArrowSpeed());
 
         PlayAttackSound(SoundId.ArrowShoot);
     }
@@ -104,9 +104,6 @@ public sealed class ArmyUnitCombat
 
     private void PlayAttackSound(SoundId soundId)
     {
-        if (_audioService == null)
-            return;
-
         _audioService.PlayWorldSound(soundId, _origin.position);
     }
 

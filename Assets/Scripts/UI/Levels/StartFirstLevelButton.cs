@@ -35,36 +35,18 @@ public sealed class StartFirstLevelButton : ValidatedMonoBehaviour
         bool valid = true;
 
         valid &= ValidationUtility.IsAssigned(this, _button, nameof(_button));
-        valid &= ValidationUtility.IsAssigned(this, _levelCatalog, nameof(_levelCatalog));
-
-        if (_levelCatalog != null)
-            valid &= _levelCatalog.IsValid();
+        valid &= ValidationUtility.IsValidConfig(this, _levelCatalog, nameof(_levelCatalog));
 
         return valid;
     }
 
     private void LoadFirstLevel()
     {
-        LevelConfig firstLevel = _levelCatalog.GetFirstLevel();
-
-        if (firstLevel == null)
-        {
-            Debug.LogError($"{name}: первый уровень не найден в LevelCatalog.", this);
-            return;
-        }
-
-        _levelLoaderService.TryLoadLevel(firstLevel);
+        _levelLoaderService.TryLoadLevel(_levelCatalog.GetFirstLevel());
     }
 
     private void RefreshInteractable()
     {
-        if (_levelCatalog == null)
-        {
-            _button.interactable = false;
-            return;
-        }
-
-        LevelConfig firstLevel = _levelCatalog.GetFirstLevel();
-        _button.interactable = firstLevel != null && _levelLoaderService.CanLoadLevel(firstLevel);
+        _button.interactable = true;
     }
 }

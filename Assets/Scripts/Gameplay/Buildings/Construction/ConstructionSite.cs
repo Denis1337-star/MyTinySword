@@ -73,7 +73,7 @@ public sealed class ConstructionSite : MonoBehaviour
         if (_finished)
             return;
 
-        _buildingRegistry?.UnregisterConstruction(_config);
+        _buildingRegistry.UnregisterConstruction(_config);
     }
 
     private void CompleteConstruction()
@@ -110,7 +110,7 @@ public sealed class ConstructionSite : MonoBehaviour
 
         _finished = true;
 
-        _buildingRegistry?.RegisterBuilt(_config, buildingBase);
+        _buildingRegistry.RegisterBuilt(_config, buildingBase);
 
         NotifySlotAndDestroy();
     }
@@ -127,7 +127,7 @@ public sealed class ConstructionSite : MonoBehaviour
 
     private void NotifySlotAndDestroy()
     {
-        _slot?.OnConstructionFinished();
+        _slot.OnConstructionFinished();
         Destroy(gameObject);
     }
 }

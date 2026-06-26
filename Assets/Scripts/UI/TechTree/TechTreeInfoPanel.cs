@@ -163,7 +163,9 @@ public sealed class TechTreeInfoPanel : ValidatedMonoBehaviour
 
         _currentLevelText.text = $"{level}\\{config.MaxLevel}";
         _nextLevelText.text = $"{nextLevel}\\{config.MaxLevel}";
-        _bonusPreviewText.text = $"{config.GetBonusText(level)} -> {config.GetBonusText(nextLevel)}";
+        _bonusPreviewText.text =
+            $"Текущий бонус: {config.GetBonusText(level)}\n" +
+            $"Следующий бонус: {config.GetBonusText(nextLevel)}";
 
         int upgradeSeconds = config.GetUpgradeSeconds(level);
         _upgradeTimeText.text = TechTreeNodeView.FormatTime(

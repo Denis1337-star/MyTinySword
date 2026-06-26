@@ -15,22 +15,16 @@ public sealed class LevelCatalog : BaseConfig
 
     public LevelConfig GetFirstLevel()
     {
-        if (_levels == null || _levels.Count == 0)
-            return null;
-
         return _levels[0];
     }
 
     public LevelConfig GetByIndex(int levelIndex)
     {
-        if (_levels == null)
-            return null;
-
         for (int i = 0; i < _levels.Count; i++)
         {
             LevelConfig level = _levels[i];
 
-            if (level != null && level.LevelIndex == levelIndex)
+            if (level.LevelIndex == levelIndex)
                 return level;
         }
 
@@ -39,14 +33,14 @@ public sealed class LevelCatalog : BaseConfig
 
     public LevelConfig GetById(string levelId)
     {
-        if (string.IsNullOrWhiteSpace(levelId) || _levels == null)
+        if (string.IsNullOrWhiteSpace(levelId))
             return null;
 
         for (int i = 0; i < _levels.Count; i++)
         {
             LevelConfig level = _levels[i];
 
-            if (level != null && level.LevelId == levelId)
+            if (level.LevelId == levelId)
                 return level;
         }
 
@@ -55,13 +49,10 @@ public sealed class LevelCatalog : BaseConfig
 
     public override bool IsValid()
     {
-        bool valid = true;
+        bool valid = ValidationUtility.ValidList(this, _levels, nameof(_levels));
 
-        if (_levels == null || _levels.Count == 0)
-        {
-            Debug.LogError($"{name}: список уровней пуст.", this);
+        if (!valid)
             return false;
-        }
 
         HashSet<string> ids = new();
         HashSet<int> indexes = new();
@@ -69,13 +60,6 @@ public sealed class LevelCatalog : BaseConfig
         for (int i = 0; i < _levels.Count; i++)
         {
             LevelConfig level = _levels[i];
-
-            if (level == null)
-            {
-                Debug.LogError($"{name}: LevelConfig с индексом {i} не назначен.", this);
-                valid = false;
-                continue;
-            }
 
             valid &= level.IsValid();
 

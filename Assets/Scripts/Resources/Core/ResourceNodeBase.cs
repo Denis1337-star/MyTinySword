@@ -32,7 +32,7 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour
 
     protected virtual void OnDestroy()
     {
-        _resourceRegistry?.Unregister(this);
+        _resourceRegistry.Unregister(this);
     }
 
     protected override bool ValidateInternal()
@@ -51,7 +51,7 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour
 
     public virtual WorkSlot TryReserveSlot(Worker worker)
     {
-        if (worker == null || _workSlot == null)
+        if (worker == null)
             return null;
 
         return _workSlot.TryReserve(worker) ? _workSlot : null;
@@ -59,7 +59,7 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour
 
     public virtual void ReleaseSlot(Worker worker)
     {
-        if (worker == null || _workSlot == null)
+        if (worker == null)
             return;
 
         _workSlot.Release(worker);
@@ -85,23 +85,14 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour
             return worker.TargetSlot.Position;
         }
 
-        if (_workSlot != null)
-            return _workSlot.Position;
-
-        return transform.position;
+        return _workSlot.Position;
     }
 
-    /// <summary>
-    /// Отменяет работу с ресурсом
-    /// </summary>
     public virtual void CancelWork(Worker worker)
     {
         ReleaseSlot(worker);
     }
 
-    /// <summary>
-    /// Завершает работу с ресурсом без отмены самой ресурсной логики
-    /// </summary>
     public virtual void CompleteWork(Worker worker)
     {
         ReleaseSlot(worker);
@@ -113,8 +104,6 @@ public abstract class ResourceNodeBase : ValidatedMonoBehaviour
     }
     protected float GetWorkTimeWithGatherBonus(float baseWorkTime)
     {
-        if (_techTreeBonusService == null)
-            return baseWorkTime;
 
         float finalWorkTime = _techTreeBonusService.ApplyPercentReduction(
             baseWorkTime,

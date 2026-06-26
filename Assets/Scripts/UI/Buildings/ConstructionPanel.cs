@@ -24,6 +24,8 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
     private readonly List<ConstructionOptionItem> _optionItems = new();
 
     private ResourceStorage _resourceStorage;
+    private TechTreeBonusService _techTreeBonusService;
+    private BuildingRegistry _buildingRegistry;
     private ConstructionSlot _currentSlot;
     private BuildingConfig _selectedConfig;
     private DiContainer _container;
@@ -35,12 +37,18 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
 
     public SimplePanelTween PanelTween => _panelTween;
 
-    public bool IsVisible => _panelTween != null && _panelTween.IsVisible;
+    public bool IsVisible => _panelTween.IsVisible;
 
     [Inject]
-    private void Construct(ResourceStorage resourceStorage, DiContainer container)
+    private void Construct(
+        ResourceStorage resourceStorage,
+        TechTreeBonusService techTreeBonusService,
+        BuildingRegistry buildingRegistry,
+        DiContainer container)
     {
         _resourceStorage = resourceStorage;
+        _techTreeBonusService = techTreeBonusService;
+        _buildingRegistry = buildingRegistry;
         _container = container;
     }
 
@@ -74,6 +82,7 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
         valid &= ValidationUtility.IsAssigned(this, _buildButton, nameof(_buildButton));
         valid &= ValidationUtility.IsAssigned(this, _contentRoot, nameof(_contentRoot));
         valid &= ValidationUtility.IsAssigned(this, _optionPrefab, nameof(_optionPrefab));
+        valid &= ValidationUtility.IsAssigned(this, _panelTween, nameof(_panelTween));
 
         return valid;
     }
@@ -113,17 +122,11 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
         if (_tutorialAllowedBuilding == null)
             return true;
 
-        if (buildingConfig == null)
-            return false;
-
         return BuildingConfigUtility.Matches(_tutorialAllowedBuilding, buildingConfig);
     }
 
     public RectTransform GetOptionRect(BuildingConfig config)
     {
-        if (config == null)
-            return null;
-
         for (int i = 0; i < _optionItems.Count; i++)
         {
             ConstructionOptionItem item = _optionItems[i];
@@ -146,9 +149,7 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
     public void Dismiss()
     {
         ClearState();
-
-        if (_panelTween != null)
-            _panelTween.Hide();
+        _panelTween.Hide();
     }
 
     private void ClearState()
@@ -165,15 +166,9 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
     {
         ClearOptions();
 
-        if (configs == null)
-            return;
-
         for (int i = 0; i < configs.Count; i++)
         {
             BuildingConfig config = configs[i];
-
-            if (config == null)
-                continue;
 
             ConstructionOptionItem item = CreateItem();
             item.Bind(config, SelectConfig, AllowsBuilding);
@@ -191,19 +186,10 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
 
     private void SelectFirstAvailableConfig(IReadOnlyList<BuildingConfig> configs)
     {
-        if (configs == null)
+        if (configs.Count == 0)
             return;
 
-        for (int i = 0; i < configs.Count; i++)
-        {
-            BuildingConfig config = configs[i];
-
-            if (config == null)
-                continue;
-
-            SelectConfig(config);
-            return;
-        }
+        SelectConfig(configs[0]);
     }
 
     private void SelectConfig(BuildingConfig config)
@@ -232,7 +218,7 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
 
         _titleText.text = _selectedConfig.DisplayName;
         _descriptionText.text = _selectedConfig.Description;
-        _buildTimeText.text = $"Постройка: {_selectedConfig.BuildTime:0.#} секунд";
+        _buildTimeText.text = $"Постройка: {GetBuildTime(_selectedConfig):0.#} секунд";
 
         RefreshCostText();
 
@@ -247,16 +233,33 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
             return;
         }
 
-        if (_currentSlot != null && _currentSlot.IsUniqueBuildingBlocked(_selectedConfig))
-        {
-            _costText.text = $"{_selectedConfig.DisplayName} уже построено";
-            return;
-        }
+        string limitText = BuildLimitText(_selectedConfig);
+        string blockReason = _currentSlot != null
+            ? _currentSlot.GetBuildBlockReason(_selectedConfig)
+            : string.Empty;
 
-        _costText.text =
+        string resourceText =
             $"Стоимость\n" +
             $"Wood: {_resourceStorage.Wood}/{_selectedConfig.WoodCost}\n" +
             $"Gold: {_resourceStorage.Gold}/{_selectedConfig.GoldCost}";
+
+        if (!string.IsNullOrEmpty(limitText))
+            resourceText = limitText + "\n" + resourceText;
+
+        if (!string.IsNullOrEmpty(blockReason))
+            resourceText += "\n" + blockReason;
+
+        _costText.text = resourceText;
+    }
+    private string BuildLimitText(BuildingConfig config)
+    {
+        if (!config.UniqueBuilding)
+            return string.Empty;
+
+        int currentCount = _buildingRegistry.GetBuiltOrConstructingCount(config);
+        int allowedCount = _buildingRegistry.GetAllowedCount(config);
+
+        return $"Лимит: {currentCount}/{allowedCount}";
     }
 
     private void RefreshBuildButton()
@@ -280,6 +283,14 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
             item.SetSelected(item.Config == _selectedConfig);
             item.RefreshInteractable();
         }
+    }
+    private float GetBuildTime(BuildingConfig config)
+    {
+        float buildTime = _techTreeBonusService.ApplyPercentReduction(
+            config.BuildTime,
+            TechTreeBonusType.BuildAll);
+
+        return Mathf.Max(0.1f, buildTime);
     }
 
     private void OnBuildClicked()

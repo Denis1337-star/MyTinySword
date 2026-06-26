@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.AI;
 
 [RequireComponent(typeof(NavMeshAgent))]
-public sealed class UnitMovement : MonoBehaviour
+public sealed class UnitMovement : ValidatedMonoBehaviour
 {
     [Header("Agent Settings")]
     [SerializeField, Min(0.1f)] private float _speed = 3.5f;
@@ -10,11 +10,12 @@ public sealed class UnitMovement : MonoBehaviour
     [SerializeField, Min(0.01f)] private float _agentRadius = 0.25f;
     [SerializeField] private int _areaMask = UnityEngine.AI.NavMesh.AllAreas;
 
+    [SerializeField] private NavMeshAgent _agent;
+
     private const float InitialNavMeshSearchRadius = 5f;
     private const float TargetNavMeshSearchRadius = 3f;
     private const float MovingVelocitySqrThreshold = 0.01f;
 
-    private NavMeshAgent _agent;
     public float Speed => _speed;
 
     public bool HasTarget
@@ -46,23 +47,22 @@ public sealed class UnitMovement : MonoBehaviour
         }
     }
 
-    public Vector2 Velocity
-    {
-        get
-        {
-            if (_agent == null)
-                return Vector2.zero;
+    public Vector2 Velocity => _agent.velocity;
 
-            return _agent.velocity;
-        }
-    }
-
-    private void Awake()
+    protected override void Awake()
     {
-        _agent = GetComponent<NavMeshAgent>();
+        base.Awake();
+
+        if (!enabled)
+            return;
 
         ConfigureAgent();
         PlaceOnNavMesh();
+    }
+
+    protected override bool ValidateInternal()
+    {
+        return ValidationUtility.IsAssigned(this, _agent, nameof(_agent));
     }
 
     public bool MoveTo(Vector2 position)
@@ -114,9 +114,6 @@ public sealed class UnitMovement : MonoBehaviour
 
     private void PlaceOnNavMesh()
     {
-        if (_agent == null)
-            return;
-
         if (!NavMesh.SamplePosition(transform.position, out NavMeshHit hit, InitialNavMeshSearchRadius, _areaMask))
             return;
 
@@ -125,23 +122,19 @@ public sealed class UnitMovement : MonoBehaviour
 
     private bool CanUseAgent()
     {
-        return _agent != null && _agent.isOnNavMesh;
+        return _agent.isOnNavMesh;
     }
 
     public void SetSpeed(float speed)
     {
         _speed = Mathf.Max(0.1f, speed);
-
-        if (_agent != null)
-            _agent.speed = _speed;
+        _agent.speed = _speed;
     }
 
     public void SetStoppingDistance(float stoppingDistance)
     {
         _stoppingDistance = Mathf.Max(0f, stoppingDistance);
-
-        if (_agent != null)
-            _agent.stoppingDistance = _stoppingDistance;
+        _agent.stoppingDistance = _stoppingDistance;
     }
 
     public bool TrySamplePosition(Vector2 position, float radius, out Vector3 result)

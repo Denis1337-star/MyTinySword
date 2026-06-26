@@ -5,20 +5,24 @@ using UnityEngine;
 /// </summary>
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(UnitMovement))]
-public sealed class UnitAnimatorBridge : MonoBehaviour
+public sealed class UnitAnimatorBridge : ValidatedMonoBehaviour
 {
     private static readonly int IsMovingHash = Animator.StringToHash("IsMoving");
     private static readonly int AttackHash = Animator.StringToHash("Attack");
 
-    private Animator _animator;
-    private UnitMovement _movement;
+    [SerializeField] private Animator _animator;
+    [SerializeField] private UnitMovement _movement;
 
     private bool _lastIsMoving;
 
-    private void Awake()
+    protected override bool ValidateInternal()
     {
-        _animator = GetComponent<Animator>();
-        _movement = GetComponent<UnitMovement>();
+        bool valid = true;
+
+        valid &= ValidationUtility.IsAssigned(this, _animator, nameof(_animator));
+        valid &= ValidationUtility.IsAssigned(this, _movement, nameof(_movement));
+
+        return valid;
     }
 
     private void Update()

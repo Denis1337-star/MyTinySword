@@ -52,9 +52,6 @@ public sealed class WorkerListItem : ValidatedMonoBehaviour
 
     private void Refresh()
     {
-        if (_infoText == null)
-            return;
-
         if (_worker == null)
         {
             _infoText.text = string.Empty;

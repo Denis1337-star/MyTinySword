@@ -7,11 +7,11 @@
         false,
         false
     ],
-    "idSave": 320,
+    "idSave": 344,
     "tutorialCompleted": false,
     "audioSettingsInitialized": true,
-    "musicVolume": 0.800000011920929,
-    "sfxVolume": 0.800000011920929,
+    "musicVolume": 0.67670738697052,
+    "sfxVolume": 0.36674368381500246,
     "musicMuted": false,
     "sfxMuted": false,
     "levelProgressInitialized": true,
@@ -38,7 +38,7 @@
             },
             {
                 "NodeId": "DemolishRefund",
-                "Level": 0,
+                "Level": 1,
                 "UpgradeEndUnixTime": 0
             },
             {
@@ -59,7 +59,7 @@
             {
                 "NodeId": "WorkersGather",
                 "Level": 1,
-                "UpgradeEndUnixTime": 0
+                "UpgradeEndUnixTime": 1782505211
             },
             {
                 "NodeId": "BuildingHp",
@@ -93,7 +93,7 @@
             },
             {
                 "NodeId": "HireArmy",
-                "Level": 2,
+                "Level": 3,
                 "UpgradeEndUnixTime": 0
             },
             {
@@ -103,8 +103,8 @@
             },
             {
                 "NodeId": "StatsArmy",
-                "Level": 0,
-                "UpgradeEndUnixTime": 1782412230
+                "Level": 1,
+                "UpgradeEndUnixTime": 0
             },
             {
                 "NodeId": "QueueMilitaryBuildings",
@@ -118,15 +118,15 @@
             },
             {
                 "NodeId": "TowerRange",
-                "Level": 0,
+                "Level": 1,
                 "UpgradeEndUnixTime": 0
             },
             {
                 "NodeId": "TowerFireRate",
-                "Level": 0,
+                "Level": 1,
                 "UpgradeEndUnixTime": 0
             }
         ],
-        "LastKnownUnixTime": 1782412110
+        "LastKnownUnixTime": 1782505031
     }
 }

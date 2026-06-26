@@ -95,10 +95,6 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
         valid &= ValidationUtility.IsAssigned(this, _musicSource, nameof(_musicSource));
         valid &= ValidationUtility.IsAssigned(this, _uiSfxSource, nameof(_uiSfxSource));
         valid &= ValidationUtility.IsAssigned(this, _worldSfxRoot, nameof(_worldSfxRoot));
-
-        if (_config == null)
-            return false;
-
         valid &= ValidationUtility.IsAssigned(this, _config.AudioMixer, nameof(_config.AudioMixer));
         valid &= ValidationUtility.IsAssigned(this, _config.MusicMixerGroup, nameof(_config.MusicMixerGroup));
         valid &= ValidationUtility.IsAssigned(this, _config.SfxMixerGroup, nameof(_config.SfxMixerGroup));

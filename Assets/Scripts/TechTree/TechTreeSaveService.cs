@@ -53,10 +53,6 @@ public sealed class TechTreeSaveService
         for (int i = 0; i < requirements.Length; i++)
         {
             TechTreeRequirement requirement = requirements[i];
-
-            if (requirement == null || requirement.RequiredNode == null)
-                return false;
-
             TechTreeNodeSaveData requiredNode = GetOrCreateNode(requirement.RequiredNode);
 
             if (requiredNode.Level < requirement.RequiredLevel)
@@ -131,9 +127,6 @@ public sealed class TechTreeSaveService
 
     public void CompleteReadyUpgrades(IReadOnlyList<TechTreeNodeConfig> configs)
     {
-        if (configs == null)
-            return;
-
         EnsureInitialized();
 
         bool changed = false;
@@ -142,10 +135,6 @@ public sealed class TechTreeSaveService
         for (int i = 0; i < configs.Count; i++)
         {
             TechTreeNodeConfig config = configs[i];
-
-            if (config == null)
-                continue;
-
             TechTreeNodeSaveData node = GetOrCreateNode(config);
 
             if (!node.IsUpgrading)

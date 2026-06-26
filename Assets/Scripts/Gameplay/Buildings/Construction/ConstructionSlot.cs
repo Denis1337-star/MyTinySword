@@ -33,7 +33,7 @@ public sealed class ConstructionSlot : ValidatedMonoBehaviour
     {
         bool valid = true;
 
-        valid &= ValidationUtility.NotEmptyList(this, _availableBuildings, nameof(_availableBuildings));
+        valid &= ValidationUtility.ValidList(this, _availableBuildings, nameof(_availableBuildings));
         valid &= ValidationUtility.IsAssigned(this, _constructionPrefab, nameof(_constructionPrefab));
 
         return valid;
@@ -41,14 +41,14 @@ public sealed class ConstructionSlot : ValidatedMonoBehaviour
 
     public bool CanBuild(BuildingConfig config = null)
     {
-        if (config == null)
-            return _currentConstruction == null;
-
         return string.IsNullOrEmpty(GetBuildBlockReason(config));
     }
 
     public string GetBuildBlockReason(BuildingConfig config)
     {
+        if (config == null)
+            return "Здание не выбрано";
+
         if (_currentConstruction != null)
             return "Уже строится";
 
@@ -62,9 +62,6 @@ public sealed class ConstructionSlot : ValidatedMonoBehaviour
     }
     public bool IsUniqueBuildingBlocked(BuildingConfig config)
     {
-        if (config == null)
-            return false;
-
         if (!config.UniqueBuilding)
             return false;
 

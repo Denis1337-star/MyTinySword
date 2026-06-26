@@ -1,4 +1,5 @@
 using UnityEngine;
+using Zenject;
 
 /// <summary>
 /// Автоматически ищет врагов в радиусе и атакует их
@@ -17,8 +18,16 @@ public sealed class Tower : BuildingBase
 
     private readonly Collider2D[] _targetBuffer = new Collider2D[TargetBufferSize];
 
+    private TechTreeBonusService _techTreeBonusService;
+
     private Health _currentTarget;
     private float _attackTimer;
+
+    [Inject]
+    private void Construct(TechTreeBonusService techTreeBonusService)
+    {
+        _techTreeBonusService = techTreeBonusService;
+    }
 
     protected override void OnValidate()
     {
@@ -32,7 +41,7 @@ public sealed class Tower : BuildingBase
 
     private void Update()
     {
-        if (Health != null && Health.IsDead)
+        if (Health.IsDead)
             return;
 
         UpdateCombat();
@@ -52,7 +61,7 @@ public sealed class Tower : BuildingBase
             return;
 
         Shoot(_currentTarget);
-        _attackTimer = _attackCooldown;
+        _attackTimer = GetAttackCooldown();
     }
 
     private bool IsCurrentTargetValid()
@@ -72,17 +81,15 @@ public sealed class Tower : BuildingBase
             return false;
 
         float distanceSqr = (target.transform.position - transform.position).sqrMagnitude;
-        return distanceSqr <= _attackRange * _attackRange;
+        float attackRange = GetAttackRange();
+        return distanceSqr <= attackRange * attackRange;
     }
 
     private Health FindBestTarget()
     {
-        if (FactionMember == null)
-            return null;
-
         return CombatTargetScanner.FindBestTarget(
             transform.position,
-            _attackRange,
+            GetAttackRange(),
             _targetBuffer,
             IsValidEnemyTarget,
             GetTargetPriority);
@@ -127,11 +134,48 @@ public sealed class Tower : BuildingBase
         if (_arrowPrefab != null)
         {
             ProjectileArrow arrow = Instantiate(_arrowPrefab, spawnPosition, Quaternion.identity);
-            arrow.Initialize(target, _damage, _arrowSpeed);
+            arrow.Initialize(target, GetDamage(), _arrowSpeed);
             return;
         }
 
-        target.TakeDamage(_damage);
+        target.TakeDamage(GetDamage());
+    }
+    private int GetDamage()
+    {
+        return Mathf.RoundToInt(ApplyPlayerTowerBonus(_damage, TechTreeBonusType.TowerDamage));
+    }
+
+    private float GetAttackRange()
+    {
+        return ApplyPlayerTowerBonus(_attackRange, TechTreeBonusType.TowerRange);
+    }
+
+    private float GetAttackCooldown()
+    {
+        float cooldown = ApplyPlayerTowerReduction(_attackCooldown, TechTreeBonusType.TowerFireRate);
+
+        return Mathf.Max(0.1f, cooldown);
+    }
+
+    private float ApplyPlayerTowerBonus(float baseValue, TechTreeBonusType bonusType)
+    {
+        if (!IsPlayerTower())
+            return baseValue;
+
+        return _techTreeBonusService.ApplyPercentBonus(baseValue, bonusType);
+    }
+
+    private float ApplyPlayerTowerReduction(float baseValue, TechTreeBonusType bonusType)
+    {
+        if (!IsPlayerTower())
+            return baseValue;
+
+        return _techTreeBonusService.ApplyPercentReduction(baseValue, bonusType);
+    }
+
+    private bool IsPlayerTower()
+    {
+        return FactionMember.IsPlayer();
     }
 
     private void PlayAttackSound(Vector3 position)
@@ -142,6 +186,7 @@ public sealed class Tower : BuildingBase
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.magenta;
-        Gizmos.DrawWireSphere(transform.position, _attackRange);
+        float range = Application.isPlaying ? GetAttackRange() : _attackRange;
+        Gizmos.DrawWireSphere(transform.position, range);
     }
 }

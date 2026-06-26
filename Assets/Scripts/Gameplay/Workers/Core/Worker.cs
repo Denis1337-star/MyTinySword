@@ -74,16 +74,10 @@ public sealed class Worker : ValidatedMonoBehaviour
     {
         bool valid = true;
 
-        valid &= ValidationUtility.IsAssigned(this, _config, nameof(_config));
+        valid &= ValidationUtility.IsValidConfig(this, _config, nameof(_config));
         valid &= ValidationUtility.IsAssigned(this, _movement, nameof(_movement));
         valid &= ValidationUtility.IsAssigned(this, _animator, nameof(_animator));
         valid &= ValidationUtility.IsAssigned(this, _brain, nameof(_brain));
-
-        if (_config != null && !_config.IsValid())
-        {
-            Debug.LogError($"{name}: WorkerConfig некорректный.", this);
-            valid = false;
-        }
 
         return valid;
     }
@@ -194,9 +188,6 @@ public sealed class Worker : ValidatedMonoBehaviour
     }
     private void ApplyMovementSpeedBonus()
     {
-        if (_movement == null)
-            return;
-
         float speed = _techTreeBonusService.ApplyPercentBonus(
             _movement.Speed,
             TechTreeBonusType.WorkersSpeed);

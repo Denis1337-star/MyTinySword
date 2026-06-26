@@ -5,7 +5,7 @@ using Zenject;
 /// Управляет поведением боевого юнита
 /// </summary>
 [RequireComponent(typeof(ArmyUnit))]
-public sealed class ArmyUnitBrain : MonoBehaviour
+public sealed class ArmyUnitBrain : ValidatedMonoBehaviour
 {
     [SerializeField] private ArmyUnit _unit;
     private ArmyTargetFinder _targetFinder;
@@ -37,8 +37,22 @@ public sealed class ArmyUnitBrain : MonoBehaviour
         _audioService = audioService;
     }
 
-    private void Awake()
+    protected override bool ValidateInternal()
     {
+        bool valid = true;
+
+        valid &= ValidationUtility.IsAssigned(this, _unit, nameof(_unit));
+
+        return valid;
+    }
+
+    protected override void Awake()
+    {
+        base.Awake();
+
+        if (!enabled)
+            return;
+
         _targetFinder = new ArmyTargetFinder(_unit, transform);
     }
     private void Start()
@@ -176,7 +190,7 @@ public sealed class ArmyUnitBrain : MonoBehaviour
 
         float distanceToTarget = _combat.GetDistanceToTarget(_currentTarget);
 
-        if (distanceToTarget > _unit.Config.AttackRange)
+        if (distanceToTarget > _unit.GetAttackRange())
         {
             _unit.Movement.MoveTo(_currentTarget.transform.position);
             return;
@@ -190,7 +204,7 @@ public sealed class ArmyUnitBrain : MonoBehaviour
             return;
 
         _combat.PerformAttack(_currentTarget);
-        _attackTimer = _unit.Config.AttackCooldown;
+        _attackTimer = _unit.GetAttackCooldown();
     }
 
     private void UpdateHeal()
@@ -207,7 +221,7 @@ public sealed class ArmyUnitBrain : MonoBehaviour
             return;
         }
 
-        float healRange = _unit.Config.HealRange;
+        float healRange = _unit.GetHealRange();
         float healRangeSqr = healRange * healRange;
         float distanceSqr = (_currentHealTarget.transform.position - transform.position).sqrMagnitude;
 
@@ -225,7 +239,7 @@ public sealed class ArmyUnitBrain : MonoBehaviour
             return;
 
         _combat.PerformHeal(_currentHealTarget);
-        _healTimer = _unit.Config.HealCooldown;
+        _healTimer = _unit.GetHealCooldown();
     }
 
     private void StartAttack(Health target, bool returnToMoveAfterCombat)
@@ -278,13 +292,6 @@ public sealed class ArmyUnitBrain : MonoBehaviour
 
     private bool CanAct()
     {
-        return _unit != null &&
-               !_unit.IsDead &&
-               _unit.Config != null &&
-               _unit.Movement != null &&
-               _unit.Health != null &&
-               _unit.FactionMember != null &&
-               _unit.AnimatorBridge != null &&
-               _unit.BodyCollider != null;
+        return !_unit.IsDead;
     }
 }

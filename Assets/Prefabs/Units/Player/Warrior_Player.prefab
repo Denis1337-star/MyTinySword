@@ -158,6 +158,7 @@ MonoBehaviour:
   _stoppingDistance: 0.2
   _agentRadius: 0.25
   _areaMask: -1
+  _agent: {fileID: 4404073937937178134}
 --- !u!114 &1435114568600682809
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -277,6 +278,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c86445684a13284885ce177b8646311, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _animator: {fileID: 0}
+  _movement: {fileID: 7518617999189748229}
 --- !u!114 &8907659168576169582
 MonoBehaviour:
   m_ObjectHideFlags: 0

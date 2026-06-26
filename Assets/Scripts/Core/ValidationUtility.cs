@@ -23,6 +23,17 @@ public static class ValidationUtility
     }
 
     /// <summary>
+    /// проверяет что конфиг назначен и проходит IsValid()
+    /// </summary>
+    public static bool IsValidConfig(Object owner, BaseConfig config, string fieldName)
+    {
+        if (!IsAssigned(owner, config, fieldName))
+            return false;
+
+        return config.IsValid();
+    }
+
+    /// <summary>
     /// проверяет что массив существует и содержит хотя бы один элемент
     /// </summary>
     public static bool NotEmptyArray<T>(Object owner, T[] array, string fieldName)
@@ -44,6 +55,52 @@ public static class ValidationUtility
 
         LogError(owner, fieldName, "список пустой или не назначен");
         return false;
+    }
+
+    /// <summary>
+    /// проверяет что массив назначен, не пустой и не содержит пустых элементов
+    /// </summary>
+    public static bool ValidArray<T>(Object owner, T[] array, string fieldName)
+        where T : Object
+    {
+        bool valid = NotEmptyArray(owner, array, fieldName);
+
+        if (array == null)
+            return false;
+
+        for (int i = 0; i < array.Length; i++)
+        {
+            if (array[i] != null)
+                continue;
+
+            LogError(owner, $"{fieldName}[{i}]", "не назначено");
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    /// <summary>
+    /// проверяет что список назначен, не пустой и не содержит пустых элементов
+    /// </summary>
+    public static bool ValidList<T>(Object owner, IReadOnlyList<T> list, string fieldName)
+        where T : Object
+    {
+        bool valid = NotEmptyList(owner, list, fieldName);
+
+        if (list == null)
+            return false;
+
+        for (int i = 0; i < list.Count; i++)
+        {
+            if (list[i] != null)
+                continue;
+
+            LogError(owner, $"{fieldName}[{i}]", "не назначено");
+            valid = false;
+        }
+
+        return valid;
     }
 
     private static void LogError(Object owner, string fieldName, string reason)

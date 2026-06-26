@@ -7,7 +7,7 @@ using Zenject;
 /// </summary>
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(UnitMovement))]
-public sealed class WorkerAnimator : MonoBehaviour
+public sealed class WorkerAnimator : ValidatedMonoBehaviour
 {
     private static readonly int IsMovingHash = Animator.StringToHash("IsMoving");
     private static readonly int IsWorkingHash = Animator.StringToHash("IsWorking");
@@ -26,6 +26,16 @@ public sealed class WorkerAnimator : MonoBehaviour
     private void Construct(GameAudioService audioService)
     {
         _audioService = audioService;
+    }
+
+    protected override bool ValidateInternal()
+    {
+        bool valid = true;
+
+        valid &= ValidationUtility.IsAssigned(this, _animator, nameof(_animator));
+        valid &= ValidationUtility.IsAssigned(this, _movement, nameof(_movement));
+
+        return valid;
     }
 
     private void Update()
@@ -108,7 +118,7 @@ public sealed class WorkerAnimator : MonoBehaviour
         return SoundId.None;
     }
 
-    [System.Serializable]
+    [Serializable]
     private sealed class EquipmentWorkSound
     {
         [SerializeField] private EquipmentType _equipment;

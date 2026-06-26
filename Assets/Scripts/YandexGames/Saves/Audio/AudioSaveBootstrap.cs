@@ -3,7 +3,7 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Загружает аудио настройки после инициализации PluginYG2 и GameAudioService
+///      PluginYG2  GameAudioService
 /// </summary>
 public sealed class AudioSaveBootstrap : MonoBehaviour
 {

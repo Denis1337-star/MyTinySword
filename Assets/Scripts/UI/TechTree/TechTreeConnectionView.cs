@@ -27,8 +27,8 @@ public sealed class TechTreeConnectionView : ValidatedMonoBehaviour
     {
         bool valid = true;
 
-        valid &= ValidationUtility.IsAssigned(this, _fromNode, nameof(_fromNode));
-        valid &= ValidationUtility.IsAssigned(this, _toNode, nameof(_toNode));
+        valid &= ValidationUtility.IsValidConfig(this, _fromNode, nameof(_fromNode));
+        valid &= ValidationUtility.IsValidConfig(this, _toNode, nameof(_toNode));
         valid &= ValidationUtility.IsAssigned(this, _lineImage, nameof(_lineImage));
 
         return valid;

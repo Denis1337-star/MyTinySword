@@ -207,6 +207,7 @@ MonoBehaviour:
   _stoppingDistance: 0.2
   _agentRadius: 0.25
   _areaMask: -1
+  _agent: {fileID: 2947089080037236613}
 --- !u!114 &4521076979832619557
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -221,6 +222,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   eatTime: 3
   territory: {fileID: 0}
+  _movement: {fileID: 997220257733263367}
+  _animator: {fileID: 2051988933304685173}
+  _agent: {fileID: 2947089080037236613}
 --- !u!114 &164206608696711869
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -235,6 +239,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _workSlot: {fileID: 5005038742377153201}
   _config: {fileID: 11400000, guid: 0b8f8ed50f0c8694788acc2ce8c1b5f1, type: 2}
+  _sheepAI: {fileID: 4521076979832619557}
+  _spriteRenderer: {fileID: 487309473237773883}
+  _resourceCollider: {fileID: 25945001822367249}
 --- !u!195 &2947089080037236613
 NavMeshAgent:
   m_ObjectHideFlags: 0
