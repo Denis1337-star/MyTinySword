@@ -29,6 +29,7 @@ public sealed class WorkerCommandPanel : ValidatedMonoBehaviour
         valid &= ValidationUtility.IsAssigned(this, _chopWoodButton, nameof(_chopWoodButton));
         valid &= ValidationUtility.IsAssigned(this, _mineGoldButton, nameof(_mineGoldButton));
         valid &= ValidationUtility.IsAssigned(this, _huntMeatButton, nameof(_huntMeatButton));
+        valid &= ValidationUtility.IsAssigned(this, _panelTween, nameof(_panelTween));
 
         return valid;
     }
@@ -77,7 +78,14 @@ public sealed class WorkerCommandPanel : ValidatedMonoBehaviour
         _currentWorker = null;
 
         ClearText();
-        RefreshButtons();
+        SetButtonsInteractable(false);
+    }
+
+    private void SetButtonsInteractable(bool interactable)
+    {
+        _chopWoodButton.interactable = interactable;
+        _mineGoldButton.interactable = interactable;
+        _huntMeatButton.interactable = interactable;
     }
 
     private void OnChopWoodClicked()
@@ -97,9 +105,6 @@ public sealed class WorkerCommandPanel : ValidatedMonoBehaviour
 
     private void AssignJob(WorkerJobType job)
     {
-        if (_currentWorker == null)
-            return;
-
         _currentWorker.AssignJob(job);
         Refresh();
     }
@@ -109,7 +114,7 @@ public sealed class WorkerCommandPanel : ValidatedMonoBehaviour
         if (_currentWorker == null)
         {
             ClearText();
-            RefreshButtons();
+            SetButtonsInteractable(false);
             return;
         }
 
@@ -132,9 +137,6 @@ public sealed class WorkerCommandPanel : ValidatedMonoBehaviour
 
     private bool CanSelectJob(WorkerJobType job)
     {
-        if (_currentWorker == null)
-            return false;
-
         if (_currentWorker.CurrentJob == job && !_currentWorker.HasPendingJob)
             return false;
 

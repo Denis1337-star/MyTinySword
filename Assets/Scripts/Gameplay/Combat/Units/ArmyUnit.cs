@@ -5,41 +5,42 @@ using Zenject;
 /// Базовый компонент боевого юнита
 /// </summary>
 [RequireComponent(typeof(Health))]
-[RequireComponent(typeof(FactionMember))]
 [RequireComponent(typeof(UnitMovement))]
 [RequireComponent(typeof(UnitAnimatorBridge))]
-[RequireComponent(typeof(ArmyUnitBrain))]
 [RequireComponent(typeof(Collider2D))]
 public sealed class ArmyUnit : ValidatedMonoBehaviour
 {
+    [SerializeField] private FactionType _faction = FactionType.Player;
     [SerializeField] private UnitConfig _config;
     [SerializeField] private Health _health;
-    [SerializeField] private FactionMember _factionMember;
     [SerializeField] private UnitMovement _movement;
     [SerializeField] private UnitAnimatorBridge _animatorBridge;
-    [SerializeField] private ArmyUnitBrain _brain;
     [SerializeField] private Collider2D _bodyCollider;
 
     private ArmyUnitRegistry _armyUnitRegistry;
     private TechTreeBonusService _techTreeBonusService;
+    private ArmyUnitBrain _brain;
 
     public UnitConfig Config => _config;
     public Health Health => _health;
-    public FactionMember FactionMember => _factionMember;
     public UnitMovement Movement => _movement;
     public UnitAnimatorBridge AnimatorBridge => _animatorBridge;
     public ArmyUnitBrain Brain => _brain;
+    public FactionType Faction => _faction;
+
     public Collider2D BodyCollider => _bodyCollider;
 
     public bool IsDead => _health.IsDead;
 
     [Inject]
     private void Construct(
-       ArmyUnitRegistry armyUnitRegistry,
-       TechTreeBonusService techTreeBonusService)
+      ArmyUnitRegistry armyUnitRegistry,
+      TechTreeBonusService techTreeBonusService,
+      GameAudioService audioService)
     {
         _armyUnitRegistry = armyUnitRegistry;
         _techTreeBonusService = techTreeBonusService;
+        _brain = new ArmyUnitBrain(this, audioService);
     }
 
     protected override void Awake()
@@ -50,6 +51,10 @@ public sealed class ArmyUnit : ValidatedMonoBehaviour
             return;
 
         ApplyConfig();
+    }
+    private void Update()
+    {
+        _brain.Tick();
     }
 
     private void OnEnable()
@@ -78,25 +83,14 @@ public sealed class ArmyUnit : ValidatedMonoBehaviour
 
         valid &= ValidationUtility.IsValidConfig(this, _config, nameof(_config));
         valid &= ValidationUtility.IsAssigned(this, _health, nameof(_health));
-        valid &= ValidationUtility.IsAssigned(this, _factionMember, nameof(_factionMember));
         valid &= ValidationUtility.IsAssigned(this, _movement, nameof(_movement));
         valid &= ValidationUtility.IsAssigned(this, _animatorBridge, nameof(_animatorBridge));
-        valid &= ValidationUtility.IsAssigned(this, _brain, nameof(_brain));
         valid &= ValidationUtility.IsAssigned(this, _bodyCollider, nameof(_bodyCollider));
 
         return valid;
     }
-
-    public bool IsPlayerUnit()
-    {
-        return _factionMember.IsPlayer();
-    }
-
-    public bool IsEnemyUnit()
-    {
-        return _factionMember.IsEnemy();
-    }
-
+    public bool IsPlayerUnit() => FactionRules.IsPlayer(_faction);
+    public bool IsEnemyUnit() => FactionRules.IsEnemy(_faction);
     private void ApplyConfig()
     {
         _health.Initialize(GetMaxHealth());

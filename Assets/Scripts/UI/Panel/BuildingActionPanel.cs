@@ -100,9 +100,6 @@ public sealed class BuildingActionPanel : ValidatedMonoBehaviour
 
     private void RequestDemolishBuilding()
     {
-        if (_currentBuilding == null)
-            return;
-
         _buildingDemolishService.RequestDemolish(_currentBuilding);
     }
 

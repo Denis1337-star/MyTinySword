@@ -71,9 +71,6 @@ public sealed class WorkerListItem : ValidatedMonoBehaviour
 
     private void HandleSelectClicked()
     {
-        if (_worker == null)
-            return;
-
         _onSelected?.Invoke(_worker);
     }
 

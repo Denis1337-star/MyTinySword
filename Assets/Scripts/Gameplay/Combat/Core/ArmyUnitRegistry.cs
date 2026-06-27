@@ -1,19 +1,17 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Zenject;
 
 /// <summary>
 /// Глобальный реестр всех боевых юнитов 
 /// </summary>
-public sealed class ArmyUnitRegistry : MonoBehaviour
+public sealed class ArmyUnitRegistry
 {
-    [SerializeField, Min(1)] private int _maxPlayerArmyUnits = 10;
-
     private readonly List<ArmyUnit> _allUnits = new();
 
     private int _reservedPlayerArmySlots;
-    private TechTreeBonusService _techTreeBonusService;
+    private readonly TechTreeBonusService _techTreeBonusService;
+    private readonly int _maxPlayerArmyUnits;
 
     public IReadOnlyList<ArmyUnit> AllUnits => _allUnits;
 
@@ -25,21 +23,16 @@ public sealed class ArmyUnitRegistry : MonoBehaviour
 
     public int CommittedPlayerArmySlots => CurrentPlayerArmyUnits + _reservedPlayerArmySlots;
 
-    public int FreePlayerArmySlots => Mathf.Max(
-        0,
-        _maxPlayerArmyUnits - CommittedPlayerArmySlots);
+    public int FreePlayerArmySlots => Mathf.Max( 0, MaxPlayerArmyUnits - CommittedPlayerArmySlots);
 
     public event Action OnArmyChanged;
 
-    private void OnValidate()
-    {
-        _maxPlayerArmyUnits = Mathf.Max(1, _maxPlayerArmyUnits);
-    }
-
-    [Inject]
-    private void Construct(TechTreeBonusService techTreeBonusService)
+    public ArmyUnitRegistry(
+    TechTreeBonusService techTreeBonusService,
+    int maxPlayerArmyUnits)
     {
         _techTreeBonusService = techTreeBonusService;
+        _maxPlayerArmyUnits = Mathf.Max(1, maxPlayerArmyUnits);
     }
 
     public void Register(ArmyUnit unit)
@@ -142,12 +135,6 @@ public sealed class ArmyUnitRegistry : MonoBehaviour
         return count;
     }
 
-    private void OnDestroy()
-    {
-        _allUnits.Clear();
-        _reservedPlayerArmySlots = 0;
-        OnArmyChanged = null;
-    }
     private int GetArmyCapBonus()
     {
         return _techTreeBonusService.GetBonusInt(TechTreeBonusType.ArmyCap);

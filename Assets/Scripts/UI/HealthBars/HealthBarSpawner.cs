@@ -2,15 +2,13 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Создаёт и управляет HP bar над юнитом.
-/// HP bar виден при выборе, после урона или при inspect-клике по врагу.
+/// Создаёт и управляет HP bar над юнитом
 /// </summary>
 public sealed class HealthBarSpawner : ValidatedMonoBehaviour
 {
     [SerializeField] private Health _health;
-    [SerializeField] private FactionMember _factionMember;
     [SerializeField] private UnitSelectable _selectable;
-    [SerializeField] private WorldHealthBarAnchor _anchor;
+    [SerializeField] private Transform _anchorTransform;
     [SerializeField] private HealthBarView _healthBarPrefab;
     [SerializeField] private bool _showWhenSelected = true;
     [SerializeField] private bool _showWhenDamaged = true;
@@ -19,6 +17,7 @@ public sealed class HealthBarSpawner : ValidatedMonoBehaviour
     private HealthBarView _spawnedBar;
     private Canvas _screenCanvas;
     private Camera _mainCamera;
+    private FactionType _faction;
 
     private bool _damagedOnce;
     private bool _inspected;
@@ -35,6 +34,14 @@ public sealed class HealthBarSpawner : ValidatedMonoBehaviour
     protected override void Awake()
     {
         base.Awake();
+        CacheFaction();
+    }
+    private void CacheFaction()
+    {
+        FactionType? faction = FactionResolver.TryGetFaction(this);
+
+        if (faction != null)
+            _faction = faction.Value;
     }
 
     private void OnEnable()
@@ -142,9 +149,9 @@ public sealed class HealthBarSpawner : ValidatedMonoBehaviour
         Transform targetTransform;
         Vector3 offset;
 
-        if (_anchor != null)
+        if (_anchorTransform != null)
         {
-            targetTransform = _anchor.transform;
+            targetTransform = _anchorTransform;
             offset = Vector3.zero;
         }
         else
@@ -152,6 +159,7 @@ public sealed class HealthBarSpawner : ValidatedMonoBehaviour
             targetTransform = transform;
             offset = _fallbackOffset;
         }
+
 
         _spawnedBar.Initialize(
             targetTransform,
@@ -188,11 +196,6 @@ public sealed class HealthBarSpawner : ValidatedMonoBehaviour
 
     private Color GetBarColor()
     {
-        if (_factionMember == null)
-            return Color.green;
-
-        return _factionMember.Faction == FactionType.Enemy
-            ? Color.red
-            : Color.green;
+        return FactionRules.IsEnemy(_faction) ? Color.red : Color.green;
     }
 }

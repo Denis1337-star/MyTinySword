@@ -1,46 +1,23 @@
-using UnityEngine;
-using Zenject;
-
 /// <summary>
 /// Отвечает за назначение работы
 /// </summary>
-[RequireComponent(typeof(Worker))]
-public sealed class WorkerBrain : ValidatedMonoBehaviour
+public sealed class WorkerBrain 
 {
-    [SerializeField] private Worker _worker;
+    private readonly Worker _worker;
+    private readonly ResourceRegistry _resourceRegistry;
 
-    private ResourceRegistry _resourceRegistry;
+    private readonly IWorkerJob _chopWoodJob;
+    private readonly IWorkerJob _mineGoldJob;
+    private readonly IWorkerJob _huntMeatJob;
 
-    private IWorkerJob _chopWoodJob;
-    private IWorkerJob _mineGoldJob;
-    private IWorkerJob _huntMeatJob;
-
-    [Inject]
-    private void Construct(ResourceRegistry resourceRegistry)
+    public WorkerBrain(Worker worker, ResourceRegistry resourceRegistry)
     {
+        _worker = worker;
         _resourceRegistry = resourceRegistry;
-
         _chopWoodJob = new ChopWoodJob(_resourceRegistry);
         _mineGoldJob = new MineGoldJob(_resourceRegistry);
         _huntMeatJob = new HuntMeatJob(_resourceRegistry);
     }
-    protected override bool ValidateInternal()
-    {
-        bool valid = true;
-
-        valid &= ValidationUtility.IsAssigned(this, _worker, nameof(_worker));
-
-        return valid;
-    }
-    protected override void Awake()
-    {
-        base.Awake();
-
-        if (!enabled)
-            return;
-
-    }
-
     /// <summary>
     /// Назначает новую работу worker
     /// </summary>

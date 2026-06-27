@@ -37,6 +37,11 @@ public sealed class ProjectServicesInstaller : MonoInstaller
             .NonLazy();
 
         Container
+    .BindInterfacesTo<AudioSaveInitializer>()
+    .AsSingle()
+    .NonLazy();
+
+        Container
               .Bind<LevelProgressService>()
               .AsSingle()
               .NonLazy();

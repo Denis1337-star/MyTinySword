@@ -246,7 +246,7 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
     {
         TechTreeRequirement[] requirements = config.Requirements;
 
-        if (requirements == null || requirements.Length == 0)
+        if (requirements.Length == 0)
             return "Требований нет";
 
         _stringBuilder.Clear();

@@ -1,24 +1,22 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Zenject;
 
 /// <summary>
 /// Реестр зданий на сцене.
 /// Хранит построенные и строящиеся здания.
 /// </summary>
-public sealed class BuildingRegistry : MonoBehaviour
+public sealed class BuildingRegistry 
 {
     private readonly Dictionary<string, int> _builtBuildingCounts = new();
     private readonly Dictionary<string, int> _constructingBuildingCounts = new();
     private readonly Dictionary<string, BuildingBase> _builtBuildingsById = new();
 
-    private TechTreeBonusService _techTreeBonusService;
+    private readonly TechTreeBonusService _techTreeBonusService;
 
     public event Action<BuildingConfig> BuildingBuilt;
 
-    [Inject]
-    private void Construct(TechTreeBonusService techTreeBonusService)
+    public BuildingRegistry(TechTreeBonusService techTreeBonusService)
     {
         _techTreeBonusService = techTreeBonusService;
     }
@@ -173,13 +171,5 @@ public sealed class BuildingRegistry : MonoBehaviour
     {
         return config != null &&
                !string.IsNullOrWhiteSpace(config.BuildingId);
-    }
-
-    private void OnDestroy()
-    {
-        _builtBuildingCounts.Clear();
-        _constructingBuildingCounts.Clear();
-        _builtBuildingsById.Clear();
-        BuildingBuilt = null;
     }
 }

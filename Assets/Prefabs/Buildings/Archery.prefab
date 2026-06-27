@@ -42,7 +42,6 @@ GameObject:
   - component: {fileID: 3204795982989324622}
   - component: {fileID: 1500797053531963214}
   - component: {fileID: 1321347313018583400}
-  - component: {fileID: 1614011938513431501}
   - component: {fileID: 664985930419080328}
   - component: {fileID: 1547542557496026080}
   - component: {fileID: 4768252895606956369}
@@ -171,19 +170,6 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 3, y: 3}
   m_EdgeRadius: 0
---- !u!114 &1614011938513431501
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3979921759978543857}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5e6e36768f4c8924fb79ff53c7743dee, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  faction: 1
 --- !u!114 &664985930419080328
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -224,9 +210,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _health: {fileID: 664985930419080328}
-  _factionMember: {fileID: 1614011938513431501}
   _selectable: {fileID: 1547542557496026080}
-  _anchor: {fileID: 8252332685103352290}
+  _anchorTransform: {fileID: 1863869749553128863}
   _healthBarPrefab: {fileID: 2669886924976918483, guid: 97e2bb3049e8e734db19c6aadda234d0, type: 3}
   _showWhenSelected: 0
   _showWhenDamaged: 1
@@ -257,9 +242,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   config: {fileID: 11400000, guid: 2599f896fec1da645a0200120c3aba10, type: 2}
-  factionMember: {fileID: 1614011938513431501}
   health: {fileID: 664985930419080328}
   selectable: {fileID: 1547542557496026080}
+  faction: 1
+  _canBeDemolishedByButton: 1
   _unitConfig: {fileID: 11400000, guid: 521fc41915694ff408e6beaa124593cd, type: 2}
   _spawnPoint: {fileID: 4877625271817062214}
   _maxQueue: 5
@@ -376,7 +362,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1863869749553128863}
-  - component: {fileID: 8252332685103352290}
   m_Layer: 9
   m_Name: HealthBarAnchor
   m_TagString: Untagged
@@ -399,15 +384,3 @@ Transform:
   m_Children: []
   m_Father: {fileID: 3204795982989324622}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8252332685103352290
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4916479415456908417}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f34ef04226e671a479ba1fc3d59948f3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

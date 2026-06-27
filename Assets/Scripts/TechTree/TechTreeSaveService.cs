@@ -47,7 +47,7 @@ public sealed class TechTreeSaveService
     {
         TechTreeRequirement[] requirements = config.Requirements;
 
-        if (requirements == null || requirements.Length == 0)
+        if (requirements.Length == 0)
             return true;
 
         for (int i = 0; i < requirements.Length; i++)
@@ -78,18 +78,11 @@ public sealed class TechTreeSaveService
         EnsureInitialized();
 
         List<TechTreeNodeSaveData> nodes = YG2.saves.techTree.Nodes;
-
-        if (nodes == null)
-            return false;
-
         long currentUnixTime = _timeService.GetCurrentUnixTime();
 
         for (int i = 0; i < nodes.Count; i++)
         {
             TechTreeNodeSaveData node = nodes[i];
-
-            if (node == null)
-                continue;
 
             if (!node.IsUpgrading)
                 continue;
@@ -207,14 +200,11 @@ public sealed class TechTreeSaveService
 
         List<TechTreeNodeSaveData> nodes = YG2.saves.techTree.Nodes;
 
-        if (nodes == null)
-            return null;
-
         for (int i = 0; i < nodes.Count; i++)
         {
             TechTreeNodeSaveData node = nodes[i];
 
-            if (node != null && node.NodeId == nodeId)
+            if (node.NodeId == nodeId)
                 return node;
         }
 

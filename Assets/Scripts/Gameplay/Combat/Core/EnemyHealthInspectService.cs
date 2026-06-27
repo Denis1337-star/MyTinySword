@@ -69,9 +69,9 @@ public sealed class EnemyHealthInspectService
     }
 
     private static bool TryGetEnemyHealthFromHit(
-        Collider2D hit,
-        out Health health,
-        out HealthBarSpawner healthBarSpawner)
+      Collider2D hit,
+      out Health health,
+      out HealthBarSpawner healthBarSpawner)
     {
         health = null;
         healthBarSpawner = null;
@@ -81,9 +81,9 @@ public sealed class EnemyHealthInspectService
         if (foundHealth == null || foundHealth.IsDead)
             return false;
 
-        FactionMember factionMember = hit.GetComponent<FactionMember>();
+        FactionType? faction = FactionResolver.TryGetFaction(hit);
 
-        if (factionMember == null || !factionMember.IsEnemy())
+        if (faction == null || !FactionRules.IsEnemy(faction.Value))
             return false;
 
         HealthBarSpawner foundSpawner = hit.GetComponent<HealthBarSpawner>();

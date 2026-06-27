@@ -9,17 +9,17 @@ public sealed class GameSceneInstaller : MonoInstaller
     [Header("Core Scene Services")]
     [SerializeField] private ResourceStorage _resourceStorage;
 
-    [Header("Registries")]
-    [SerializeField] private WorkerRegistry _workerRegistry;
-    [SerializeField] private ResourceRegistry _resourceRegistry;
-    [SerializeField] private BuildingRegistry _buildingRegistry;
-    [SerializeField] private ArmyUnitRegistry _armyUnitRegistry;
+    [Header("Tech Tree Bootstrap")]
+    [SerializeField] private House _playerHouse;
+
+    [Header("Army")]
+    [SerializeField, Min(1)] private int _maxPlayerArmyUnits = 10;
 
     [Header("Selection / Camera")]
     [SerializeField] private SelectionSystem _selectionSystem;
     [SerializeField] private Camera _mainCamera;
     [SerializeField] private CameraFocusController _cameraFocusController;
-    [SerializeField] private BuildingDemolishService _buildingDemolishService;
+    [SerializeField] private BuildingDemolishConfirmPanel _buildingDemolishConfirmPanel;
 
     [Header("Input / Commands")]
     [SerializeField] private GameplayInputController _gameplayInputController;
@@ -49,15 +49,10 @@ public sealed class GameSceneInstaller : MonoInstaller
 
         valid &= ValidationUtility.IsAssigned(this, _resourceStorage, nameof(_resourceStorage));
 
-        valid &= ValidationUtility.IsAssigned(this, _workerRegistry, nameof(_workerRegistry));
-        valid &= ValidationUtility.IsAssigned(this, _resourceRegistry, nameof(_resourceRegistry));
-        valid &= ValidationUtility.IsAssigned(this, _buildingRegistry, nameof(_buildingRegistry));
-        valid &= ValidationUtility.IsAssigned(this, _armyUnitRegistry, nameof(_armyUnitRegistry));
-
         valid &= ValidationUtility.IsAssigned(this, _selectionSystem, nameof(_selectionSystem));
         valid &= ValidationUtility.IsAssigned(this, _mainCamera, nameof(_mainCamera));
         valid &= ValidationUtility.IsAssigned(this, _cameraFocusController, nameof(_cameraFocusController));
-        valid &= ValidationUtility.IsAssigned(this, _buildingDemolishService, nameof(_buildingDemolishService));
+        valid &= ValidationUtility.IsAssigned(this, _buildingDemolishConfirmPanel, nameof(_buildingDemolishConfirmPanel));
 
         valid &= ValidationUtility.IsAssigned(this, _gameplayInputController, nameof(_gameplayInputController));
         valid &= ValidationUtility.IsAssigned(this, _commandSystem, nameof(_commandSystem));
@@ -65,6 +60,7 @@ public sealed class GameSceneInstaller : MonoInstaller
         valid &= ValidationUtility.IsAssigned(this, _screenCanvas, nameof(_screenCanvas));
         valid &= ValidationUtility.IsAssigned(this, _workerListPanel, nameof(_workerListPanel));
         valid &= ValidationUtility.IsAssigned(this, _selectionUiPresenter, nameof(_selectionUiPresenter));
+        valid &= ValidationUtility.IsAssigned(this, _playerHouse, nameof(_playerHouse));
 
         return valid;
     }
@@ -75,28 +71,30 @@ public sealed class GameSceneInstaller : MonoInstaller
             .FromInstance(_resourceStorage)
             .AsSingle()
             .NonLazy();
+
+        Container.BindInterfacesTo<GameplayTechTreeBootstrap>()
+    .AsSingle()
+    .WithArguments(_playerHouse)
+    .NonLazy();
     }
 
     private void BindRegistries()
     {
         Container.Bind<WorkerRegistry>()
-            .FromInstance(_workerRegistry)
             .AsSingle()
             .NonLazy();
 
         Container.Bind<ResourceRegistry>()
-            .FromInstance(_resourceRegistry)
             .AsSingle()
             .NonLazy();
 
         Container.Bind<BuildingRegistry>()
-            .FromInstance(_buildingRegistry)
             .AsSingle()
             .NonLazy();
 
         Container.Bind<ArmyUnitRegistry>()
-            .FromInstance(_armyUnitRegistry)
             .AsSingle()
+            .WithArguments(_maxPlayerArmyUnits)
             .NonLazy();
     }
 
@@ -122,7 +120,6 @@ public sealed class GameSceneInstaller : MonoInstaller
             .NonLazy();
 
         Container.Bind<BuildingDemolishService>()
-            .FromInstance(_buildingDemolishService)
             .AsSingle()
             .NonLazy();
     }
@@ -156,6 +153,10 @@ public sealed class GameSceneInstaller : MonoInstaller
             .FromInstance(_workerListPanel)
             .AsSingle()
             .NonLazy();
+
+        Container.Bind<BuildingDemolishConfirmPanel>()
+    .FromInstance(_buildingDemolishConfirmPanel)
+    .AsSingle();
     }
 
     private void BindFactories()

@@ -34,17 +34,11 @@ public sealed class HousePanel : ValidatedMonoBehaviour
 
     public event Action<WorkerJobType> AllWorkersJobAssigned;
 
-    public RectTransform AssignAllWoodButtonRect => _assignAllWoodButton != null
-        ? _assignAllWoodButton.transform as RectTransform
-        : null;
+    public RectTransform AssignAllWoodButtonRect => _assignAllWoodButton.transform as RectTransform;
 
-    public RectTransform AssignAllGoldButtonRect => _assignAllGoldButton != null
-        ? _assignAllGoldButton.transform as RectTransform
-        : null;
+    public RectTransform AssignAllGoldButtonRect => _assignAllGoldButton.transform as RectTransform;
 
-    public RectTransform AssignAllMeatButtonRect => _assignAllMeatButton != null
-        ? _assignAllMeatButton.transform as RectTransform
-        : null;
+    public RectTransform AssignAllMeatButtonRect => _assignAllMeatButton.transform as RectTransform;
 
     public SimplePanelTween PanelTween => _panelTween;
 
@@ -107,7 +101,7 @@ public sealed class HousePanel : ValidatedMonoBehaviour
         if (_houseEvents.IsBoundTo(house))
         {
             Refresh();
-            _workerListPanel?.Show(house);
+            _workerListPanel.Show(house);
             return;
         }
 
@@ -119,8 +113,8 @@ public sealed class HousePanel : ValidatedMonoBehaviour
             h => h.OnWorkersChanged += HandleHouseWorkersChanged,
             h => h.OnWorkersChanged -= HandleHouseWorkersChanged);
 
+        _workerListPanel.Show(house);
         Refresh();
-        _workerListPanel?.Show(house);
     }
 
     public void Hide()
@@ -129,25 +123,19 @@ public sealed class HousePanel : ValidatedMonoBehaviour
 
         _currentHouse = null;
 
-        _workerListPanel?.Hide();
+        _workerListPanel.Hide();
 
         ClearText();
     }
 
     private void HireWorker()
     {
-        if (_currentHouse == null)
-            return;
-
         _currentHouse.HireWorker();
         Refresh();
     }
 
     private void RequestDemolishHouse()
     {
-        if (_currentHouse == null)
-            return;
-
         _buildingDemolishService.RequestDemolish(_currentHouse);
     }
 
@@ -168,9 +156,6 @@ public sealed class HousePanel : ValidatedMonoBehaviour
 
     private void AssignAllWorkersToJob(WorkerJobType job)
     {
-        if (_currentHouse == null)
-            return;
-
         _currentHouse.AssignAllWorkersToJob(job);
 
         AllWorkersJobAssigned?.Invoke(job);
@@ -202,13 +187,12 @@ public sealed class HousePanel : ValidatedMonoBehaviour
         BuildingDemolishRules.RefreshButton(_demolishButton, _currentHouse);
         RefreshAssignAllButtons();
 
-        _workerListPanel?.Rebuild();
+        _workerListPanel.Rebuild();
     }
 
     private void RefreshAssignAllButtons()
     {
-        bool hasWorkers = _currentHouse != null &&
-                          _currentHouse.CurrentWorkers > 0;
+        bool hasWorkers = _currentHouse.CurrentWorkers > 0;
 
         _assignAllWoodButton.interactable = hasWorkers;
         _assignAllGoldButton.interactable = hasWorkers;

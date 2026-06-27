@@ -63,14 +63,14 @@ public sealed class WorkerListPanel : ValidatedMonoBehaviour
 
     public void Rebuild()
     {
-        ClearItems();
-
         if (_currentHouse == null)
             return;
 
+        ClearItems();
+
         IReadOnlyList<Worker> workers = _currentHouse.Workers;
 
-        if (workers == null || workers.Count == 0)
+        if (workers.Count == 0)
             return;
 
         for (int i = 0; i < workers.Count; i++)
@@ -81,10 +81,6 @@ public sealed class WorkerListPanel : ValidatedMonoBehaviour
                 continue;
 
             WorkerListItem item = CreateItem();
-
-            if (item == null)
-                continue;
-
             item.Bind(worker, SelectWorker);
             _items.Add(item);
         }
@@ -99,9 +95,6 @@ public sealed class WorkerListPanel : ValidatedMonoBehaviour
 
     private void SelectWorker(Worker worker)
     {
-        if (worker == null)
-            return;
-
         _selectionSystem.SelectWorkerFromUI(worker);
     }
 

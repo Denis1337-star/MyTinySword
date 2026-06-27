@@ -168,7 +168,7 @@ public abstract class ProductionBuildingBase : BuildingBase
         if (!armyUnit.IsPlayerUnit())
         {
             Debug.LogWarning(
-                $"{name}: здание производства создало юнита не с Player-фракцией. Проверь FactionMember на prefab.",
+                $"{name}: здание производства создало юнита не с Player-фракцией. Проверь Faction на prefab ArmyUnit.",
                 spawnedObject);
 
             Destroy(spawnedObject);

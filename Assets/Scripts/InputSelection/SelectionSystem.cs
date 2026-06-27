@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
@@ -233,11 +233,14 @@ public sealed class SelectionSystem : MonoBehaviour
         if (!selectable.CanBeSelected)
             return false;
 
-        FactionMember factionMember = selectable.GetComponent<FactionMember>();
+        ArmyUnit armyUnit = selectable.GetComponent<ArmyUnit>();
+        if (armyUnit != null)
+            return armyUnit.IsPlayerUnit();
 
-        if (factionMember == null)
-            return true;
+        BuildingBase building = selectable.GetComponent<BuildingBase>();
+        if (building != null)
+            return FactionRules.IsPlayer(building.Faction);
 
-        return factionMember.IsPlayer();
+        return true;
     }
 }

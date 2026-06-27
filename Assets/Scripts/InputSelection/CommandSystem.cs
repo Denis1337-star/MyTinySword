@@ -39,14 +39,14 @@ public sealed class CommandSystem : MonoBehaviour
         if (!HasPlayerArmyUnits(selectedUnits))
             return false;
 
-        FactionMember selectedArmyFaction = FindFirstSelectedPlayerFaction(selectedUnits);
+        FactionType? selectedFaction = FindFirstSelectedPlayerFactionType(selectedUnits);
 
-        if (selectedArmyFaction == null)
+        if (selectedFaction == null)
             return false;
 
         Vector2 worldPosition = TouchUtility.ScreenToWorld(_mainCamera, screenPosition);
 
-        IDamageable target = FindEnemyDamageableAt(worldPosition, selectedArmyFaction);
+        IDamageable target = FindEnemyDamageableAt(worldPosition, selectedFaction.Value);
 
         if (target == null)
             return false;
@@ -129,12 +129,8 @@ public sealed class CommandSystem : MonoBehaviour
         _moveCommandIndicator.Show(worldPosition);
     }
 
-    private IDamageable FindEnemyDamageableAt(
-        Vector2 worldPosition,
-        FactionMember selectedArmyFaction)
+    private IDamageable FindEnemyDamageableAt(Vector2 worldPosition, FactionType selectedArmyFaction)
     {
-        if (selectedArmyFaction == null)
-            return null;
 
         int hitCount = Physics2DHitUtility.OverlapAtWorld(
             worldPosition,
@@ -170,32 +166,17 @@ public sealed class CommandSystem : MonoBehaviour
         return hit.GetComponent<IDamageable>();
     }
 
-    private bool IsValidEnemyTarget(
-        IDamageable damageable,
-        FactionMember selectedArmyFaction)
+    private bool IsValidEnemyTarget(IDamageable damageable, FactionType selectedArmyFaction)
     {
         if (damageable == null || damageable.IsDead)
             return false;
 
-        if (selectedArmyFaction == null)
-            return false;
-
-        FactionMember targetFaction = FindFactionMember(damageable);
+        FactionType? targetFaction = FactionResolver.TryGetFaction(damageable as Component);
 
         if (targetFaction == null)
             return false;
 
-        return selectedArmyFaction.IsEnemy(targetFaction);
-    }
-
-    private FactionMember FindFactionMember(IDamageable damageable)
-    {
-        Component targetComponent = damageable as Component;
-
-        if (targetComponent == null)
-            return null;
-
-        return targetComponent.GetComponent<FactionMember>();
+        return FactionRules.IsEnemy(selectedArmyFaction, targetFaction.Value);
     }
 
     private bool HasPlayerArmyUnits(IReadOnlyList<UnitSelectable> selectedUnits)
@@ -203,7 +184,7 @@ public sealed class CommandSystem : MonoBehaviour
         return ArmyUnitSelectionUtility.HasAnyPlayerArmyUnit(selectedUnits);
     }
 
-    private FactionMember FindFirstSelectedPlayerFaction(IReadOnlyList<UnitSelectable> selectedUnits)
+    private FactionType? FindFirstSelectedPlayerFactionType(IReadOnlyList<UnitSelectable> selectedUnits)
     {
         if (selectedUnits == null)
             return null;
@@ -213,8 +194,7 @@ public sealed class CommandSystem : MonoBehaviour
             if (!ArmyUnitSelectionUtility.TryGetPlayerArmyUnit(selectedUnits[i], out ArmyUnit armyUnit))
                 continue;
 
-            if (armyUnit.FactionMember != null)
-                return armyUnit.FactionMember;
+            return armyUnit.Faction;
         }
 
         return null;

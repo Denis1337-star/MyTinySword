@@ -49,6 +49,55 @@ public sealed class AudioConfig : ScriptableObject
     public float WorldMinDistance => _worldMinDistance;
     public float WorldMaxDistance => _worldMaxDistance;
 
+    public bool IsValid()
+    {
+        bool valid = true;
+
+        if (_audioMixer == null)
+        {
+            Debug.LogError($"{name}: Audio Mixer не назначен.", this);
+            valid = false;
+        }
+
+        if (_musicMixerGroup == null)
+        {
+            Debug.LogError($"{name}: Music Mixer Group не назначен.", this);
+            valid = false;
+        }
+
+        if (_sfxMixerGroup == null)
+        {
+            Debug.LogError($"{name}: Sfx Mixer Group не назначен.", this);
+            valid = false;
+        }
+
+        if (string.IsNullOrWhiteSpace(_musicVolumeParameter))
+        {
+            Debug.LogError($"{name}: Music Volume Parameter не задан.", this);
+            valid = false;
+        }
+
+        if (string.IsNullOrWhiteSpace(_sfxVolumeParameter))
+        {
+            Debug.LogError($"{name}: Sfx Volume Parameter не задан.", this);
+            valid = false;
+        }
+
+        if (_worldSfxPoolSize < 1)
+        {
+            Debug.LogError($"{name}: World Sfx Pool Size должен быть больше 0.", this);
+            valid = false;
+        }
+
+        if (_worldMinDistance <= 0f || _worldMaxDistance <= 0f)
+        {
+            Debug.LogError($"{name}: World SFX distance настроен некорректно.", this);
+            valid = false;
+        }
+
+        return valid;
+    }
+
     public AudioClip GetMusicForScene(string sceneName)
     {
         if (string.IsNullOrWhiteSpace(sceneName))

@@ -106,10 +106,12 @@ public sealed class Tower : BuildingBase
         if (targetHealth == Health)
             return false;
 
-        if (!hit.TryGetComponent(out FactionMember targetFaction))
+        FactionType? targetFaction = FactionResolver.TryGetFaction(hit);
+
+        if (targetFaction == null)
             return false;
 
-        return FactionMember.IsEnemy(targetFaction);
+        return FactionRules.IsEnemy(Faction, targetFaction.Value);
     }
 
     private int GetTargetPriority(Collider2D hit)
@@ -175,7 +177,7 @@ public sealed class Tower : BuildingBase
 
     private bool IsPlayerTower()
     {
-        return FactionMember.IsPlayer();
+        return FactionRules.IsPlayer(Faction);
     }
 
     private void PlayAttackSound(Vector3 position)

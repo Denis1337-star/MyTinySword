@@ -1,9 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Ищет цели для боевого юнита.
-/// Для атакующих юнитов ищет врагов.
-/// Для хилера ищет раненых союзных боевых юнитов.
+/// Ищет цели для боевого юнита
 /// </summary>
 public sealed class ArmyTargetFinder
 {
@@ -107,12 +105,12 @@ public sealed class ArmyTargetFinder
         if (targetHealth == null)
             return false;
 
-        FactionMember targetFaction = targetHealth.GetComponent<FactionMember>();
+        FactionType? targetFaction = FactionResolver.TryGetFaction(targetHealth);
 
         if (targetFaction == null)
             return false;
 
-        return _unit.FactionMember.IsEnemy(targetFaction);
+        return FactionRules.IsEnemy(_unit.Faction, targetFaction.Value);
     }
 
     private bool CanHealAllyUnit(Health targetHealth)
@@ -141,7 +139,6 @@ public sealed class ArmyTargetFinder
     {
         return _unit != null &&
                !_unit.IsDead &&
-               _unit.Config != null &&
-               _unit.FactionMember != null;
+               _unit.Config != null;
     }
 }

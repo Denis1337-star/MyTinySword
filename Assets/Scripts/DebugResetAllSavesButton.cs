@@ -7,27 +7,25 @@ using YG;
 /// Временная debug-кнопка для сброса всех наших сохранений.
 /// Перед релизом удалить из сцены или отключить.
 /// </summary>
-public sealed class DebugResetAllSavesButton : MonoBehaviour
+[RequireComponent(typeof(Button))]
+public sealed class DebugResetAllSavesButton : ValidatedMonoBehaviour
 {
     [SerializeField] private Button _button;
     [SerializeField] private bool _reloadSceneAfterReset = true;
 
-    private void Awake()
+    protected override bool ValidateInternal()
     {
-        if (_button == null)
-            _button = GetComponent<Button>();
+        return ValidationUtility.IsAssigned(this, _button, nameof(_button));
     }
 
     private void OnEnable()
     {
-        if (_button != null)
-            _button.onClick.AddListener(ResetAllSaves);
+        _button.onClick.AddListener(ResetAllSaves);
     }
 
     private void OnDisable()
     {
-        if (_button != null)
-            _button.onClick.RemoveListener(ResetAllSaves);
+        _button.onClick.RemoveListener(ResetAllSaves);
     }
 
     private void ResetAllSaves()

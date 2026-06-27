@@ -33,7 +33,7 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
 
     public event Action<BuildingConfig> ConstructionStarted;
 
-    public RectTransform PanelRect => _root != null ? _root.transform as RectTransform : null;
+    public RectTransform PanelRect => _root.transform as RectTransform;
 
     public SimplePanelTween PanelTween => _panelTween;
 
@@ -130,9 +130,6 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
         for (int i = 0; i < _optionItems.Count; i++)
         {
             ConstructionOptionItem item = _optionItems[i];
-
-            if (item == null || item.Config == null)
-                continue;
 
             if (BuildingConfigUtility.Matches(config, item.Config))
                 return item.RectTransform;
@@ -276,10 +273,6 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
         for (int i = 0; i < _optionItems.Count; i++)
         {
             ConstructionOptionItem item = _optionItems[i];
-
-            if (item == null)
-                continue;
-
             item.SetSelected(item.Config == _selectedConfig);
             item.RefreshInteractable();
         }
@@ -323,12 +316,7 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
     private void ClearOptions()
     {
         for (int i = 0; i < _optionItems.Count; i++)
-        {
-            ConstructionOptionItem item = _optionItems[i];
-
-            if (item != null)
-                Destroy(item.gameObject);
-        }
+            Destroy(_optionItems[i].gameObject);
 
         _optionItems.Clear();
     }

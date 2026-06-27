@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -38,7 +39,7 @@ public sealed class TechTreeNodeConfig : BaseConfig
     public float BonusPerLevel => _bonusPerLevel;
     public string BonusPrefix => _bonusPrefix;
     public string BonusSuffix => _bonusSuffix;
-    public TechTreeRequirement[] Requirements => _requirements;
+    public TechTreeRequirement[] Requirements => _requirements ?? Array.Empty<TechTreeRequirement>();
 
     public int GetUpgradeSeconds(int currentLevel)
     {

@@ -1,13 +1,11 @@
 using UnityEngine;
-using Zenject;
 
 /// <summary>
 /// Управляет поведением боевого юнита
 /// </summary>
-[RequireComponent(typeof(ArmyUnit))]
-public sealed class ArmyUnitBrain : ValidatedMonoBehaviour
+public sealed class ArmyUnitBrain 
 {
-    [SerializeField] private ArmyUnit _unit;
+    private readonly ArmyUnit _unit;
     private ArmyTargetFinder _targetFinder;
     private ArmyUnitCombat _combat;
     private GameAudioService _audioService;
@@ -30,38 +28,16 @@ public sealed class ArmyUnitBrain : ValidatedMonoBehaviour
         Attack,
         Heal
     }
-
-    [Inject]
-    private void Construct(GameAudioService audioService)
+    public ArmyUnitBrain(ArmyUnit unit, GameAudioService audioService)
     {
+        _unit = unit;
         _audioService = audioService;
+
+        _targetFinder = new ArmyTargetFinder(_unit, _unit.transform);
+        _combat = new ArmyUnitCombat(_unit, _unit.transform, _audioService);
     }
 
-    protected override bool ValidateInternal()
-    {
-        bool valid = true;
-
-        valid &= ValidationUtility.IsAssigned(this, _unit, nameof(_unit));
-
-        return valid;
-    }
-
-    protected override void Awake()
-    {
-        base.Awake();
-
-        if (!enabled)
-            return;
-
-        _targetFinder = new ArmyTargetFinder(_unit, transform);
-    }
-    private void Start()
-    {
-        _combat = new ArmyUnitCombat(_unit,
-            transform, _audioService);
-    }
-
-    private void Update()
+    public void Tick()
     {
         if (!CanAct())
             return;
@@ -223,7 +199,7 @@ public sealed class ArmyUnitBrain : ValidatedMonoBehaviour
 
         float healRange = _unit.GetHealRange();
         float healRangeSqr = healRange * healRange;
-        float distanceSqr = (_currentHealTarget.transform.position - transform.position).sqrMagnitude;
+        float distanceSqr = (_currentHealTarget.transform.position - _unit.transform.position).sqrMagnitude;
 
         if (distanceSqr > healRangeSqr)
         {

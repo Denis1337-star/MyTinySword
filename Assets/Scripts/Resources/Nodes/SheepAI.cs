@@ -7,7 +7,7 @@ using UnityEngine.AI;
 /// </summary>
 [RequireComponent(typeof(UnitMovement))]
 [RequireComponent(typeof(NavMeshAgent))]
-public sealed class SheepAI : MonoBehaviour
+public sealed class SheepAI : ValidatedMonoBehaviour
 {
     private const float ArriveDistance = 0.2f;
     private const float ArriveDistanceSqr = ArriveDistance * ArriveDistance;
@@ -26,6 +26,18 @@ public sealed class SheepAI : MonoBehaviour
     private bool _lastIsMoving;
     private Vector2 _targetPoint;
 
+    protected override bool ValidateInternal()
+    {
+        bool valid = true;
+
+        valid &= ValidationUtility.IsAssigned(this, territory, nameof(territory));
+        valid &= ValidationUtility.IsAssigned(this, _movement, nameof(_movement));
+        valid &= ValidationUtility.IsAssigned(this, _animator, nameof(_animator));
+        valid &= ValidationUtility.IsAssigned(this, _agent, nameof(_agent));
+
+        return valid;
+    }
+
     private IEnumerator Start()
     {
         while (!_agent.isOnNavMesh)
@@ -41,79 +53,64 @@ public sealed class SheepAI : MonoBehaviour
 
         UpdateMovingAnimation();
 
-        if (!_isEating && IsAtTarget())
+        if (_isEating)
         {
-            _isEating = true;
-            _timer = eatTime;
+            _timer -= Time.deltaTime;
+
+            if (_timer <= 0f)
+            {
+                _isEating = false;
+                MoveToNewPoint();
+            }
+
+            return;
         }
 
-        if (!_isEating)
+        if (HasArrived())
+        {
+            StartEating();
             return;
+        }
 
-        _timer -= Time.deltaTime;
-
-        if (_timer > 0f)
-            return;
-
-        _isEating = false;
-        MoveToNewPoint();
+        if (!_movement.HasTarget)
+            MoveToNewPoint();
     }
 
-    public void SetFrozen(bool value)
+    public void SetFrozen(bool isFrozen)
     {
-        if (_isFrozen == value)
-            return;
+        _isFrozen = isFrozen;
 
-        _isFrozen = value;
-
-        if (value)
-        {
+        if (_isFrozen)
             _movement.Stop();
-            SetMovingAnimation(false);
-            return;
-        }
-
-        MoveToNewPoint();
-    }
-
-    private bool IsAtTarget()
-    {
-        Vector2 position = transform.position;
-        return (position - _targetPoint).sqrMagnitude < ArriveDistanceSqr;
-    }
-
-    private void MoveToNewPoint()
-    {
-        if (territory == null)
-            return;
-
-        for (int i = 0; i < 5; i++)
-        {
-            Vector2 random = territory.GetRandomPoint();
-
-            if (!NavMesh.SamplePosition(random, out NavMeshHit hit, 3f, NavMesh.AllAreas))
-                continue;
-
-            _targetPoint = hit.position;
-            _movement.MoveTo(hit.position);
-            return;
-        }
-
-        Debug.LogWarning($"{name}: не найдена подходящая NavMesh-точка внутри территории.", this);
     }
 
     private void UpdateMovingAnimation()
     {
-        bool isMoving = _movement.HasTarget;
-        SetMovingAnimation(isMoving);
-    }
+        bool isMoving = _movement.IsMoving;
 
-    private void SetMovingAnimation(bool isMoving)
-    {
         if (_lastIsMoving == isMoving)
             return;
 
         _lastIsMoving = isMoving;
         _animator.SetBool(IsMovingHash, isMoving);
+    }
+
+    private bool HasArrived()
+    {
+        Vector2 delta = _targetPoint - (Vector2)transform.position;
+        return delta.sqrMagnitude <= ArriveDistanceSqr;
+    }
+
+    private void MoveToNewPoint()
+    {
+        _targetPoint = territory.GetRandomPoint();
+        _movement.MoveTo(_targetPoint);
+    }
+
+    private void StartEating()
+    {
+        _isEating = true;
+        _timer = eatTime;
+        _movement.Stop();
     }
 }

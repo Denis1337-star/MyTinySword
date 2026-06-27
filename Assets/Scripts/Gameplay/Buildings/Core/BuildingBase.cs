@@ -2,10 +2,9 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Базовый класс для всех зданий.
-/// Отвечает за конфиг, здоровье, фракцию, выбор, снос и разрушение здания.
+/// Базовый класс для всех зданий
+/// Отвечает за конфиг, здоровье, фракцию, выбор, снос и разрушение здания
 /// </summary>
-[RequireComponent(typeof(FactionMember))]
 [RequireComponent(typeof(UnitSelectable))]
 public abstract class BuildingBase : ValidatedMonoBehaviour
 {
@@ -13,9 +12,9 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
     [SerializeField] protected BuildingConfig config;
 
     [Header("Components")]
-    [SerializeField] protected FactionMember factionMember;
     [SerializeField] protected Health health;
     [SerializeField] protected UnitSelectable selectable;
+    [SerializeField] protected FactionType faction = FactionType.Player;
 
     [Header("Demolish")]
     [SerializeField] private bool _canBeDemolishedByButton = true;
@@ -28,12 +27,11 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
     private bool _isDestroying;
 
     public BuildingConfig Config => config;
-    public FactionMember FactionMember => factionMember;
     public Health Health => health;
     public UnitSelectable Selectable => selectable;
 
     public string DisplayName => config.DisplayName;
-    public FactionType Faction => factionMember.Faction;
+    public FactionType Faction => faction;
 
     /// <summary>
     /// Можно ли снести это здание через UI-кнопку.
@@ -78,7 +76,6 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
         bool valid = true;
 
         valid &= ValidationUtility.IsValidConfig(this, config, nameof(config));
-        valid &= ValidationUtility.IsAssigned(this, factionMember, nameof(factionMember));
         valid &= ValidationUtility.IsAssigned(this, health, nameof(health));
         valid &= ValidationUtility.IsAssigned(this, selectable, nameof(selectable));
 
@@ -131,7 +128,7 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
     {
         int maxHealth = config.MaxHealth;
 
-        if (factionMember.Faction == FactionType.Player)
+        if (FactionRules.IsPlayer(faction))
         {
             maxHealth = Mathf.RoundToInt(_techTreeBonusService.ApplyPercentBonus(
                 maxHealth,

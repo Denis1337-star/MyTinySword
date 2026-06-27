@@ -95,9 +95,9 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
         valid &= ValidationUtility.IsAssigned(this, _musicSource, nameof(_musicSource));
         valid &= ValidationUtility.IsAssigned(this, _uiSfxSource, nameof(_uiSfxSource));
         valid &= ValidationUtility.IsAssigned(this, _worldSfxRoot, nameof(_worldSfxRoot));
-        valid &= ValidationUtility.IsAssigned(this, _config.AudioMixer, nameof(_config.AudioMixer));
-        valid &= ValidationUtility.IsAssigned(this, _config.MusicMixerGroup, nameof(_config.MusicMixerGroup));
-        valid &= ValidationUtility.IsAssigned(this, _config.SfxMixerGroup, nameof(_config.SfxMixerGroup));
+
+        if (_config != null && !_config.IsValid())
+            valid = false;
 
         return valid;
     }
@@ -364,14 +364,7 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
     private void ClearWorldSfxPool()
     {
         for (int i = 0; i < _worldSources.Count; i++)
-        {
-            AudioSource source = _worldSources[i];
-
-            if (source == null)
-                continue;
-
-            Destroy(source.gameObject);
-        }
+            Destroy(_worldSources[i].gameObject);
 
         _worldSources.Clear();
         _nextWorldSourceIndex = 0;
@@ -400,9 +393,6 @@ public sealed class GameAudioService : ValidatedMonoBehaviour
         {
             int index = (_nextWorldSourceIndex + i) % _worldSources.Count;
             AudioSource source = _worldSources[index];
-
-            if (source == null)
-                continue;
 
             if (source.isPlaying)
                 continue;

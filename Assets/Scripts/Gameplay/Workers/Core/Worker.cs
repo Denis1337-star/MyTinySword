@@ -6,15 +6,14 @@ using Zenject;
 /// Хранит ссылки на обязательные компоненты
 /// </summary>
 [RequireComponent(typeof(UnitMovement))]
-[RequireComponent(typeof(WorkerBrain))]
 [RequireComponent(typeof(WorkerAnimator))]
 public sealed class Worker : ValidatedMonoBehaviour
 {
     [SerializeField] private WorkerConfig _config;
     [SerializeField] private UnitMovement _movement;
     [SerializeField] private WorkerAnimator _animator;
-    [SerializeField] private WorkerBrain _brain;
 
+    private WorkerBrain _brain;
     private WorkerRegistry _workerRegistry;
     private ResourceStorage _resourceStorage;
     private TechTreeBonusService _techTreeBonusService;
@@ -47,11 +46,13 @@ public sealed class Worker : ValidatedMonoBehaviour
     private void Construct(
         WorkerRegistry workerRegistry,
         ResourceStorage resourceStorage,
-        TechTreeBonusService techTreeBonusService)
+        TechTreeBonusService techTreeBonusService,
+        ResourceRegistry resourceRegistry)   
     {
         _workerRegistry = workerRegistry;
         _resourceStorage = resourceStorage;
         _techTreeBonusService = techTreeBonusService;
+        _brain = new WorkerBrain(this, resourceRegistry);   
     }
 
     protected override void Awake()
@@ -77,7 +78,6 @@ public sealed class Worker : ValidatedMonoBehaviour
         valid &= ValidationUtility.IsValidConfig(this, _config, nameof(_config));
         valid &= ValidationUtility.IsAssigned(this, _movement, nameof(_movement));
         valid &= ValidationUtility.IsAssigned(this, _animator, nameof(_animator));
-        valid &= ValidationUtility.IsAssigned(this, _brain, nameof(_brain));
 
         return valid;
     }

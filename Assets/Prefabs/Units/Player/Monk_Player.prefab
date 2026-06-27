@@ -93,7 +93,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6620408948315897451}
-  - component: {fileID: 7676398311613027550}
   m_Layer: 9
   m_Name: HealthBarAnchor
   m_TagString: Untagged
@@ -116,18 +115,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7101548476794337762}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7676398311613027550
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5363308750479945734}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f34ef04226e671a479ba1fc3d59948f3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &7523805815854949293
 GameObject:
   m_ObjectHideFlags: 0
@@ -141,12 +128,10 @@ GameObject:
   - component: {fileID: 500506488767556135}
   - component: {fileID: 6159089929681579575}
   - component: {fileID: 4494363855455706420}
-  - component: {fileID: 530343410627075527}
   - component: {fileID: 760204953070162733}
   - component: {fileID: 419928674437416412}
   - component: {fileID: 6818272059298226011}
   - component: {fileID: 1515599926367772103}
-  - component: {fileID: 8095704669564625008}
   - component: {fileID: 801126465291340924}
   - component: {fileID: 6447242096697287991}
   - component: {fileID: 2811560095626168135}
@@ -287,19 +272,6 @@ MonoBehaviour:
   _agentRadius: 0.25
   _areaMask: -1
   _agent: {fileID: 6159089929681579575}
---- !u!114 &530343410627075527
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7523805815854949293}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5e6e36768f4c8924fb79ff53c7743dee, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  faction: 1
 --- !u!114 &760204953070162733
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -325,12 +297,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8e75bb81fe14f244b029bc9479b4a1d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _faction: 1
   _config: {fileID: 11400000, guid: 4051b288f95fa0548979b1143b994c1c, type: 2}
   _health: {fileID: 760204953070162733}
-  _factionMember: {fileID: 530343410627075527}
   _movement: {fileID: 4494363855455706420}
   _animatorBridge: {fileID: 2811560095626168135}
-  _brain: {fileID: 8095704669564625008}
   _bodyCollider: {fileID: 1515599926367772103}
 --- !u!114 &6818272059298226011
 MonoBehaviour:
@@ -381,19 +352,6 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 1
---- !u!114 &8095704669564625008
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7523805815854949293}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f5d94c9c3a34294ebc5e64bacecf08c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _unit: {fileID: 419928674437416412}
 --- !u!114 &801126465291340924
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -407,9 +365,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _health: {fileID: 760204953070162733}
-  _factionMember: {fileID: 530343410627075527}
   _selectable: {fileID: 6818272059298226011}
-  _anchor: {fileID: 7676398311613027550}
+  _anchorTransform: {fileID: 6620408948315897451}
   _healthBarPrefab: {fileID: 2669886924976918483, guid: 97e2bb3049e8e734db19c6aadda234d0, type: 3}
   _showWhenSelected: 0
   _showWhenDamaged: 1
@@ -439,7 +396,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c86445684a13284885ce177b8646311, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _animator: {fileID: 0}
+  _animator: {fileID: 500506488767556135}
   _movement: {fileID: 4494363855455706420}
 --- !u!114 &7792622985401931406
 MonoBehaviour:

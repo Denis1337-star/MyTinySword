@@ -233,13 +233,11 @@ public sealed class SelectionUiPresenter : ValidatedMonoBehaviour
 
     private static void ShowPanelTween(SimplePanelTween panelTween)
     {
-        if (panelTween != null)
-            panelTween.Show();
+        panelTween.Show();
     }
 
     private static void HidePanelTween(SimplePanelTween panelTween)
     {
-        if (panelTween != null)
-            panelTween.Hide();
+        panelTween.Hide();
     }
 }

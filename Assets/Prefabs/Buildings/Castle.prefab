@@ -93,7 +93,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6881242652062844867}
-  - component: {fileID: 7400537261624263493}
   m_Layer: 9
   m_Name: HealthBarAnchor
   m_TagString: Untagged
@@ -116,18 +115,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 3182102591023846263}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7400537261624263493
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7594153289835101138}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f34ef04226e671a479ba1fc3d59948f3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &8598031701345330751
 GameObject:
   m_ObjectHideFlags: 0
@@ -138,7 +125,6 @@ GameObject:
   m_Component:
   - component: {fileID: 3182102591023846263}
   - component: {fileID: 1524025692145515599}
-  - component: {fileID: 4350631894577379448}
   - component: {fileID: 8551916879802076425}
   - component: {fileID: 2447943090280393786}
   - component: {fileID: 145707289838189892}
@@ -222,19 +208,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &4350631894577379448
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8598031701345330751}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5e6e36768f4c8924fb79ff53c7743dee, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  faction: 1
 --- !u!114 &8551916879802076425
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -320,9 +293,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _health: {fileID: 8551916879802076425}
-  _factionMember: {fileID: 4350631894577379448}
   _selectable: {fileID: 2447943090280393786}
-  _anchor: {fileID: 7400537261624263493}
+  _anchorTransform: {fileID: 6881242652062844867}
   _healthBarPrefab: {fileID: 2669886924976918483, guid: 97e2bb3049e8e734db19c6aadda234d0, type: 3}
   _showWhenSelected: 1
   _showWhenDamaged: 1
@@ -353,9 +325,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   config: {fileID: 11400000, guid: d085d3cd4fd7e1740bc79f009e15b58f, type: 2}
-  factionMember: {fileID: 4350631894577379448}
   health: {fileID: 8551916879802076425}
   selectable: {fileID: 2447943090280393786}
+  faction: 1
+  _canBeDemolishedByButton: 1
 --- !u!114 &6549188749470597556
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -35,12 +35,6 @@ public sealed class LevelLoaderService
             return false;
         }
 
-        if (!levelConfig.IsValid())
-        {
-            Debug.LogError($"[LevelLoaderService] LevelConfig некорректен: {levelConfig.name}.", levelConfig);
-            return false;
-        }
-
         if (!CanLoadLevel(levelConfig))
         {
             Debug.LogWarning(

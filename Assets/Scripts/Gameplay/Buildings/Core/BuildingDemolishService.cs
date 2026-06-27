@@ -1,53 +1,37 @@
 using UnityEngine;
-using Zenject;
 
 /// <summary>
 /// Запрос сноса здания через общую confirm-панель.
 /// </summary>
-public sealed class BuildingDemolishService : ValidatedMonoBehaviour
+public sealed class BuildingDemolishService
 {
     private const string CannotDemolishMessage = "Это здание нельзя снести.";
     private const string TutorialBlockedMessage = "Сейчас обучение не разрешает снести здание.";
     private const string DefaultDemolishMessage =
         "Вы уверены, что хотите снести здание?\nРесурсы не будут возвращены.";
 
-    [SerializeField] private BuildingDemolishConfirmPanel _confirmPanel;
-
-    private SelectionSystem _selectionSystem;
-    private ResourceStorage _resourceStorage;
-    private TechTreeBonusService _techTreeBonusService;
+    private readonly SelectionSystem _selectionSystem;
+    private readonly ResourceStorage _resourceStorage;
+    private readonly TechTreeBonusService _techTreeBonusService;
+    private readonly BuildingDemolishConfirmPanel _confirmPanel;
 
     private BuildingBase _pendingBuilding;
 
-    [Inject]
-    private void Construct(
+    public BuildingDemolishService(
         SelectionSystem selectionSystem,
         ResourceStorage resourceStorage,
-        TechTreeBonusService techTreeBonusService)
+        TechTreeBonusService techTreeBonusService,
+        BuildingDemolishConfirmPanel confirmPanel)
     {
         _selectionSystem = selectionSystem;
         _resourceStorage = resourceStorage;
         _techTreeBonusService = techTreeBonusService;
-    }
-
-    protected override bool ValidateInternal()
-    {
-        bool valid = true;
-
-        valid &= ValidationUtility.IsAssigned(this, _confirmPanel, nameof(_confirmPanel));
-
-        return valid;
+        _confirmPanel = confirmPanel;
     }
 
     public void RequestDemolish(BuildingBase building)
     {
         _pendingBuilding = building;
-
-        if (building == null)
-        {
-            ShowBlocked(CannotDemolishMessage);
-            return;
-        }
 
         if (!building.CanBeDemolishedByButton)
         {

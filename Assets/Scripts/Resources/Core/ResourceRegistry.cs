@@ -4,7 +4,7 @@ using UnityEngine;
 /// <summary>
 /// Реестр всех  ресурсных точек на сцене
 /// </summary>
-public sealed class ResourceRegistry : MonoBehaviour
+public sealed class ResourceRegistry 
 {
     private readonly List<ResourceNodeBase> _nodes = new();
 

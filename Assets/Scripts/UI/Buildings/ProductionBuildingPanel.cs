@@ -131,9 +131,6 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
 
     private void HireUnit()
     {
-        if (_currentBuilding == null)
-            return;
-
         if (!_currentBuilding.TryHireUnit())
             return;
 
@@ -143,9 +140,6 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
 
     private void RequestDemolishBuilding()
     {
-        if (_currentBuilding == null)
-            return;
-
         _buildingDemolishService.RequestDemolish(_currentBuilding);
     }
 
@@ -167,7 +161,7 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
             _currentBuilding.MaxQueue,
             _armyUnitRegistry.CommittedPlayerArmySlots,
             _armyUnitRegistry.MaxPlayerArmyUnits,
-            _currentBuilding.CurrentBuildTime); ;
+            _currentBuilding.CurrentBuildTime);
 
         string blockReason = _currentBuilding.GetHireBlockReason();
 

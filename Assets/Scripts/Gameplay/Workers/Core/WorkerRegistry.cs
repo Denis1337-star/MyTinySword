@@ -1,10 +1,9 @@
 using System.Collections.Generic;
-using UnityEngine;
 
 /// <summary>
 /// Глобальный реестр всех рабочих на сцене.
 /// </summary>
-public sealed class WorkerRegistry : MonoBehaviour
+public sealed class WorkerRegistry 
 {
     private readonly List<Worker> _workers = new();
     private int _workerCounter;
@@ -32,10 +31,5 @@ public sealed class WorkerRegistry : MonoBehaviour
 
         if (!_workers.Remove(worker))
             return;
-    }
-
-    private void OnDestroy()
-    {
-        _workers.Clear();
     }
 }
