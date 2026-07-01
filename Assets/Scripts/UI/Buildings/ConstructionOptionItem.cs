@@ -9,6 +9,9 @@ public sealed class ConstructionOptionItem : MonoBehaviour
 {
     [SerializeField] private Image _iconImage;
     [SerializeField] private Button _button;
+
+    public Button Button => _button;
+
     [SerializeField] private GameObject _selectedFrame;
 
     private BuildingConfig _config;

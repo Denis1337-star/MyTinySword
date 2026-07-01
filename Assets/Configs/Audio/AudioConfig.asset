@@ -24,11 +24,17 @@ MonoBehaviour:
     _musicClip: {fileID: 8300000, guid: ebfaad64e0955a1498ba06fdaefe92c2, type: 3}
   - _sceneName: Level_1
     _musicClip: {fileID: 8300000, guid: 71d635f19ddeba0469c71507559c1252, type: 3}
+  - _sceneName: Level_2
+    _musicClip: {fileID: 8300000, guid: 71d635f19ddeba0469c71507559c1252, type: 3}
+  - _sceneName: Level_3
+    _musicClip: {fileID: 8300000, guid: 71d635f19ddeba0469c71507559c1252, type: 3}
+  - _sceneName: Level_4
+    _musicClip: {fileID: 8300000, guid: 71d635f19ddeba0469c71507559c1252, type: 3}
   _sounds:
   - _id: 10
     _clips:
     - {fileID: 8300000, guid: 90e5349809f09c846a05ac0c1a02dde4, type: 3}
-    _volume: 0.1
+    _volume: 1
     _randomPitch: 0
   - _id: 13
     _clips:

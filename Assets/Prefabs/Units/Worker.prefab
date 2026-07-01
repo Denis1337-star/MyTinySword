@@ -101,6 +101,7 @@ GameObject:
   - component: {fileID: 1585844759019371601}
   - component: {fileID: 1263769579142275136}
   - component: {fileID: 4803159699397084767}
+  - component: {fileID: 8574771596800543626}
   m_Layer: 9
   m_Name: Worker
   m_TagString: Untagged
@@ -223,7 +224,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5fc4b441ac128a3488c85ff1c3df44e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _speed: 3.5
   _stoppingDistance: 0.35
   _agentRadius: 0.3
   _areaMask: -1
@@ -257,6 +257,8 @@ MonoBehaviour:
   _config: {fileID: 11400000, guid: 27064912583c31342af4bc3aa68fe899, type: 2}
   _movement: {fileID: 4727677065358696826}
   _animator: {fileID: 1263769579142275136}
+  _health: {fileID: 8574771596800543626}
+  _faction: 1
 --- !u!95 &1585844759019371601
 Animator:
   serializedVersion: 5
@@ -321,3 +323,20 @@ NavMeshAgent:
   m_BaseOffset: 0.6
   m_WalkableMask: 1
   m_ObstacleAvoidanceType: 4
+--- !u!114 &8574771596800543626
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1626369444277348829}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d863b4175fec7474fbe95caa77d2c1ae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _damageSoundId: 200
+  _deathSoundId: 201
+  _playDamageSound: 1
+  _playDeathSound: 1
+  _damageSoundCooldown: 0.08

@@ -12,6 +12,7 @@ public sealed class ArmyUnit : ValidatedMonoBehaviour
 {
     [SerializeField] private FactionType _faction = FactionType.Player;
     [SerializeField] private UnitConfig _config;
+    [SerializeField] private TargetPriorityType _targetPriority = TargetPriorityType.ArmyUnit;
     [SerializeField] private Health _health;
     [SerializeField] private UnitMovement _movement;
     [SerializeField] private UnitAnimatorBridge _animatorBridge;
@@ -22,6 +23,7 @@ public sealed class ArmyUnit : ValidatedMonoBehaviour
     private ArmyUnitBrain _brain;
 
     public UnitConfig Config => _config;
+    public TargetPriorityType TargetPriority => _targetPriority;
     public Health Health => _health;
     public UnitMovement Movement => _movement;
     public UnitAnimatorBridge AnimatorBridge => _animatorBridge;

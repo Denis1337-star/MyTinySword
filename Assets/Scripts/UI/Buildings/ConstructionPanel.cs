@@ -29,6 +29,7 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
     private ConstructionSlot _currentSlot;
     private BuildingConfig _selectedConfig;
     private DiContainer _container;
+    private UiSoundRouter _uiSoundRouter;
     private BuildingConfig _tutorialAllowedBuilding;
 
     public event Action<BuildingConfig> ConstructionStarted;
@@ -44,12 +45,14 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
         ResourceStorage resourceStorage,
         TechTreeBonusService techTreeBonusService,
         BuildingRegistry buildingRegistry,
-        DiContainer container)
+        DiContainer container,
+        UiSoundRouter uiSoundRouter)
     {
         _resourceStorage = resourceStorage;
         _techTreeBonusService = techTreeBonusService;
         _buildingRegistry = buildingRegistry;
         _container = container;
+        _uiSoundRouter = uiSoundRouter;
     }
 
     protected override void Awake()
@@ -169,7 +172,7 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
 
             ConstructionOptionItem item = CreateItem();
             item.Bind(config, SelectConfig, AllowsBuilding);
-
+            _uiSoundRouter.WireButton(item.Button);
             _optionItems.Add(item);
         }
     }
@@ -316,7 +319,11 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
     private void ClearOptions()
     {
         for (int i = 0; i < _optionItems.Count; i++)
-            Destroy(_optionItems[i].gameObject);
+        {
+            ConstructionOptionItem item = _optionItems[i];
+            _uiSoundRouter.UnwireButton(item.Button);
+            Destroy(item.gameObject);
+        }
 
         _optionItems.Clear();
     }

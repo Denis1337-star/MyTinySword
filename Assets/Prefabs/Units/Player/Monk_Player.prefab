@@ -133,9 +133,7 @@ GameObject:
   - component: {fileID: 6818272059298226011}
   - component: {fileID: 1515599926367772103}
   - component: {fileID: 801126465291340924}
-  - component: {fileID: 6447242096697287991}
   - component: {fileID: 2811560095626168135}
-  - component: {fileID: 7792622985401931406}
   m_Layer: 9
   m_Name: Monk_Player
   m_TagString: Untagged
@@ -285,6 +283,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _maxHealth: 100
+  _damageSoundId: 200
+  _deathSoundId: 201
+  _playDamageSound: 1
+  _playDeathSound: 1
+  _damageSoundCooldown: 0.08
 --- !u!114 &419928674437416412
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -299,6 +302,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _faction: 1
   _config: {fileID: 11400000, guid: 4051b288f95fa0548979b1143b994c1c, type: 2}
+  _targetPriority: 100
   _health: {fileID: 760204953070162733}
   _movement: {fileID: 4494363855455706420}
   _animatorBridge: {fileID: 2811560095626168135}
@@ -371,19 +375,6 @@ MonoBehaviour:
   _showWhenSelected: 0
   _showWhenDamaged: 1
   _fallbackOffset: {x: 0, y: 1.5, z: 0}
---- !u!114 &6447242096697287991
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7523805815854949293}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5bfbca7783100a6479b68154022d712e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  targetPriority: 100
 --- !u!114 &2811560095626168135
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -398,21 +389,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _animator: {fileID: 500506488767556135}
   _movement: {fileID: 4494363855455706420}
---- !u!114 &7792622985401931406
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7523805815854949293}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5c4ac245385f05e4c8023386d748261f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _health: {fileID: 760204953070162733}
-  _damageSoundId: 200
-  _deathSoundId: 201
-  _playDamageSound: 1
-  _playDeathSound: 1
-  _damageSoundCooldown: 0.08

@@ -15,6 +15,7 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
     [SerializeField] protected Health health;
     [SerializeField] protected UnitSelectable selectable;
     [SerializeField] protected FactionType faction = FactionType.Player;
+    [SerializeField] protected TargetPriorityType targetPriority = TargetPriorityType.Building;
 
     [Header("Demolish")]
     [SerializeField] private bool _canBeDemolishedByButton = true;
@@ -27,6 +28,7 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
     private bool _isDestroying;
 
     public BuildingConfig Config => config;
+    public TargetPriorityType TargetPriority => targetPriority;
     public Health Health => health;
     public UnitSelectable Selectable => selectable;
 

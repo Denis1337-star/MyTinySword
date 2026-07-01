@@ -32,10 +32,19 @@ public static class GameSavesDefaults
         saves.tutorialCompleted = false;
     }
 
+    public static void ApplyTechTree(SavesYG saves)
+    {
+        saves.techTree = new TechTreeSaveData();
+    }
+
     public static void ApplyAll(SavesYG saves)
     {
+        if (saves == null)
+            return;
+
         ApplyAudio(saves);
         ApplyLevelProgress(saves);
         ApplyTutorial(saves);
+        ApplyTechTree(saves);
     }
 }

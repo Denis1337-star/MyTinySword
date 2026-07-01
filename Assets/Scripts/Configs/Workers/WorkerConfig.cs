@@ -8,9 +8,11 @@ public sealed class WorkerConfig : BaseConfig
 {
     [SerializeField, Min(0.05f)] private float _reachResourceDistance;
     [SerializeField, Min(0.05f)] private float _maxWorkDistance;
+    [SerializeField, Min(1)] private int _maxHealth = 40;
 
     public float ReachResourceDistance => _reachResourceDistance;
     public float MaxWorkDistance => _maxWorkDistance;
+    public int MaxHealth => _maxHealth;
 
     public override bool IsValid()
     {

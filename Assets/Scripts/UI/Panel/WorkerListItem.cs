@@ -11,6 +11,8 @@ public sealed class WorkerListItem : ValidatedMonoBehaviour
     [SerializeField] private TMP_Text _infoText;
     [SerializeField] private Button _selectButton;
 
+    public Button SelectButton => _selectButton;
+
     private Worker _worker;
     private Worker _subscribedWorker;
     private Action<Worker> _onSelected;

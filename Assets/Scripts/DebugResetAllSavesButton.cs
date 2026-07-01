@@ -33,9 +33,13 @@ public sealed class DebugResetAllSavesButton : ValidatedMonoBehaviour
         GameSavesDefaults.ApplyAll(YG2.saves);
         YandexSaveUtility.SaveProgress();
 
-        Debug.Log("[DebugResetAllSavesButton] Все сохранения проекта сброшены.");
+        Debug.Log(
+            "[DebugResetAllSavesButton] Сброшены: audio, уровни, tutorial, tech tree. " +
+            "Save записан в PluginYG2.");
 
-        if (_reloadSceneAfterReset)
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        if (!_reloadSceneAfterReset)
+            return;
+
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }

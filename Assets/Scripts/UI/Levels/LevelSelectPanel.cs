@@ -21,14 +21,17 @@ public sealed class LevelSelectPanel : ValidatedMonoBehaviour
 
     private LevelProgressService _levelProgressService;
     private LevelLoaderService _levelLoaderService;
+    private UiSoundRouter _uiSoundRouter;
 
     [Inject]
     private void Construct(
         LevelProgressService levelProgressService,
-        LevelLoaderService levelLoaderService)
+        LevelLoaderService levelLoaderService,
+        UiSoundRouter uiSoundRouter)
     {
         _levelProgressService = levelProgressService;
         _levelLoaderService = levelLoaderService;
+        _uiSoundRouter = uiSoundRouter;
     }
 
     protected override bool ValidateInternal()
@@ -97,6 +100,7 @@ public sealed class LevelSelectPanel : ValidatedMonoBehaviour
             completed,
             OnLevelClicked);
 
+        _uiSoundRouter.WireButton(item.Button);
         _spawnedItems.Add(item);
     }
 
@@ -112,9 +116,16 @@ public sealed class LevelSelectPanel : ValidatedMonoBehaviour
             LevelSelectItem item = _spawnedItems[i];
 
             if (item != null)
+            {
+                _uiSoundRouter.UnwireButton(item.Button);
                 Destroy(item.gameObject);
+            }
         }
 
         _spawnedItems.Clear();
+    }
+    public void LoadFirstLevel()
+    {
+        _levelLoaderService.TryLoadLevel(_levelCatalog.GetFirstLevel());
     }
 }

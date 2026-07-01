@@ -27,6 +27,7 @@ public sealed class GameSceneInstaller : MonoInstaller
 
     [Header("UI")]
     [SerializeField] private Canvas _screenCanvas;
+    [SerializeField] private UiSoundRouter _uiSoundRouter;
     [SerializeField] private WorkerListPanel _workerListPanel;
     [SerializeField] private SelectionUiPresenter _selectionUiPresenter;
 
@@ -58,6 +59,7 @@ public sealed class GameSceneInstaller : MonoInstaller
         valid &= ValidationUtility.IsAssigned(this, _commandSystem, nameof(_commandSystem));
 
         valid &= ValidationUtility.IsAssigned(this, _screenCanvas, nameof(_screenCanvas));
+        valid &= ValidationUtility.IsAssigned(this, _uiSoundRouter, nameof(_uiSoundRouter));
         valid &= ValidationUtility.IsAssigned(this, _workerListPanel, nameof(_workerListPanel));
         valid &= ValidationUtility.IsAssigned(this, _selectionUiPresenter, nameof(_selectionUiPresenter));
         valid &= ValidationUtility.IsAssigned(this, _playerHouse, nameof(_playerHouse));
@@ -141,6 +143,11 @@ public sealed class GameSceneInstaller : MonoInstaller
     {
         Container.Bind<Canvas>()
             .FromInstance(_screenCanvas)
+            .AsSingle()
+            .NonLazy();
+
+        Container.Bind<UiSoundRouter>()
+            .FromInstance(_uiSoundRouter)
             .AsSingle()
             .NonLazy();
 

@@ -19,15 +19,18 @@ public sealed class WorkerListPanel : ValidatedMonoBehaviour
 
     private DiContainer _container;
     private SelectionSystem _selectionSystem;
+    private UiSoundRouter _uiSoundRouter;
     private House _currentHouse;
 
     [Inject]
     private void Construct(
         DiContainer container,
-        SelectionSystem selectionSystem)
+        SelectionSystem selectionSystem,
+        UiSoundRouter uiSoundRouter)
     {
         _container = container;
         _selectionSystem = selectionSystem;
+        _uiSoundRouter = uiSoundRouter;
     }
 
     protected override bool ValidateInternal()
@@ -82,6 +85,7 @@ public sealed class WorkerListPanel : ValidatedMonoBehaviour
 
             WorkerListItem item = CreateItem();
             item.Bind(worker, SelectWorker);
+            _uiSoundRouter.WireButton(item.SelectButton);
             _items.Add(item);
         }
     }
@@ -105,7 +109,10 @@ public sealed class WorkerListPanel : ValidatedMonoBehaviour
             WorkerListItem item = _items[i];
 
             if (item != null)
+            {
+                _uiSoundRouter.UnwireButton(item.SelectButton);
                 Destroy(item.gameObject);
+            }
         }
 
         _items.Clear();

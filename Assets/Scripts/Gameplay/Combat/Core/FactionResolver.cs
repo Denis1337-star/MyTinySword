@@ -15,6 +15,10 @@ public static class FactionResolver
         if (building != null)
             return building.Faction;
 
+        Worker worker = component.GetComponent<Worker>();
+        if (worker != null)
+            return worker.Faction;
+
         return null;
     }
 

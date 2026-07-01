@@ -1,14 +1,26 @@
 using System;
 using UnityEngine;
+using Zenject;
 
 /// <summary>
 /// Компонент здоровья.
 /// Отвечает за урон, лечение, смерть и уведомление UI/аудио о смене здоровья.
+/// Max HP задаётся только через Initialize() из ArmyUnit или BuildingBase.
 /// </summary>
-public sealed class Health : ValidatedMonoBehaviour, IDamageable
+public sealed class Health : MonoBehaviour, IDamageable
 {
-    [SerializeField] private int _maxHealth;
+    [Header("World Audio")]
+    [SerializeField] private SoundId _damageSoundId = SoundId.None;
+    [SerializeField] private SoundId _deathSoundId = SoundId.None;
+    [SerializeField] private bool _playDamageSound = true;
+    [SerializeField] private bool _playDeathSound = true;
+    [SerializeField, Min(0f)] private float _damageSoundCooldown = 0.08f;
 
+    private GameAudioService _audioService;
+    private int _lastHealthForAudio;
+    private float _nextDamageSoundTime;
+
+    private int _maxHealth;
     private int _currentHealth;
     private bool _died;
 
@@ -26,20 +38,10 @@ public sealed class Health : ValidatedMonoBehaviour, IDamageable
     public event Action<int, int> OnHealthChanged;
     public event Action OnDied;
 
-    protected override void Awake()
+    [Inject]
+    private void Construct(GameAudioService audioService)
     {
-        Initialize(_maxHealth);
-
-        base.Awake();
-    }
-
-    protected override bool ValidateInternal()
-    {
-        if (_maxHealth >= 1)
-            return true;
-
-        Debug.LogError($"{name}: MaxHealth должен быть минимум 1.", this);
-        return false;
+        _audioService = audioService;
     }
 
     public void Initialize(int maxHealth, bool resetCurrentHealth = true)
@@ -57,6 +59,7 @@ public sealed class Health : ValidatedMonoBehaviour, IDamageable
         }
 
         OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
+        _lastHealthForAudio = _currentHealth;
     }
 
     public void TakeDamage(int amount)
@@ -74,6 +77,9 @@ public sealed class Health : ValidatedMonoBehaviour, IDamageable
             Die();
             return;
         }
+
+        TryPlayDamageSound(_currentHealth);
+        _lastHealthForAudio = _currentHealth;
 
         OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
     }
@@ -119,6 +125,33 @@ public sealed class Health : ValidatedMonoBehaviour, IDamageable
         _currentHealth = 0;
 
         OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
+        TryPlayDeathSound();
         OnDied?.Invoke();
+    }
+
+    private void TryPlayDamageSound(int currentHealth)
+    {
+        if (currentHealth >= _lastHealthForAudio)
+            return;
+
+        if (!_playDamageSound || _damageSoundId == SoundId.None)
+            return;
+
+        if (currentHealth <= 0 || IsDead)
+            return;
+
+        if (Time.time < _nextDamageSoundTime)
+            return;
+
+        _nextDamageSoundTime = Time.time + _damageSoundCooldown;
+        _audioService?.PlayWorldSound(_damageSoundId, transform.position);
+    }
+
+    private void TryPlayDeathSound()
+    {
+        if (!_playDeathSound || _deathSoundId == SoundId.None)
+            return;
+
+        _audioService?.PlayWorldSound(_deathSoundId, transform.position);
     }
 }

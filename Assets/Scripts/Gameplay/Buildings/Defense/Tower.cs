@@ -116,10 +116,7 @@ public sealed class Tower : BuildingBase
 
     private int GetTargetPriority(Collider2D hit)
     {
-        if (hit != null && hit.TryGetComponent(out CombatTargetInfo targetInfo))
-            return (int)targetInfo.TargetPriority;
-
-        return (int)TargetPriorityType.Building;
+        return CombatTargetPriorityResolver.Resolve(hit);
     }
 
     private void Shoot(Health target)

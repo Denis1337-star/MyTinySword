@@ -44,10 +44,7 @@ public sealed class ArmyTargetFinder
 
     private int GetEnemyTargetPriority(Collider2D hit)
     {
-        if (hit != null && hit.TryGetComponent(out CombatTargetInfo targetInfo))
-            return (int)targetInfo.TargetPriority;
-
-        return (int)TargetPriorityType.ArmyUnit;
+        return CombatTargetPriorityResolver.Resolve(hit);
     }
 
     public Health FindLowestHealthAllyUnit()

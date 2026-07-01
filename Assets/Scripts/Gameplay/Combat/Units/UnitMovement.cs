@@ -4,8 +4,9 @@ using UnityEngine.AI;
 [RequireComponent(typeof(NavMeshAgent))]
 public sealed class UnitMovement : ValidatedMonoBehaviour
 {
+    private const float DefaultSpeed = 3.5f;
+
     [Header("Agent Settings")]
-    [SerializeField, Min(0.1f)] private float _speed = 3.5f;
     [SerializeField, Min(0f)] private float _stoppingDistance = 0.2f;
     [SerializeField, Min(0.01f)] private float _agentRadius = 0.25f;
     [SerializeField] private int _areaMask = UnityEngine.AI.NavMesh.AllAreas;
@@ -15,6 +16,11 @@ public sealed class UnitMovement : ValidatedMonoBehaviour
     private const float InitialNavMeshSearchRadius = 5f;
     private const float TargetNavMeshSearchRadius = 3f;
     private const float MovingVelocitySqrThreshold = 0.01f;
+
+    /// <summary>
+    /// Задаётся через SetSpeed: ArmyUnit — из UnitConfig, Worker — prefab-default + tech tree.
+    /// </summary>
+    private float _speed = DefaultSpeed;
 
     public float Speed => _speed;
 

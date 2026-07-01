@@ -12,6 +12,9 @@ public sealed class LevelSelectItem : ValidatedMonoBehaviour
 {
     [Header("UI")]
     [SerializeField] private Button _button;
+
+    public Button Button => _button;
+
     [SerializeField] private TMP_Text _titleText;
     [SerializeField] private TMP_Text _statusText;
 

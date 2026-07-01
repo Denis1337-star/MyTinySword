@@ -12,6 +12,8 @@ public sealed class Worker : ValidatedMonoBehaviour
     [SerializeField] private WorkerConfig _config;
     [SerializeField] private UnitMovement _movement;
     [SerializeField] private WorkerAnimator _animator;
+    [SerializeField] private Health _health;
+    [SerializeField] private FactionType _faction = FactionType.Player;
 
     private WorkerBrain _brain;
     private WorkerRegistry _workerRegistry;
@@ -21,6 +23,8 @@ public sealed class Worker : ValidatedMonoBehaviour
     public WorkerStateMachine StateMachine { get; private set; }
     public UnitMovement Movement => _movement;
     public WorkerAnimator Animator => _animator;
+    public Health Health => _health;
+    public FactionType Faction => _faction;
     public WorkerInventory Inventory { get; private set; }
     public WorkerBrain Brain => _brain;
 
@@ -41,6 +45,9 @@ public sealed class Worker : ValidatedMonoBehaviour
     public string CurrentStateName => StateMachine.CurrentStateName;
     public bool HasCargo => Inventory.HasCargo;
     public bool HasPendingJob => PendingJob != WorkerJobType.None;
+
+    private void OnEnable() => _health.OnDied += HandleDeath;
+    private void OnDisable() => _health.OnDied -= HandleDeath;
 
     [Inject]
     private void Construct(
@@ -65,6 +72,7 @@ public sealed class Worker : ValidatedMonoBehaviour
         CurrentJob = WorkerJobType.None;
 
         base.Awake();
+        _health.Initialize(_config.MaxHealth);
     }
     private void Start()
     {
@@ -78,6 +86,7 @@ public sealed class Worker : ValidatedMonoBehaviour
         valid &= ValidationUtility.IsValidConfig(this, _config, nameof(_config));
         valid &= ValidationUtility.IsAssigned(this, _movement, nameof(_movement));
         valid &= ValidationUtility.IsAssigned(this, _animator, nameof(_animator));
+        valid &= ValidationUtility.IsAssigned(this, _health, nameof(_health));
 
         return valid;
     }
@@ -85,6 +94,11 @@ public sealed class Worker : ValidatedMonoBehaviour
     private void Update()
     {
         StateMachine.Update();
+    }
+
+    private void HandleDeath()
+    {
+        Destroy(gameObject);  
     }
 
     private void OnDestroy()
