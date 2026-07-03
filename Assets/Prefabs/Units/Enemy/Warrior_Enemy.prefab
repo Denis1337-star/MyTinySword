@@ -32,6 +32,18 @@ PrefabInstance:
       propertyPath: _faction
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 4940929766258605157, guid: 7094ca977003a1d47a7950e31869d5b6, type: 3}
+      propertyPath: m_Color.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4940929766258605157, guid: 7094ca977003a1d47a7950e31869d5b6, type: 3}
+      propertyPath: m_Color.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4940929766258605157, guid: 7094ca977003a1d47a7950e31869d5b6, type: 3}
+      propertyPath: m_Color.r
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5315950114301053989, guid: 7094ca977003a1d47a7950e31869d5b6, type: 3}
       propertyPath: _animator
       value: 

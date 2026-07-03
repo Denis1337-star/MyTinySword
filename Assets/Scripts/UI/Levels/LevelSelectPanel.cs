@@ -124,8 +124,18 @@ public sealed class LevelSelectPanel : ValidatedMonoBehaviour
 
         _spawnedItems.Clear();
     }
-    public void LoadFirstLevel()
+
+    public void LoadLastUnlockedLevel()
     {
-        _levelLoaderService.TryLoadLevel(_levelCatalog.GetFirstLevel());
+        int lastUnlocked = _levelProgressService.LastUnlockedLevelIndex;
+        LevelConfig levelConfig = _levelCatalog.GetByIndex(lastUnlocked);
+
+        if (levelConfig == null)
+        {
+            Debug.LogError($"Нет LevelConfig для индекса {lastUnlocked}");
+            return;
+        }
+
+        _levelLoaderService.TryLoadLevel(levelConfig);
     }
 }

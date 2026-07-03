@@ -112,7 +112,7 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
     }
 
     /// <summary>
-    /// Ограничивает выбор здания на шаге обучения.
+    /// Ограничивает выбор здания на шаге обучения
     /// </summary>
     public void SetTutorialAllowedBuilding(BuildingConfig allowedBuilding)
     {
@@ -240,8 +240,8 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
 
         string resourceText =
             $"Стоимость\n" +
-            $"Wood: {_resourceStorage.Wood}/{_selectedConfig.WoodCost}\n" +
-            $"Gold: {_resourceStorage.Gold}/{_selectedConfig.GoldCost}";
+            $"Дерево: {_resourceStorage.Wood}/{_selectedConfig.WoodCost}\n" +
+            $"Золото: {_resourceStorage.Gold}/{_selectedConfig.GoldCost}";
 
         if (!string.IsNullOrEmpty(limitText))
             resourceText = limitText + "\n" + resourceText;

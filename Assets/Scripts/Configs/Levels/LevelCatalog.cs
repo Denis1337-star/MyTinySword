@@ -30,6 +30,10 @@ public sealed class LevelCatalog : BaseConfig
 
         return null;
     }
+    public LevelConfig GetLastUnlockedLevel(int lastUnlockedLevelIndex)
+    {
+        return GetByIndex(lastUnlockedLevelIndex);
+    }
 
     public LevelConfig GetById(string levelId)
     {

@@ -250,7 +250,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d863b4175fec7474fbe95caa77d2c1ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _maxHealth: 1
   _damageSoundId: 102
   _deathSoundId: 101
   _playDamageSound: 1

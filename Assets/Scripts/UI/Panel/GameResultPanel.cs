@@ -2,26 +2,39 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Zenject;
 
 /// <summary>
-/// Показывает экран победы или поражения.
+/// Экран победы: далее / рестарт / меню.
 /// </summary>
 public sealed class GameResultPanel : ValidatedMonoBehaviour
 {
     private const string MainMenuSceneName = "MainMenu";
 
     [SerializeField] private TMP_Text _resultText;
+    [SerializeField] private Button _nextLevelButton;
     [SerializeField] private Button _restartButton;
     [SerializeField] private Button _mainMenuButton;
 
+    private LevelConfig _nextLevelConfig;
+    private LevelLoaderService _levelLoaderService;
+
+    [Inject]
+    private void Construct(LevelLoaderService levelLoaderService)
+    {
+        _levelLoaderService = levelLoaderService;
+    }
+
     private void OnEnable()
     {
+        _nextLevelButton.onClick.AddListener(LoadNextLevel);
         _restartButton.onClick.AddListener(RestartLevel);
         _mainMenuButton.onClick.AddListener(LoadMainMenu);
     }
 
     private void OnDisable()
     {
+        _nextLevelButton.onClick.RemoveListener(LoadNextLevel);
         _restartButton.onClick.RemoveListener(RestartLevel);
         _mainMenuButton.onClick.RemoveListener(LoadMainMenu);
     }
@@ -31,28 +44,31 @@ public sealed class GameResultPanel : ValidatedMonoBehaviour
         bool valid = true;
 
         valid &= ValidationUtility.IsAssigned(this, _resultText, nameof(_resultText));
+        valid &= ValidationUtility.IsAssigned(this, _nextLevelButton, nameof(_nextLevelButton));
         valid &= ValidationUtility.IsAssigned(this, _restartButton, nameof(_restartButton));
         valid &= ValidationUtility.IsAssigned(this, _mainMenuButton, nameof(_mainMenuButton));
 
         return valid;
     }
 
-    public void ShowVictory()
+    public void ShowVictory(LevelConfig nextLevelConfig)
     {
-        ShowResult("ПОБЕДА");
-    }
+        _nextLevelConfig = nextLevelConfig;
 
-    public void ShowDefeat()
-    {
-        ShowResult("ПОРАЖЕНИЕ");
-    }
+        _resultText.text = "ПОБЕДА";
+        _nextLevelButton.gameObject.SetActive(nextLevelConfig != null);
 
-    private void ShowResult(string resultText)
-    {
-        _resultText.text = resultText;
         gameObject.SetActive(true);
-
         Time.timeScale = 0f;
+    }
+
+    private void LoadNextLevel()
+    {
+        if (_nextLevelConfig == null)
+            return;
+
+        Time.timeScale = 1f;
+        _levelLoaderService.TryLoadLevel(_nextLevelConfig);
     }
 
     private void RestartLevel()

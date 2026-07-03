@@ -3,16 +3,16 @@ using UnityEngine;
 using Zenject;
 
 /// <summary>
-/// Следит за уничтожением главных баз и завершает матч.
-/// При победе сохраняет прогресс текущего уровня.
+/// Завершает уровень при уничтожении вражеского замка.
+/// Сохраняет прогресс и показывает экран победы.
 /// </summary>
 public sealed class GameResultController : ValidatedMonoBehaviour
 {
     [Header("Level")]
     [SerializeField] private LevelConfig _fallbackLevelConfig;
+    [SerializeField] private LevelCatalog _levelCatalog;
 
     [Header("Castles")]
-    [SerializeField] private Castle _playerCastle;
     [SerializeField] private Castle _enemyCastle;
 
     [Header("UI")]
@@ -41,12 +41,14 @@ public sealed class GameResultController : ValidatedMonoBehaviour
         if (!enabled)
             return;
 
-        Subscribe();
+        _enemyCastle.OnCastleDestroyed += OnEnemyCastleDestroyed;
     }
 
     private void OnDestroy()
     {
-        Unsubscribe();
+        if (_enemyCastle != null)
+            _enemyCastle.OnCastleDestroyed -= OnEnemyCastleDestroyed;
+
         GameFinished = null;
     }
 
@@ -54,7 +56,8 @@ public sealed class GameResultController : ValidatedMonoBehaviour
     {
         bool valid = true;
 
-        valid &= ValidationUtility.IsAssigned(this, _playerCastle, nameof(_playerCastle));
+        valid &= ValidationUtility.IsAssigned(this, _levelCatalog, nameof(_levelCatalog));
+        valid &= ValidationUtility.IsValidConfig(this, _levelCatalog, nameof(_levelCatalog));
         valid &= ValidationUtility.IsAssigned(this, _enemyCastle, nameof(_enemyCastle));
         valid &= ValidationUtility.IsAssigned(this, _resultPanel, nameof(_resultPanel));
 
@@ -64,60 +67,29 @@ public sealed class GameResultController : ValidatedMonoBehaviour
         return valid;
     }
 
-    private void Subscribe()
+    private void OnEnemyCastleDestroyed(Castle _)
     {
-        _playerCastle.OnCastleDestroyed += OnCastleDestroyed;
-        _enemyCastle.OnCastleDestroyed += OnCastleDestroyed;
-    }
-
-    private void Unsubscribe()
-    {
-        if (_playerCastle != null)
-            _playerCastle.OnCastleDestroyed -= OnCastleDestroyed;
-
-        if (_enemyCastle != null)
-            _enemyCastle.OnCastleDestroyed -= OnCastleDestroyed;
-    }
-
-    private void OnCastleDestroyed(Castle destroyedCastle)
-    {
-        if (_gameFinished || destroyedCastle == null)
+        if (_gameFinished)
             return;
 
-        if (destroyedCastle == _playerCastle)
-        {
-            FinishGame(false);
-            return;
-        }
-
-        if (destroyedCastle == _enemyCastle)
-        {
-            FinishGame(true);
-        }
+        FinishVictory();
     }
 
-    private void FinishGame(bool victory)
+    private void FinishVictory()
     {
         _gameFinished = true;
 
-        if (victory)
-        {
-            SaveVictoryProgress();
-            _resultPanel.ShowVictory();
+        LevelConfig currentLevel = GetCurrentLevelConfig();
+        SaveVictoryProgress(currentLevel);
 
-            GameFinished?.Invoke(true);
-            return;
-        }
+        LevelConfig nextLevel = GetNextLevelConfig(currentLevel);
+        _resultPanel.ShowVictory(nextLevel);
 
-        _resultPanel.ShowDefeat();
-
-        GameFinished?.Invoke(false);
+        GameFinished?.Invoke(true);
     }
 
-    private void SaveVictoryProgress()
+    private void SaveVictoryProgress(LevelConfig levelConfig)
     {
-        LevelConfig levelConfig = GetCurrentLevelConfig();
-
         if (levelConfig == null)
         {
             Debug.LogError($"{name}: не удалось определить текущий LevelConfig. Прогресс не сохранён.", this);
@@ -135,5 +107,13 @@ public sealed class GameResultController : ValidatedMonoBehaviour
             return _levelRuntimeService.CurrentLevel;
 
         return _fallbackLevelConfig;
+    }
+
+    private LevelConfig GetNextLevelConfig(LevelConfig currentLevel)
+    {
+        if (currentLevel == null)
+            return null;
+
+        return _levelCatalog.GetByIndex(currentLevel.LevelIndex + 1);
     }
 }
