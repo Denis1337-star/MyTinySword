@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using YG;
 using Zenject;
 
 /// <summary>
@@ -49,12 +50,20 @@ public sealed class LevelSelectPanel : ValidatedMonoBehaviour
 
     private void OnEnable()
     {
+        YG2.onSwitchLang += HandleLanguageSwitched;
         Rebuild();
     }
 
     private void OnDisable()
     {
+        YG2.onSwitchLang -= HandleLanguageSwitched;
         ClearItems();
+    }
+
+    private void HandleLanguageSwitched(string lang)
+    {
+        if (isActiveAndEnabled)
+            Rebuild();
     }
 
     public void Show()

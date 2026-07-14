@@ -14,8 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _nodeId: WorkersSpeed
   _displayName: "\u0421\u043A\u043E\u0440\u043E\u0441\u0442\u044C \u0440\u0430\u0431\u043E\u0447\u0438\u0445"
+  _displayNameEn: "Worker Speed"
   _description: "\u0420\u0430\u0431\u043E\u0447\u0438\u0435 \u0431\u044B\u0441\u0442\u0440\u0435\u0435
     \u0434\u0432\u0438\u0433\u0430\u044E\u0442\u0441\u044F \u043F\u043E \u043A\u0430\u0440\u0442\u0435"
+  _descriptionEn: "Workers move faster across the map"
   _icon: {fileID: 21300000, guid: f1df8963cdffa435d8eb848683b327c3, type: 3}
   _maxLevel: 3
   _upgradeSeconds: 3c00000078000000f0000000

@@ -13,6 +13,9 @@ public sealed class TutorialStepData
     [TextArea]
     [SerializeField] private string _message;
 
+    [TextArea]
+    [SerializeField] private string _messageEn;
+
     [SerializeField] private bool _allowManualNext = true;
 
     [Header("Build Step")]
@@ -25,6 +28,7 @@ public sealed class TutorialStepData
 
     public TutorialStepType StepType => _stepType;
     public string Message => _message;
+    public string GetMessage(string lang) => Lang.Pick(_message, _messageEn);
     public bool AllowManualNext => _allowManualNext;
 
     public BuildingConfig RequiredBuildingConfig => _requiredBuildingConfig;

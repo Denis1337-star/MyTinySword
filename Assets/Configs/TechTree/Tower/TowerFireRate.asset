@@ -15,8 +15,10 @@ MonoBehaviour:
   _nodeId: TowerFireRate
   _displayName: "\u0421\u043A\u043E\u0440\u043E\u0441\u0442\u0440\u0435\u043B\u044C\u043D\u043E\u0441\u0442\u044C
     \u0431\u0430\u0448\u0435\u043D"
+  _displayNameEn: "Tower Fire Rate"
   _description: "\u0411\u0430\u0448\u043D\u0438 \u0431\u044B\u0441\u0442\u0440\u0435\u0435
     \u0430\u0442\u0430\u043A\u0443\u044E\u0442 \u0432\u0440\u0430\u0433\u043E\u0432"
+  _descriptionEn: "Towers attack enemies faster"
   _icon: {fileID: 21300000, guid: 3cbd575d4968745d3a7f79a654fae04a, type: 3}
   _maxLevel: 3
   _upgradeSeconds: 78000000f0000000e0010000

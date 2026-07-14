@@ -7,9 +7,13 @@ public abstract class UnitConfig : BaseConfig
 {
     [SerializeField] private string _unitId;
     [SerializeField] private string _displayName;
+    [SerializeField] private string _displayNameEn;
 
     [TextArea]
     [SerializeField] private string _description;
+
+    [TextArea]
+    [SerializeField] private string _descriptionEn;
 
     [SerializeField] private Sprite _icon;
     [SerializeField] private ArmyUnitType _unitType;
@@ -24,6 +28,9 @@ public abstract class UnitConfig : BaseConfig
     public string UnitId => _unitId;
     public string DisplayName => _displayName;
     public string Description => _description;
+
+    public string GetDisplayName(string lang) => Lang.PickDisplayName(_displayName, _displayNameEn);
+    public string GetDescription(string lang) => Lang.Pick(_description, _descriptionEn);
     public Sprite Icon => _icon;
     public ArmyUnitType UnitType => _unitType;
     public GameObject Prefab => _prefab;
@@ -64,14 +71,14 @@ public abstract class UnitConfig : BaseConfig
     public virtual string GetPreviewStatsText()
     {
         return
-            $"Здоровье: {_maxHealth}\n" +
-            $"Скорость: {_moveSpeed}\n" +
-            $"Обзор: {_visionRange}";
+            $"{GameUiText.Health(_maxHealth)}\n" +
+            $"{GameUiText.Speed(_moveSpeed)}\n" +
+            $"{GameUiText.Vision(_visionRange)}";
     }
 
     protected static string FormatAttackStats(int damage, float attackRange)
     {
-        return $"Урон: {damage}\nДистанция атаки: {attackRange}\n";
+        return $"{GameUiText.Damage(damage)}\n{GameUiText.AttackRange(attackRange)}\n";
     }
 
     protected virtual void OnValidate()

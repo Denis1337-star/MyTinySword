@@ -14,8 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _nodeId: StartWorkers
   _displayName: "\u0421\u0442\u0430\u0440\u0442\u043E\u0432\u044B\u0435 \u0440\u0430\u0431\u043E\u0447\u0438\u0435"
+  _displayNameEn: "Starting Workers"
   _description: "\u0414\u043E\u0431\u0430\u0432\u043B\u044F\u0435\u0442 \u0440\u0430\u0431\u043E\u0447\u0438\u0445
     \u043D\u0430 \u0441\u0442\u0430\u0440\u0442\u0435"
+  _descriptionEn: "Adds workers at the start"
   _icon: {fileID: 21300000, guid: cb445ff62c7c14026925f63218d44e2a, type: 3}
   _maxLevel: 3
   _upgradeSeconds: 2d0000005a000000b4000000

@@ -14,9 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _nodeId: DemolishRefund
   _displayName: "\u0412\u043E\u0437\u0432\u0440\u0430\u0442 \u043F\u0440\u0438 \u0441\u043D\u043E\u0441\u0435"
+  _displayNameEn: "Demolition Refund"
   _description: "\u0412\u043E\u0437\u0440\u043E\u0449\u0430\u0435\u0442 \u0447\u0430\u0441\u0442\u044C
     \u0440\u0435\u0441\u0443\u0440\u0441\u043E\u0432 \u043F\u0440\u0438 \u0441\u043D\u043E\u0441\u0435
     \u043F\u043E\u0441\u0442\u0440\u043E\u0435\u043A"
+  _descriptionEn: "Returns part of the resources when demolishing buildings"
   _icon: {fileID: 21300000, guid: c3dedc0ecab4047cc891892591447655, type: 3}
   _maxLevel: 3
   _upgradeSeconds: 3c00000078000000f0000000

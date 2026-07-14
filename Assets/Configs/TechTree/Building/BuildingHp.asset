@@ -14,8 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _nodeId: BuildingHp
   _displayName: "\u041F\u0440\u043E\u0447\u043D\u043E\u0441\u0442\u044C \u043F\u043E\u0441\u0442\u0440\u043E\u0435\u043A"
+  _displayNameEn: "Building Durability"
   _description: "\u0423\u0432\u0435\u043B\u0438\u0447\u0438\u0432\u0430\u0435\u0442
     \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0432\u0441\u0435\u0445 \u043F\u043E\u0441\u0442\u0440\u043E\u0435\u043A"
+  _descriptionEn: "Increases health of all buildings"
   _icon: {fileID: 21300000, guid: d0349d8d3a04044f7a4810157b116b14, type: 3}
   _maxLevel: 3
   _upgradeSeconds: 3c00000078000000f0000000

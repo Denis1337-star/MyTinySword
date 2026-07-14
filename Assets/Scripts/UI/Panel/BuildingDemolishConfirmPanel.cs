@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YG;
 
 /// <summary>
 /// Универсальная панель подтверждения сноса здания.
@@ -9,12 +10,6 @@ using UnityEngine.UI;
 /// </summary>
 public sealed class BuildingDemolishConfirmPanel : ValidatedMonoBehaviour
 {
-    private const string DefaultAllowedMessage =
-        "Вы уверены, что хотите снести здание?\nРесурсы не будут возвращены.";
-
-    private const string DefaultBlockedMessage =
-        "Это здание нельзя снести.";
-
     [Header("Text")]
     [SerializeField] private TMP_Text _messageText;
 
@@ -27,23 +22,22 @@ public sealed class BuildingDemolishConfirmPanel : ValidatedMonoBehaviour
     [Header("Animation")]
     [SerializeField] private SimplePanelTween _panelTween;
 
-    [Header("Messages")]
-    [SerializeField, TextArea] private string _allowedMessage = DefaultAllowedMessage;
-    [SerializeField, TextArea] private string _blockedMessage = DefaultBlockedMessage;
-
     private Action _onConfirm;
     private Action _onCancel;
+    private string _customMessage;
 
     private void OnEnable()
     {
         _confirmButton.onClick.AddListener(HandleConfirmClicked);
         _cancelButton.onClick.AddListener(HandleCancelClicked);
+        YG2.onSwitchLang += HandleLanguageSwitched;
     }
 
     private void OnDisable()
     {
         _confirmButton.onClick.RemoveListener(HandleConfirmClicked);
         _cancelButton.onClick.RemoveListener(HandleCancelClicked);
+        YG2.onSwitchLang -= HandleLanguageSwitched;
     }
 
     protected override bool ValidateInternal()
@@ -67,19 +61,9 @@ public sealed class BuildingDemolishConfirmPanel : ValidatedMonoBehaviour
     {
         _onConfirm = onConfirm;
         _onCancel = onCancel;
+        _customMessage = message;
 
-        _messageText.text = string.IsNullOrWhiteSpace(message)
-            ? GetAllowedMessage()
-            : message;
-
-        _confirmButton.gameObject.SetActive(true);
-        _confirmButton.interactable = true;
-        _confirmButtonText.text = "Да, снести";
-
-        _cancelButton.gameObject.SetActive(true);
-        _cancelButton.interactable = true;
-        _cancelButtonText.text = "Выйти";
-
+        RefreshAllowedView();
         _panelTween.Show();
     }
 
@@ -87,17 +71,9 @@ public sealed class BuildingDemolishConfirmPanel : ValidatedMonoBehaviour
     {
         _onConfirm = null;
         _onCancel = onCancel;
+        _customMessage = message;
 
-        _messageText.text = string.IsNullOrWhiteSpace(message)
-            ? GetBlockedMessage()
-            : message;
-
-        _confirmButton.gameObject.SetActive(false);
-
-        _cancelButton.gameObject.SetActive(true);
-        _cancelButton.interactable = true;
-        _cancelButtonText.text = "Выйти";
-
+        RefreshBlockedView();
         _panelTween.Show();
     }
 
@@ -105,22 +81,48 @@ public sealed class BuildingDemolishConfirmPanel : ValidatedMonoBehaviour
     {
         _onConfirm = null;
         _onCancel = null;
+        _customMessage = null;
 
         _panelTween.Hide();
     }
 
-    private string GetAllowedMessage()
+    private void HandleLanguageSwitched(string lang)
     {
-        return string.IsNullOrWhiteSpace(_allowedMessage)
-            ? DefaultAllowedMessage
-            : _allowedMessage;
+        if (!_panelTween.IsVisible)
+            return;
+
+        if (_onConfirm != null)
+            RefreshAllowedView();
+        else
+            RefreshBlockedView();
     }
 
-    private string GetBlockedMessage()
+    private void RefreshAllowedView()
     {
-        return string.IsNullOrWhiteSpace(_blockedMessage)
-            ? DefaultBlockedMessage
-            : _blockedMessage;
+        _messageText.text = string.IsNullOrWhiteSpace(_customMessage)
+            ? GameUiText.DemolishConfirmNoRefund
+            : _customMessage;
+
+        _confirmButton.gameObject.SetActive(true);
+        _confirmButton.interactable = true;
+        _confirmButtonText.text = GameUiText.YesDemolish;
+
+        _cancelButton.gameObject.SetActive(true);
+        _cancelButton.interactable = true;
+        _cancelButtonText.text = GameUiText.Close;
+    }
+
+    private void RefreshBlockedView()
+    {
+        _messageText.text = string.IsNullOrWhiteSpace(_customMessage)
+            ? GameUiText.CannotDemolishBuilding
+            : _customMessage;
+
+        _confirmButton.gameObject.SetActive(false);
+
+        _cancelButton.gameObject.SetActive(true);
+        _cancelButton.interactable = true;
+        _cancelButtonText.text = GameUiText.Close;
     }
 
     private void HandleConfirmClicked()

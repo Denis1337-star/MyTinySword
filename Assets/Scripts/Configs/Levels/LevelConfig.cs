@@ -17,7 +17,9 @@ public sealed class LevelConfig : BaseConfig
 
     [Header("View")]
     [SerializeField] private string _displayName = "Уровень 1";
+    [SerializeField] private string _displayNameEn = "Level 1";
     [SerializeField, TextArea] private string _description = "Первый уровень.";
+    [SerializeField, TextArea] private string _descriptionEn = "First level.";
 
     [Header("Tutorial")]
     [SerializeField] private bool _isTutorialLevel = true;
@@ -27,6 +29,9 @@ public sealed class LevelConfig : BaseConfig
     public string SceneName => _sceneName;
     public string DisplayName => _displayName;
     public string Description => _description;
+
+    public string GetDisplayName(string lang) => Lang.PickDisplayName(_displayName, _displayNameEn);
+    public string GetDescription(string lang) => Lang.Pick(_description, _descriptionEn);
     public bool IsTutorialLevel => _isTutorialLevel;
 
     public override bool IsValid()

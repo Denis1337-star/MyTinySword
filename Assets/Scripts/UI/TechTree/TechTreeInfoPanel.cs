@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YG;
 
 /// <summary>
 /// Панель подробной информации о выбранной ноде дерева развития.
@@ -73,11 +74,13 @@ public sealed class TechTreeInfoPanel : ValidatedMonoBehaviour
     private void OnEnable()
     {
         _upgradeButton.onClick.AddListener(HandleUpgradeClicked);
+        YG2.onSwitchLang += HandleLanguageSwitched;
     }
 
     private void OnDisable()
     {
         _upgradeButton.onClick.RemoveListener(HandleUpgradeClicked);
+        YG2.onSwitchLang -= HandleLanguageSwitched;
     }
 
     public void Show()
@@ -113,6 +116,27 @@ public sealed class TechTreeInfoPanel : ValidatedMonoBehaviour
         _root.SetActive(false);
     }
 
+    private TechTreeNodeConfig _cachedConfig;
+    private TechTreeNodeSaveData _cachedSaveData;
+    private TechTreeNodeState _cachedState;
+    private string _cachedRequirementsText;
+    private long _cachedRemainingSeconds;
+    private bool _cachedAnotherNodeUpgrading;
+
+    private void HandleLanguageSwitched(string lang)
+    {
+        if (_cachedConfig == null)
+            return;
+
+        Refresh(
+            _cachedConfig,
+            _cachedSaveData,
+            _cachedState,
+            _cachedRequirementsText,
+            _cachedRemainingSeconds,
+            _cachedAnotherNodeUpgrading);
+    }
+
     public void Refresh(
         TechTreeNodeConfig config,
         TechTreeNodeSaveData saveData,
@@ -121,6 +145,13 @@ public sealed class TechTreeInfoPanel : ValidatedMonoBehaviour
         long remainingSeconds,
         bool anotherNodeUpgrading)
     {
+        _cachedConfig = config;
+        _cachedSaveData = saveData;
+        _cachedState = state;
+        _cachedRequirementsText = requirementsText;
+        _cachedRemainingSeconds = remainingSeconds;
+        _cachedAnotherNodeUpgrading = anotherNodeUpgrading;
+
         int level = saveData != null ? saveData.Level : 0;
 
         RefreshHeader(config);
@@ -146,8 +177,8 @@ public sealed class TechTreeInfoPanel : ValidatedMonoBehaviour
         if (_nodeIconImage != null)
             _nodeIconImage.sprite = config.Icon;
 
-        _titleText.text = config.DisplayName;
-        _descriptionText.text = config.Description;
+        _titleText.text = config.GetDisplayName(Lang.Current);
+        _descriptionText.text = config.GetDescription(Lang.Current);
     }
 
     private void RefreshAvailable(
@@ -163,9 +194,9 @@ public sealed class TechTreeInfoPanel : ValidatedMonoBehaviour
 
         _currentLevelText.text = $"{level}\\{config.MaxLevel}";
         _nextLevelText.text = $"{nextLevel}\\{config.MaxLevel}";
-        _bonusPreviewText.text =
-            $"Текущий бонус: {config.GetBonusText(level)}\n" +
-            $"Следующий бонус: {config.GetBonusText(nextLevel)}";
+        _bonusPreviewText.text = GameUiText.BonusPreview(
+            config.GetBonusText(level),
+            config.GetBonusText(nextLevel));
 
         int upgradeSeconds = config.GetUpgradeSeconds(level);
         _upgradeTimeText.text = TechTreeNodeView.FormatTime(
@@ -181,7 +212,7 @@ public sealed class TechTreeInfoPanel : ValidatedMonoBehaviour
     {
         SetStateBlocks(available: false, locked: true, maxLevel: false);
 
-        _requirementTitleText.text = "Надо прокачать";
+        _requirementTitleText.text = GameUiText.RequirementsTitle;
         _requirementListText.text = requirementsText;
     }
 
@@ -223,17 +254,17 @@ public sealed class TechTreeInfoPanel : ValidatedMonoBehaviour
 
         if (state == TechTreeNodeState.Upgrading)
         {
-            _upgradeButtonText.text = "Улучшается";
+            _upgradeButtonText.text = GameUiText.Upgrading;
             return;
         }
 
         if (anotherNodeUpgrading)
         {
-            _upgradeButtonText.text = "Уже идёт улучшение";
+            _upgradeButtonText.text = GameUiText.AnotherUpgradeInProgress;
             return;
         }
 
-        _upgradeButtonText.text = "Улучшить";
+        _upgradeButtonText.text = GameUiText.Upgrade;
     }
 
     private void SetStateBlocks(bool available, bool locked, bool maxLevel)

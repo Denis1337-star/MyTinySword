@@ -16,5 +16,7 @@ MonoBehaviour:
   _levelIndex: 2
   _sceneName: Level_2
   _displayName: "\u0423\u0440\u043E\u0432\u0435\u043D\u044C 2"
+  _displayNameEn: "Level 2"
   _description: "\u0412\u0442\u043E\u0440\u043E\u0439 \u0443\u0440\u043E\u0432\u0435\u043D\u044C."
+  _descriptionEn: "Second level"
   _isTutorialLevel: 0

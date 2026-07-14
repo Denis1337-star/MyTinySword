@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YG;
 using Zenject;
 
 /// <summary>
@@ -59,6 +60,7 @@ public sealed class HousePanel : ValidatedMonoBehaviour
         _assignAllWoodButton.onClick.AddListener(AssignAllToWood);
         _assignAllGoldButton.onClick.AddListener(AssignAllToGold);
         _assignAllMeatButton.onClick.AddListener(AssignAllToMeat);
+        YG2.onSwitchLang += HandleLanguageSwitched;
     }
 
     private void OnDisable()
@@ -69,6 +71,7 @@ public sealed class HousePanel : ValidatedMonoBehaviour
         _assignAllWoodButton.onClick.RemoveListener(AssignAllToWood);
         _assignAllGoldButton.onClick.RemoveListener(AssignAllToGold);
         _assignAllMeatButton.onClick.RemoveListener(AssignAllToMeat);
+        YG2.onSwitchLang -= HandleLanguageSwitched;
 
         ClearHouseSubscription();
     }
@@ -168,6 +171,11 @@ public sealed class HousePanel : ValidatedMonoBehaviour
         Refresh();
     }
 
+    private void HandleLanguageSwitched(string lang)
+    {
+        Refresh();
+    }
+
     private void Refresh()
     {
         if (_currentHouse == null)
@@ -176,11 +184,13 @@ public sealed class HousePanel : ValidatedMonoBehaviour
             return;
         }
 
-        _workersLimitText.text =
-            $"Рабочие: {_currentHouse.CurrentWorkers}/{_currentHouse.MaxWorkers}";
+        _workersLimitText.text = GameUiText.Workers(
+            _currentHouse.CurrentWorkers,
+            _currentHouse.MaxWorkers);
 
-        _hireCostText.text =
-            $"Стоимость: дерево {_currentHouse.CurrentWoodCost} / золото {_currentHouse.CurrentGoldCost}";
+        _hireCostText.text = GameUiText.HireCost(
+            _currentHouse.CurrentWoodCost,
+            _currentHouse.CurrentGoldCost);
 
         _hireButton.interactable = _currentHouse.CanHire();
 
@@ -201,8 +211,8 @@ public sealed class HousePanel : ValidatedMonoBehaviour
 
     private void ClearText()
     {
-        _workersLimitText.text = "Рабочие: 0/0";
-        _hireCostText.text = "Стоимость: -";
+        _workersLimitText.text = GameUiText.WorkersEmpty;
+        _hireCostText.text = GameUiText.CostDash;
 
         _hireButton.interactable = false;
         _demolishButton.gameObject.SetActive(false);

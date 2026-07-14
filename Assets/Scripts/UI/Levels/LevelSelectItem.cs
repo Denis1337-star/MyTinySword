@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YG;
 
 /// <summary>
 /// Один элемент выбора уровня в меню.
@@ -26,15 +27,18 @@ public sealed class LevelSelectItem : ValidatedMonoBehaviour
     private Action<LevelConfig> _onClicked;
 
     private bool _unlocked;
+    private bool _completed;
 
     private void OnEnable()
     {
         _button.onClick.AddListener(OnButtonClicked);
+        YG2.onSwitchLang += HandleLanguageSwitched;
     }
 
     private void OnDisable()
     {
         _button.onClick.RemoveListener(OnButtonClicked);
+        YG2.onSwitchLang -= HandleLanguageSwitched;
     }
 
     protected override bool ValidateInternal()
@@ -56,18 +60,24 @@ public sealed class LevelSelectItem : ValidatedMonoBehaviour
     {
         _levelConfig = levelConfig;
         _unlocked = unlocked;
+        _completed = completed;
         _onClicked = onClicked;
 
-        RefreshView(completed);
+        RefreshView();
     }
 
-    private void RefreshView(bool completed)
+    private void HandleLanguageSwitched(string lang)
+    {
+        RefreshView();
+    }
+
+    private void RefreshView()
     {
         if (_levelConfig == null)
         {
             _button.interactable = false;
-            _titleText.text = "Уровень не задан";
-            _statusText.text = "Ошибка";
+            _titleText.text = GameUiText.LevelNotSet;
+            _statusText.text = GameUiText.Error;
             SetOptionalView(_lockedView, true);
             SetOptionalView(_completedView, false);
             return;
@@ -75,22 +85,22 @@ public sealed class LevelSelectItem : ValidatedMonoBehaviour
 
         _button.interactable = _unlocked;
 
-        _titleText.text = _levelConfig.DisplayName;
-        _statusText.text = GetStatusText(completed);
+        _titleText.text = _levelConfig.GetDisplayName(Lang.Current);
+        _statusText.text = GetStatusText(_completed);
 
         SetOptionalView(_lockedView, !_unlocked);
-        SetOptionalView(_completedView, completed);
+        SetOptionalView(_completedView, _completed);
     }
 
     private string GetStatusText(bool completed)
     {
         if (!_unlocked)
-            return "Закрыт";
+            return GameUiText.Locked;
 
         if (completed)
-            return "Пройден";
+            return GameUiText.Completed;
 
-        return "Доступен";
+        return GameUiText.Available;
     }
 
     private void OnButtonClicked()

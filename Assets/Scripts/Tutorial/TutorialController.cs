@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using YG;
 using Zenject;
 
 /// <summary>
@@ -84,6 +85,7 @@ public sealed class TutorialController : ValidatedMonoBehaviour
 
     private void OnEnable()
     {
+        YG2.onSwitchLang += HandleLanguageSwitched;
         _uiView.FullScreenNextButton.onClick.AddListener(GoToNextStep);
 
         SubscribeToGameplayEvents();
@@ -91,11 +93,18 @@ public sealed class TutorialController : ValidatedMonoBehaviour
 
     private void OnDisable()
     {
+        YG2.onSwitchLang -= HandleLanguageSwitched;
         _uiView.FullScreenNextButton.onClick.RemoveListener(GoToNextStep);
 
         UnsubscribeFromGameplayEvents();
         _cameraFocus.StopTutorialCamera();
         ClearConstructionTutorialRestrictions();
+    }
+
+    private void HandleLanguageSwitched(string lang)
+    {
+        if (_isRunning)
+            RefreshCurrentStepPresentation();
     }
 
     private void Update()

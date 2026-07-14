@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YG;
 using Zenject;
 
 /// <summary>
@@ -77,6 +78,7 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
 
         _armyUnitRegistry.OnArmyChanged += Refresh;
         _resourceStorage.ResourcesChanged += Refresh;
+        YG2.onSwitchLang += HandleLanguageSwitched;
 
         BindCurrentBuildingEvents();
         Refresh();
@@ -89,6 +91,7 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
 
         _armyUnitRegistry.OnArmyChanged -= Refresh;
         _resourceStorage.ResourcesChanged -= Refresh;
+        YG2.onSwitchLang -= HandleLanguageSwitched;
 
         ClearBuildingSubscription();
     }
@@ -143,6 +146,11 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
         _buildingDemolishService.RequestDemolish(_currentBuilding);
     }
 
+    private void HandleLanguageSwitched(string lang)
+    {
+        Refresh();
+    }
+
     private void Refresh()
     {
         if (_currentBuilding == null)
@@ -153,10 +161,10 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
 
         UnitConfig config = _currentBuilding.UnitConfig;
 
-        _unitNameText.text = config.DisplayName;
-        _descriptionText.text = config.Description;
+        _unitNameText.text = config.GetDisplayName(Lang.Current);
+        _descriptionText.text = config.GetDescription(Lang.Current);
         _statsText.text = config.GetPreviewStatsText();
-        _queueText.text = BuildQueueText(
+        _queueText.text = GameUiText.QueueInfo(
             _currentBuilding.QueueCount,
             _currentBuilding.MaxQueue,
             _armyUnitRegistry.CommittedPlayerArmySlots,
@@ -181,8 +189,8 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
         _unitNameText.text = string.Empty;
         _descriptionText.text = string.Empty;
         _statsText.text = string.Empty;
-        _queueText.text = BuildQueueText(0, 0, 0, 0, 0f);
-        _costText.text = "Стоимость: -";
+        _queueText.text = GameUiText.QueueInfo(0, 0, 0, 0, 0f);
+        _costText.text = GameUiText.CostDash;
 
         _hireButton.interactable = false;
         _demolishButton.gameObject.SetActive(false);
@@ -190,20 +198,9 @@ public sealed class ProductionBuildingPanel : ValidatedMonoBehaviour
         _iconImage.sprite = null;
     }
 
-    private static string BuildQueueText(
-     int queueCount,
-     int maxQueue,
-     int armySlots,
-     int maxArmySlots,
-     float buildTime)
-    {
-        return
-            $"В очереди: {queueCount}/{maxQueue}  Армия: {armySlots}/{maxArmySlots}\n" +
-            $"Обучение: {buildTime:0.#} сек.";
-    }
     private static string BuildCostText(int woodCost, int meatCost, string blockReason)
     {
-        string text = $"Стоимость: дерево {woodCost} / мясо {meatCost}";
+        string text = GameUiText.UnitCost(woodCost, meatCost);
 
         if (!string.IsNullOrEmpty(blockReason))
             text += "\n" + blockReason;

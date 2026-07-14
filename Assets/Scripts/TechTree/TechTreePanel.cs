@@ -1,5 +1,6 @@
 using System.Text;
 using UnityEngine;
+using YG;
 using Zenject;
 
 /// <summary>
@@ -54,6 +55,7 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
 
     private void OnEnable()
     {
+        YG2.onSwitchLang += HandleLanguageSwitched;
         Subscribe();
         RefreshAll();
         _infoPanel.HideImmediate();
@@ -61,7 +63,13 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
 
     private void OnDisable()
     {
+        YG2.onSwitchLang -= HandleLanguageSwitched;
         Unsubscribe();
+    }
+
+    private void HandleLanguageSwitched(string lang)
+    {
+        RefreshAll();
     }
 
     private void Update()
@@ -247,7 +255,7 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
         TechTreeRequirement[] requirements = config.Requirements;
 
         if (requirements.Length == 0)
-            return "Требований нет";
+            return GameUiText.NoRequirements;
 
         _stringBuilder.Clear();
 
@@ -259,7 +267,7 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
             bool completed = requiredSaveData.Level >= requirement.RequiredLevel;
 
             _stringBuilder.Append(completed ? "✓ " : "• ");
-            _stringBuilder.Append(requirement.RequiredNode.DisplayName);
+            _stringBuilder.Append(requirement.RequiredNode.GetDisplayName(Lang.Current));
             _stringBuilder.Append(": ");
             _stringBuilder.Append(requiredSaveData.Level);
             _stringBuilder.Append("/");

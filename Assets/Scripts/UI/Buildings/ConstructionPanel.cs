@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YG;
 using Zenject;
 
 /// <summary>
@@ -64,12 +65,14 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
     {
         _buildButton.onClick.AddListener(OnBuildClicked);
         _resourceStorage.ResourcesChanged += Refresh;
+        YG2.onSwitchLang += HandleLanguageSwitched;
     }
 
     private void OnDisable()
     {
         _buildButton.onClick.RemoveListener(OnBuildClicked);
         _resourceStorage.ResourcesChanged -= Refresh;
+        YG2.onSwitchLang -= HandleLanguageSwitched;
     }
 
     protected override bool ValidateInternal()
@@ -208,6 +211,14 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
         RefreshBuildButton();
     }
 
+    private void HandleLanguageSwitched(string lang)
+    {
+        if (_currentSlot == null && _selectedConfig == null)
+            return;
+
+        Refresh();
+    }
+
     private void RefreshSelectedInfo()
     {
         if (_selectedConfig == null)
@@ -216,9 +227,9 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
             return;
         }
 
-        _titleText.text = _selectedConfig.DisplayName;
-        _descriptionText.text = _selectedConfig.Description;
-        _buildTimeText.text = $"Постройка: {GetBuildTime(_selectedConfig):0.#} секунд";
+        _titleText.text = _selectedConfig.GetDisplayName(Lang.Current);
+        _descriptionText.text = _selectedConfig.GetDescription(Lang.Current);
+        _buildTimeText.text = GameUiText.BuildTime(GetBuildTime(_selectedConfig));
 
         RefreshCostText();
 
@@ -229,7 +240,7 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
     {
         if (_selectedConfig == null)
         {
-            _costText.text = "Стоимость: -";
+            _costText.text = GameUiText.CostDash;
             return;
         }
 
@@ -238,10 +249,11 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
             ? _currentSlot.GetBuildBlockReason(_selectedConfig)
             : string.Empty;
 
-        string resourceText =
-            $"Стоимость\n" +
-            $"Дерево: {_resourceStorage.Wood}/{_selectedConfig.WoodCost}\n" +
-            $"Золото: {_resourceStorage.Gold}/{_selectedConfig.GoldCost}";
+        string resourceText = GameUiText.BuildCostDetails(
+            _resourceStorage.Wood,
+            _selectedConfig.WoodCost,
+            _resourceStorage.Gold,
+            _selectedConfig.GoldCost);
 
         if (!string.IsNullOrEmpty(limitText))
             resourceText = limitText + "\n" + resourceText;
@@ -259,14 +271,14 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
         int currentCount = _buildingRegistry.GetBuiltOrConstructingCount(config);
         int allowedCount = _buildingRegistry.GetAllowedCount(config);
 
-        return $"Лимит: {currentCount}/{allowedCount}";
+        return GameUiText.Limit(currentCount, allowedCount);
     }
 
     private void RefreshBuildButton()
     {
         string blockReason = _currentSlot != null
             ? _currentSlot.GetBuildBlockReason(_selectedConfig)
-            : "Слот не выбран";
+            : GameUiText.SlotNotSelected;
 
         _buildButton.interactable = string.IsNullOrEmpty(blockReason);
     }
@@ -308,10 +320,10 @@ public sealed class ConstructionPanel : ValidatedMonoBehaviour
 
     private void ClearInfo()
     {
-        _titleText.text = "Здание не выбрано";
+        _titleText.text = GameUiText.BuildingNotSelected;
         _descriptionText.text = string.Empty;
-        _buildTimeText.text = "Постройка: -";
-        _costText.text = "Стоимость: -";
+        _buildTimeText.text = GameUiText.BuildDash;
+        _costText.text = GameUiText.CostDash;
         _previewImage.sprite = null;
         _buildButton.interactable = false;
     }

@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YG;
 
 /// <summary>
 /// Отображение tutorial UI: dim с вырезом, banner, highlight-рамка.
@@ -190,14 +191,14 @@ public sealed class TutorialUiView : ValidatedMonoBehaviour
     private void ShowBlockedFullScreen(TutorialStepData step, int stepIndex, int totalSteps)
     {
         _bottomBannerRoot.SetActive(false);
-        _fullScreenPanel.ShowStep(step.Message, stepIndex, totalSteps);
+        _fullScreenPanel.ShowStep(step.GetMessage(YG2.lang), stepIndex, totalSteps);
         _fullScreenPanel.NextButton.gameObject.SetActive(step.AllowManualNext);
     }
 
     private void ShowInfoFullScreen(TutorialStepData step, int stepIndex, int totalSteps)
     {
         _bottomBannerRoot.SetActive(false);
-        _fullScreenPanel.ShowInfo(step.Message, stepIndex, totalSteps);
+        _fullScreenPanel.ShowInfo(step.GetMessage(YG2.lang), stepIndex, totalSteps);
     }
 
     private void ShowGuidedBanner(
@@ -255,7 +256,7 @@ public sealed class TutorialUiView : ValidatedMonoBehaviour
     private void ShowBanner(TutorialStepData step, int stepIndex, int totalSteps)
     {
         _bottomBannerRoot.SetActive(true);
-        _bannerMessageText.text = step.Message;
+        _bannerMessageText.text = step.GetMessage(YG2.lang);
         _bannerStepCounterText.text = $"{stepIndex + 1}/{totalSteps}";
     }
 

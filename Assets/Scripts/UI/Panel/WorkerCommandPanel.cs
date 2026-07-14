@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YG;
 
 /// <summary>
 /// UI панель выбранного worker
@@ -38,6 +39,7 @@ public sealed class WorkerCommandPanel : ValidatedMonoBehaviour
     {
         SubscribeButtons();
         BindCurrentWorkerEvents();
+        YG2.onSwitchLang += HandleLanguageSwitched;
         Refresh();
     }
 
@@ -45,6 +47,7 @@ public sealed class WorkerCommandPanel : ValidatedMonoBehaviour
     {
         UnsubscribeButtons();
         ClearWorkerSubscription();
+        YG2.onSwitchLang -= HandleLanguageSwitched;
     }
 
     public void ShowForWorker(Worker worker)
@@ -79,6 +82,11 @@ public sealed class WorkerCommandPanel : ValidatedMonoBehaviour
 
         ClearText();
         SetButtonsInteractable(false);
+    }
+
+    private void HandleLanguageSwitched(string lang)
+    {
+        Refresh();
     }
 
     private void SetButtonsInteractable(bool interactable)
@@ -118,12 +126,12 @@ public sealed class WorkerCommandPanel : ValidatedMonoBehaviour
             return;
         }
 
-        _currentJobText.text =
-            $"Текущая работа: {WorkerJobLocalization.GetName(_currentWorker.CurrentJob)}";
+        _currentJobText.text = GameUiText.CurrentJob(
+            WorkerJobLocalization.GetName(_currentWorker.CurrentJob));
 
         _pendingJobText.text = _currentWorker.HasPendingJob
-            ? $"Следующая работа: {WorkerJobLocalization.GetName(_currentWorker.PendingJob)}"
-            : "Следующая работа: нет";
+            ? GameUiText.NextJob(WorkerJobLocalization.GetName(_currentWorker.PendingJob))
+            : GameUiText.NextJobNone;
 
         RefreshButtons();
     }
@@ -148,8 +156,8 @@ public sealed class WorkerCommandPanel : ValidatedMonoBehaviour
 
     private void ClearText()
     {
-        _currentJobText.text = "Текущая работа: нет";
-        _pendingJobText.text = "Следующая работа: нет";
+        _currentJobText.text = GameUiText.CurrentJobNone;
+        _pendingJobText.text = GameUiText.NextJobNone;
     }
 
     private void SubscribeButtons()
