@@ -8,6 +8,9 @@ using UnityEngine;
     menuName = "MyTinySword/Levels/Level Config")]
 public sealed class LevelConfig : BaseConfig
 {
+    [SerializeField] private string _displayNameEn = "Level 1";
+    [SerializeField, TextArea] private string _descriptionEn = "First level.";
+
     [Header("Identity")]
     [SerializeField] private string _levelId = "level_1";
     [SerializeField, Min(1)] private int _levelIndex = 1;
@@ -29,6 +32,13 @@ public sealed class LevelConfig : BaseConfig
     public string Description => _description;
     public bool IsTutorialLevel => _isTutorialLevel;
 
+    public string GetDisplayName(string lang)
+    {
+        if (lang == "en" && !string.IsNullOrWhiteSpace(_displayNameEn))
+            return _displayNameEn;
+        return _displayName;
+    }
+                                                   
     public override bool IsValid()
     {
         bool valid = true;

@@ -9,6 +9,10 @@ using UnityEngine;
     menuName = "MyTinySword/Tech Tree/Node Config")]
 public sealed class TechTreeNodeConfig : BaseConfig
 {
+    [Header("Localization EN")]
+    [SerializeField] private string _displayNameEn = "New node";
+    [SerializeField, TextArea] private string _descriptionEn = "Node description.";
+
     [Header("Identity")]
     [SerializeField] private string _nodeId = "node_id";
 
@@ -57,6 +61,21 @@ public sealed class TechTreeNodeConfig : BaseConfig
             return $"{_bonusPrefix}{(int)value}{_bonusSuffix}";
 
         return $"{_bonusPrefix}{value:0.#}{_bonusSuffix}";
+    }
+    public string GetDisplayName(string lang)
+    {
+        if (lang == "ru")
+            return _displayName;
+
+        return string.IsNullOrWhiteSpace(_displayNameEn) ? _displayName : _displayNameEn;
+    }
+
+    public string GetDescription(string lang)
+    {
+        if (lang == "ru")
+            return _description;
+
+        return string.IsNullOrWhiteSpace(_descriptionEn) ? _description : _descriptionEn;
     }
 
     public override bool IsValid()

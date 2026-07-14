@@ -7,14 +7,14 @@
         false,
         false
     ],
-    "idSave": 465,
+    "idSave": 474,
     "tutorialCompleted": false,
     "audioSettingsInitialized": true,
     "musicVolume": 0.800000011920929,
     "sfxVolume": 0.800000011920929,
     "musicMuted": false,
     "sfxMuted": false,
-    "levelProgressInitialized": false,
+    "levelProgressInitialized": true,
     "lastUnlockedLevelIndex": 1,
     "totalVictories": 0,
     "completedLevelIds": [],
@@ -28,7 +28,7 @@
             },
             {
                 "NodeId": "StartWood",
-                "Level": 0,
+                "Level": 3,
                 "UpgradeEndUnixTime": 0
             },
             {
@@ -127,6 +127,6 @@
                 "UpgradeEndUnixTime": 0
             }
         ],
-        "LastKnownUnixTime": 1782998085
+        "LastKnownUnixTime": 1784045685
     }
 }

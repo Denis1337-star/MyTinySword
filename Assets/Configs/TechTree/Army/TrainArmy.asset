@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7dcbf511463a6d64794a656d70587b69, type: 3}
   m_Name: TrainArmy
   m_EditorClassIdentifier: 
+  _displayNameEn: Faster Training
+  _descriptionEn: Reduces unit training time
   _nodeId: TrainArmy
   _displayName: "\u0411\u044B\u0441\u0442\u0440\u0435\u0435 \u0430\u0440\u043C\u0438\u044F"
   _description: "\u0423\u043C\u0435\u043D\u044C\u0448\u0430\u0435\u0442 \u0432\u0440\u0435\u043C\u044F

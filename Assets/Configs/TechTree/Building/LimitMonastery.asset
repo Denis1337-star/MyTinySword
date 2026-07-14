@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7dcbf511463a6d64794a656d70587b69, type: 3}
   m_Name: LimitMonastery
   m_EditorClassIdentifier: 
+  _displayNameEn: Monastery Limit
+  _descriptionEn: Increases the monastery limit
   _nodeId: LimitMonastery
   _displayName: "\u041B\u0438\u043C\u0438\u0442 \u043C\u043E\u043D\u0430\u0441\u0442\u044B\u0440\u0435\u0439"
   _description: "\u0423\u0432\u0435\u043B\u0438\u0447\u0438\u0432\u0430\u0435\u0442

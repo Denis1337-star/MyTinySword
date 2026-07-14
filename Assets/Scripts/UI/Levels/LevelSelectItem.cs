@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YG;
 
 /// <summary>
 /// Один элемент выбора уровня в меню.
@@ -66,8 +67,8 @@ public sealed class LevelSelectItem : ValidatedMonoBehaviour
         if (_levelConfig == null)
         {
             _button.interactable = false;
-            _titleText.text = "Уровень не задан";
-            _statusText.text = "Ошибка";
+            _titleText.text = _levelConfig.GetDisplayName(YG2.lang);
+            _statusText.text = GetStatusText(completed);
             SetOptionalView(_lockedView, true);
             SetOptionalView(_completedView, false);
             return;
@@ -75,7 +76,7 @@ public sealed class LevelSelectItem : ValidatedMonoBehaviour
 
         _button.interactable = _unlocked;
 
-        _titleText.text = _levelConfig.DisplayName;
+        _titleText.text = _levelConfig.GetDisplayName(YG2.lang);
         _statusText.text = GetStatusText(completed);
 
         SetOptionalView(_lockedView, !_unlocked);
@@ -84,13 +85,15 @@ public sealed class LevelSelectItem : ValidatedMonoBehaviour
 
     private string GetStatusText(bool completed)
     {
+        bool en = YG2.lang == "en";
+
         if (!_unlocked)
-            return "Закрыт";
+            return en ? "Locked" : "Закрыт";
 
         if (completed)
-            return "Пройден";
+            return en ? "Completed" : "Пройден";
 
-        return "Доступен";
+        return en ? "Available" : "Доступен";
     }
 
     private void OnButtonClicked()

@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YG;
 
 /// <summary>
 /// Панель подробной информации о выбранной ноде дерева развития.
@@ -146,8 +147,10 @@ public sealed class TechTreeInfoPanel : ValidatedMonoBehaviour
         if (_nodeIconImage != null)
             _nodeIconImage.sprite = config.Icon;
 
-        _titleText.text = config.DisplayName;
-        _descriptionText.text = config.Description;
+        string lang = YG2.lang;
+
+        _titleText.text = config.GetDisplayName(lang);
+        _descriptionText.text = config.GetDescription(lang);
     }
 
     private void RefreshAvailable(
@@ -164,8 +167,8 @@ public sealed class TechTreeInfoPanel : ValidatedMonoBehaviour
         _currentLevelText.text = $"{level}\\{config.MaxLevel}";
         _nextLevelText.text = $"{nextLevel}\\{config.MaxLevel}";
         _bonusPreviewText.text =
-            $"Текущий бонус: {config.GetBonusText(level)}\n" +
-            $"Следующий бонус: {config.GetBonusText(nextLevel)}";
+           $"{TechTreeUiText.CurrentBonus}: {config.GetBonusText(level)}\n" +
+           $"{TechTreeUiText.NextBonus}: {config.GetBonusText(nextLevel)}";
 
         int upgradeSeconds = config.GetUpgradeSeconds(level);
         _upgradeTimeText.text = TechTreeNodeView.FormatTime(
@@ -181,7 +184,7 @@ public sealed class TechTreeInfoPanel : ValidatedMonoBehaviour
     {
         SetStateBlocks(available: false, locked: true, maxLevel: false);
 
-        _requirementTitleText.text = "Надо прокачать";
+        _requirementTitleText.text = TechTreeUiText.RequirementsTitle;
         _requirementListText.text = requirementsText;
     }
 
@@ -223,17 +226,17 @@ public sealed class TechTreeInfoPanel : ValidatedMonoBehaviour
 
         if (state == TechTreeNodeState.Upgrading)
         {
-            _upgradeButtonText.text = "Улучшается";
+            _upgradeButtonText.text = TechTreeUiText.Upgrading;
             return;
         }
 
         if (anotherNodeUpgrading)
         {
-            _upgradeButtonText.text = "Уже идёт улучшение";
+            _upgradeButtonText.text = TechTreeUiText.AlreadyUpgrading;
             return;
         }
 
-        _upgradeButtonText.text = "Улучшить";
+        _upgradeButtonText.text = TechTreeUiText.Upgrade;
     }
 
     private void SetStateBlocks(bool available, bool locked, bool maxLevel)

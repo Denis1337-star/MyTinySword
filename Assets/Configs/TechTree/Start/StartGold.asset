@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7dcbf511463a6d64794a656d70587b69, type: 3}
   m_Name: StartGold
   m_EditorClassIdentifier: 
+  _displayNameEn: Starting Gold
+  _descriptionEn: Gives more gold at the start of the run
   _nodeId: StartGold
   _displayName: "\u0421\u0442\u0430\u0440\u0442\u043E\u0432\u043E\u0435 \u0437\u043E\u043B\u043E\u0442\u043E"
   _description: "\u0414\u0430\u0435\u0442 \u0431\u043E\u043B\u044C\u0448\u0435 \u0437\u043E\u043B\u043E\u0442\u0430

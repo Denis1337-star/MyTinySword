@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using YG;
 using Zenject;
 
 /// <summary>
@@ -49,11 +50,13 @@ public sealed class LevelSelectPanel : ValidatedMonoBehaviour
 
     private void OnEnable()
     {
+        YG2.onSwitchLang += OnLanguageSwitched;
         Rebuild();
     }
 
     private void OnDisable()
     {
+        YG2.onSwitchLang -= OnLanguageSwitched;
         ClearItems();
     }
 
@@ -137,5 +140,10 @@ public sealed class LevelSelectPanel : ValidatedMonoBehaviour
         }
 
         _levelLoaderService.TryLoadLevel(levelConfig);
+    }
+    private void OnLanguageSwitched(string lang)
+    {
+        if (isActiveAndEnabled)
+            Rebuild();
     }
 }

@@ -12,6 +12,8 @@ public sealed class TutorialStepData
 
     [TextArea]
     [SerializeField] private string _message;
+    [TextArea]
+    [SerializeField] private string _messageEn;
 
     [SerializeField] private bool _allowManualNext = true;
 
@@ -39,5 +41,11 @@ public sealed class TutorialStepData
     public bool IsRequiredBuilding(BuildingConfig buildingConfig)
     {
         return BuildingConfigUtility.Matches(_requiredBuildingConfig, buildingConfig);
+    }
+    public string GetMessage(string lang)
+    {
+        if (lang == "en" && !string.IsNullOrWhiteSpace(_messageEn))
+            return _messageEn;
+        return _message;
     }
 }

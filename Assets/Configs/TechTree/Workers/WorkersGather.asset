@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7dcbf511463a6d64794a656d70587b69, type: 3}
   m_Name: WorkersGather
   m_EditorClassIdentifier: 
+  _displayNameEn: Resource Gathering
+  _descriptionEn: Workers gather resources faster
   _nodeId: WorkersGather
   _displayName: "\u0421\u0431\u043E\u0440 \u0440\u0435\u0441\u0443\u0440\u0441\u043E\u0432"
   _description: "\u0420\u0430\u0431\u043E\u0447\u0438\u0435 \u0431\u044B\u0441\u0442\u0440\u0435\u0435

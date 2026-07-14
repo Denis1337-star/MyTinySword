@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using YG;
 using Zenject;
 
 /// <summary>
@@ -84,19 +85,20 @@ public sealed class TutorialController : ValidatedMonoBehaviour
 
     private void OnEnable()
     {
+        YG2.onSwitchLang += OnLanguageSwitched;
         _uiView.FullScreenNextButton.onClick.AddListener(GoToNextStep);
-
         SubscribeToGameplayEvents();
     }
 
     private void OnDisable()
     {
+        YG2.onSwitchLang -= OnLanguageSwitched;
         _uiView.FullScreenNextButton.onClick.RemoveListener(GoToNextStep);
-
         UnsubscribeFromGameplayEvents();
         _cameraFocus.StopTutorialCamera();
         ClearConstructionTutorialRestrictions();
     }
+
 
     private void Update()
     {
@@ -719,5 +721,10 @@ public sealed class TutorialController : ValidatedMonoBehaviour
     private bool HasSelectedPlayerArmyUnit()
     {
         return ArmyUnitSelectionUtility.HasAnyPlayerArmyUnit(_selectionSystem.SelectedUnits);
+    }
+    private void OnLanguageSwitched(string lang)
+    {
+        if (_isRunning)
+            RefreshCurrentStepPresentation();
     }
 }

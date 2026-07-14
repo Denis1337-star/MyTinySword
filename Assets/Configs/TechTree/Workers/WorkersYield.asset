@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7dcbf511463a6d64794a656d70587b69, type: 3}
   m_Name: WorkersYield
   m_EditorClassIdentifier: 
+  _displayNameEn: Worker Carry Capacity
+  _descriptionEn: Workers bring more resources per trip
   _nodeId: WorkersYield
   _displayName: "\u041D\u043E\u0441\u0438\u043C\u043E\u0441\u0442\u044C \u0440\u0430\u0431\u043E\u0447\u0438\u0445"
   _description: "\u0420\u0430\u0431\u043E\u0447\u0438\u0435 \u043F\u0440\u0438\u043D\u043E\u0441\u0442\u044F

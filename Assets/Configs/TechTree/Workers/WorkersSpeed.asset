@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7dcbf511463a6d64794a656d70587b69, type: 3}
   m_Name: WorkersSpeed
   m_EditorClassIdentifier: 
+  _displayNameEn: Worker Speed
+  _descriptionEn: Workers move faster across the map
   _nodeId: WorkersSpeed
   _displayName: "\u0421\u043A\u043E\u0440\u043E\u0441\u0442\u044C \u0440\u0430\u0431\u043E\u0447\u0438\u0445"
   _description: "\u0420\u0430\u0431\u043E\u0447\u0438\u0435 \u0431\u044B\u0441\u0442\u0440\u0435\u0435

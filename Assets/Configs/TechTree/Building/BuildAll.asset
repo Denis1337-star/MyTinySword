@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7dcbf511463a6d64794a656d70587b69, type: 3}
   m_Name: BuildAll
   m_EditorClassIdentifier: 
+  _displayNameEn: Faster Construction
+  _descriptionEn: Reduces construction time for all buildings
   _nodeId: BuildAll
   _displayName: "\u0411\u044B\u0441\u0442\u0440\u0435\u0435: \u043F\u043E\u0441\u0442\u0440\u043E\u0439\u043A\u0438"
   _description: "\u0423\u043C\u0435\u043D\u044C\u0448\u0430\u0435\u0442 \u0432\u0440\u0435\u043C\u044F

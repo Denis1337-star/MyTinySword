@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7dcbf511463a6d64794a656d70587b69, type: 3}
   m_Name: StartWorkers
   m_EditorClassIdentifier: 
+  _displayNameEn: Starting Workers
+  _descriptionEn: Adds workers at the start
   _nodeId: StartWorkers
   _displayName: "\u0421\u0442\u0430\u0440\u0442\u043E\u0432\u044B\u0435 \u0440\u0430\u0431\u043E\u0447\u0438\u0435"
   _description: "\u0414\u043E\u0431\u0430\u0432\u043B\u044F\u0435\u0442 \u0440\u0430\u0431\u043E\u0447\u0438\u0445

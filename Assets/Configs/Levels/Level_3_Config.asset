@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e601d2476a0215f4da073b37198058bf, type: 3}
   m_Name: Level_3_Config
   m_EditorClassIdentifier: 
+  _displayNameEn: Level 3
+  _descriptionEn: First level.
   _levelId: level_3
   _levelIndex: 3
   _sceneName: Level_3

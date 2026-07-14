@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7dcbf511463a6d64794a656d70587b69, type: 3}
   m_Name: BuildingHp
   m_EditorClassIdentifier: 
+  _displayNameEn: Building Durability
+  _descriptionEn: Increases health of all buildings
   _nodeId: BuildingHp
   _displayName: "\u041F\u0440\u043E\u0447\u043D\u043E\u0441\u0442\u044C \u043F\u043E\u0441\u0442\u0440\u043E\u0435\u043A"
   _description: "\u0423\u0432\u0435\u043B\u0438\u0447\u0438\u0432\u0430\u0435\u0442

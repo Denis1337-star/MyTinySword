@@ -1,6 +1,7 @@
 using System.Text;
 using UnityEngine;
 using Zenject;
+using YG;
 
 /// <summary>
 /// Главный контроллер UI дерева развития.
@@ -55,6 +56,7 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
     private void OnEnable()
     {
         Subscribe();
+        YG2.onSwitchLang += HandleLanguageChanged;
         RefreshAll();
         _infoPanel.HideImmediate();
     }
@@ -62,6 +64,7 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
     private void OnDisable()
     {
         Unsubscribe();
+        YG2.onSwitchLang -= HandleLanguageChanged;
     }
 
     private void Update()
@@ -247,7 +250,7 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
         TechTreeRequirement[] requirements = config.Requirements;
 
         if (requirements.Length == 0)
-            return "Требований нет";
+            return TechTreeUiText.NoRequirements;
 
         _stringBuilder.Clear();
 
@@ -259,7 +262,7 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
             bool completed = requiredSaveData.Level >= requirement.RequiredLevel;
 
             _stringBuilder.Append(completed ? "✓ " : "• ");
-            _stringBuilder.Append(requirement.RequiredNode.DisplayName);
+            _stringBuilder.Append(requirement.RequiredNode.GetDisplayName(YG2.lang));
             _stringBuilder.Append(": ");
             _stringBuilder.Append(requiredSaveData.Level);
             _stringBuilder.Append("/");
@@ -270,5 +273,9 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
         }
 
         return _stringBuilder.ToString();
+    }
+    private void HandleLanguageChanged(string lang)
+    {
+        RefreshAll();
     }
 }

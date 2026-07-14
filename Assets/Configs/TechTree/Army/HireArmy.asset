@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7dcbf511463a6d64794a656d70587b69, type: 3}
   m_Name: HireArmy
   m_EditorClassIdentifier: 
+  _displayNameEn: Army Hiring
+  _descriptionEn: Reduces unit hiring cost
   _nodeId: HireArmy
   _displayName: "\u041D\u0430\u0439\u043C \u0430\u0440\u043C\u0438\u0438"
   _description: "\u0423\u043C\u0435\u043D\u044C\u0448\u0430\u0435\u0442 \u0441\u0442\u043E\u0438\u043C\u043E\u0441\u0442\u044C

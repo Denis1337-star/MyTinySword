@@ -12483,6 +12483,7 @@ GameObject:
   - component: {fileID: 390612066}
   - component: {fileID: 390612068}
   - component: {fileID: 390612067}
+  - component: {fileID: 390612069}
   m_Layer: 5
   m_Name: SelectAllButtonText
   m_TagString: Untagged
@@ -12606,6 +12607,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 390612065}
   m_CullTransparentMesh: 1
+--- !u!114 &390612069
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 390612065}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4582d71e55f8de243b7faf161c424ef6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _ru: "\u0412\u044B\u0431\u0440\u0430\u0442\u044C \u0432\u0441\u0435\u0445"
+  _en: Select all
+  _text: {fileID: 390612067}
 --- !u!4 &390939779 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8085102166534463668, guid: 0c84705f65b3fd240a6929c234e878c3, type: 3}
@@ -24510,7 +24526,7 @@ Tilemap:
       - {fileID: 8313790842667632763, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: 1024707267088520393, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: -5952541215844301678, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
-      m_AnimationSpeed: 5.0000005
+      m_AnimationSpeed: 5
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: -53, y: -28, z: 0}
@@ -24579,7 +24595,7 @@ Tilemap:
       - {fileID: 8313790842667632763, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: 1024707267088520393, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: -5952541215844301678, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
-      m_AnimationSpeed: 5.0000005
+      m_AnimationSpeed: 5
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: -43, y: -28, z: 0}
@@ -24671,7 +24687,7 @@ Tilemap:
       - {fileID: 8313790842667632763, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: 1024707267088520393, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: -5952541215844301678, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
-      m_AnimationSpeed: 5
+      m_AnimationSpeed: 5.0000005
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: -30, y: -28, z: 0}
@@ -24763,7 +24779,7 @@ Tilemap:
       - {fileID: 8313790842667632763, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: 1024707267088520393, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: -5952541215844301678, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
-      m_AnimationSpeed: 5
+      m_AnimationSpeed: 5.0000005
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: -12, y: -28, z: 0}
@@ -25499,7 +25515,7 @@ Tilemap:
       - {fileID: 8313790842667632763, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: 1024707267088520393, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: -5952541215844301678, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
-      m_AnimationSpeed: 5.0000005
+      m_AnimationSpeed: 5
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: -54, y: -24, z: 0}
@@ -25913,7 +25929,7 @@ Tilemap:
       - {fileID: 8313790842667632763, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: 1024707267088520393, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: -5952541215844301678, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
-      m_AnimationSpeed: 5.0000005
+      m_AnimationSpeed: 5
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: -20, y: -20, z: 0}
@@ -26902,7 +26918,7 @@ Tilemap:
       - {fileID: 8313790842667632763, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: 1024707267088520393, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: -5952541215844301678, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
-      m_AnimationSpeed: 5.0000005
+      m_AnimationSpeed: 5
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: -18, y: -12, z: 0}
@@ -26925,7 +26941,7 @@ Tilemap:
       - {fileID: 8313790842667632763, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: 1024707267088520393, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: -5952541215844301678, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
-      m_AnimationSpeed: 5
+      m_AnimationSpeed: 5.0000005
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: -17, y: -12, z: 0}
@@ -27201,7 +27217,7 @@ Tilemap:
       - {fileID: 8313790842667632763, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: 1024707267088520393, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: -5952541215844301678, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
-      m_AnimationSpeed: 5
+      m_AnimationSpeed: 5.0000005
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: 14, y: -10, z: 0}
@@ -28098,7 +28114,7 @@ Tilemap:
       - {fileID: 8313790842667632763, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: 1024707267088520393, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: -5952541215844301678, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
-      m_AnimationSpeed: 5
+      m_AnimationSpeed: 5.0000005
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: -15, y: -4, z: 0}
@@ -28190,7 +28206,7 @@ Tilemap:
       - {fileID: 8313790842667632763, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: 1024707267088520393, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: -5952541215844301678, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
-      m_AnimationSpeed: 5.0000005
+      m_AnimationSpeed: 5
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: 2, y: -4, z: 0}
@@ -28880,7 +28896,7 @@ Tilemap:
       - {fileID: 8313790842667632763, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: 1024707267088520393, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: -5952541215844301678, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
-      m_AnimationSpeed: 5
+      m_AnimationSpeed: 5.0000005
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: -51, y: 1, z: 0}
@@ -29248,7 +29264,7 @@ Tilemap:
       - {fileID: 8313790842667632763, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: 1024707267088520393, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: -5952541215844301678, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
-      m_AnimationSpeed: 5.0000005
+      m_AnimationSpeed: 5
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: -53, y: 7, z: 0}
@@ -29455,7 +29471,7 @@ Tilemap:
       - {fileID: 8313790842667632763, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: 1024707267088520393, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: -5952541215844301678, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
-      m_AnimationSpeed: 5
+      m_AnimationSpeed: 5.0000005
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: -52, y: 10, z: 0}
@@ -29501,7 +29517,7 @@ Tilemap:
       - {fileID: 8313790842667632763, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: 1024707267088520393, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
       - {fileID: -5952541215844301678, guid: 473188d9507f64599a776617a45dcf3f, type: 3}
-      m_AnimationSpeed: 5
+      m_AnimationSpeed: 5.0000005
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: 11, y: 10, z: 0}
@@ -101327,6 +101343,7 @@ MonoBehaviour:
     _message: "\u0414\u043E\u0431\u0440\u043E \u043F\u043E\u0436\u0430\u043B\u043E\u0432\u0430\u0442\u044C!
       \u0421\u0435\u0439\u0447\u0430\u0441 \u0431\u044B\u0441\u0442\u0440\u043E \u043F\u043E\u043A\u0430\u0436\u0443
       \u043E\u0441\u043D\u043E\u0432\u044B \u0438\u0433\u0440\u044B."
+    _messageEn: Welcome! I'll quickly show you the basics of the game.
     _allowManualNext: 1
     _requiredBuildingConfig: {fileID: 0}
     _minimumWood: 0
@@ -101336,6 +101353,7 @@ MonoBehaviour:
     _message: "\u041D\u0430\u0436\u043C\u0438 \u043D\u0430 \u0434\u043E\u043C, \u0447\u0442\u043E\u0431\u044B
       \u043E\u0442\u043A\u0440\u044B\u0442\u044C \u0443\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u0435
       \u0440\u0430\u0431\u043E\u0447\u0438\u043C\u0438."
+    _messageEn: Click on the house to open worker management.
     _allowManualNext: 0
     _requiredBuildingConfig: {fileID: 0}
     _minimumWood: 0
@@ -101347,6 +101365,7 @@ MonoBehaviour:
       \u0447\u0442\u043E\u0431\u044B \u043E\u0442\u043F\u0440\u0430\u0432\u0438\u0442\u044C
       \u0440\u0430\u0431\u043E\u0447\u0438\u0445 \u0434\u043E\u0431\u044B\u0432\u0430\u0442\u044C
       \u0434\u0435\u0440\u0435\u0432\u043E."
+    _messageEn: Click the "All to Wood" button to send workers to chop wood.
     _allowManualNext: 0
     _requiredBuildingConfig: {fileID: 0}
     _minimumWood: 0
@@ -101357,6 +101376,8 @@ MonoBehaviour:
       \u0443\u0436\u0435 \u0440\u0443\u0431\u044F\u0442 \u043B\u0435\u0441. \u041F\u043E\u043A\u0430
       \u043E\u043D\u0438 \u0441\u043E\u0431\u0438\u0440\u0430\u044E\u0442 \u0440\u0435\u0441\u0443\u0440\u0441\u044B,
       \u043F\u043E\u0434\u0433\u043E\u0442\u043E\u0432\u0438\u043C \u0430\u0440\u043C\u0438\u044E."
+    _messageEn: Great! Workers are already chopping wood. While they gather resources,
+      let's prepare an army.
     _allowManualNext: 1
     _requiredBuildingConfig: {fileID: 0}
     _minimumWood: 0
@@ -101366,6 +101387,7 @@ MonoBehaviour:
     _message: "\u0412\u044B\u0431\u0435\u0440\u0438 \u043D\u0430 \u043A\u0430\u0440\u0442\u0435
       \u043F\u0443\u0441\u0442\u043E\u0439 \u0443\u0447\u0430\u0441\u0442\u043E\u043A
       \u0434\u043B\u044F \u0441\u0442\u0440\u043E\u0438\u0442\u0435\u043B\u044C\u0441\u0442\u0432\u0430."
+    _messageEn: Select an empty building slot on the map.
     _allowManualNext: 0
     _requiredBuildingConfig: {fileID: 11400000, guid: 64b304de36f2ede47b453e895a7266e3, type: 2}
     _minimumWood: 20
@@ -101375,6 +101397,7 @@ MonoBehaviour:
     _message: "\u0412\u044B\u0431\u0435\u0440\u0438 \u043A\u0430\u0437\u0430\u0440\u043C\u0443
       \u0432 \u0441\u043F\u0438\u0441\u043A\u0435 \u0437\u0434\u0430\u043D\u0438\u0439
       \u0438 \u043D\u0430\u0436\u043C\u0438 \xAB\u041F\u043E\u0441\u0442\u0440\u043E\u0438\u0442\u044C\xBB."
+    _messageEn: Select the Barracks from the building list and click "Build".
     _allowManualNext: 0
     _requiredBuildingConfig: {fileID: 11400000, guid: 64b304de36f2ede47b453e895a7266e3, type: 2}
     _minimumWood: 20
@@ -101383,6 +101406,7 @@ MonoBehaviour:
   - _stepType: 9
     _message: "\u041F\u043E\u0434\u043E\u0436\u0434\u0438, \u043F\u043E\u043A\u0430
       \u043A\u0430\u0437\u0430\u0440\u043C\u0430 \u0434\u043E\u0441\u0442\u0440\u043E\u0438\u0442\u0441\u044F."
+    _messageEn: Wait until the Barracks is finished building.
     _allowManualNext: 0
     _requiredBuildingConfig: {fileID: 11400000, guid: 64b304de36f2ede47b453e895a7266e3, type: 2}
     _minimumWood: 0
@@ -101391,6 +101415,7 @@ MonoBehaviour:
   - _stepType: 10
     _message: "\u041D\u0430\u0436\u043C\u0438 \u043D\u0430 \u0433\u043E\u0442\u043E\u0432\u0443\u044E
       \u043A\u0430\u0437\u0430\u0440\u043C\u0443."
+    _messageEn: Click on the completed Barracks.
     _allowManualNext: 0
     _requiredBuildingConfig: {fileID: 11400000, guid: 64b304de36f2ede47b453e895a7266e3, type: 2}
     _minimumWood: 0
@@ -101399,6 +101424,7 @@ MonoBehaviour:
   - _stepType: 4
     _message: "\u041D\u0430\u0439\u043C\u0438 \u043F\u0435\u0440\u0432\u043E\u0433\u043E
       \u0432\u043E\u0438\u043D\u0430 \u2014 \u043D\u0430\u0436\u043C\u0438 \xAB\u041D\u0430\u043D\u044F\u0442\u044C\xBB."
+    _messageEn: "Hire your first warrior \u2014 click \"Hire\"."
     _allowManualNext: 0
     _requiredBuildingConfig: {fileID: 0}
     _minimumWood: 10
@@ -101408,6 +101434,7 @@ MonoBehaviour:
     _message: "\u041F\u043E\u0434\u043E\u0436\u0434\u0438, \u043F\u043E\u043A\u0430
       \u0432\u043E\u0438\u043D \u0432\u044B\u0439\u0434\u0435\u0442 \u0438\u0437
       \u043A\u0430\u0437\u0430\u0440\u043C\u044B."
+    _messageEn: Wait until the warrior exits the Barracks.
     _allowManualNext: 0
     _requiredBuildingConfig: {fileID: 0}
     _minimumWood: 0
@@ -101416,6 +101443,7 @@ MonoBehaviour:
   - _stepType: 5
     _message: "\u0412\u044B\u0431\u0435\u0440\u0438 \u0441\u0432\u043E\u0435\u0433\u043E
       \u0431\u043E\u0435\u0432\u043E\u0433\u043E \u044E\u043D\u0438\u0442\u0430."
+    _messageEn: Select your combat unit.
     _allowManualNext: 0
     _requiredBuildingConfig: {fileID: 0}
     _minimumWood: 0
@@ -101425,6 +101453,7 @@ MonoBehaviour:
     _message: "\u0412\u043E\u0442 \u0432\u0440\u0430\u0433! \u041D\u0430\u0436\u043C\u0438
       \u043F\u043E \u043D\u0435\u043C\u0443, \u0447\u0442\u043E\u0431\u044B \u043E\u0442\u0434\u0430\u0442\u044C
       \u0430\u0440\u043C\u0438\u0438 \u043A\u043E\u043C\u0430\u043D\u0434\u0443 \u0430\u0442\u0430\u043A\u0438."
+    _messageEn: There's the enemy! Click on them to order your army to attack.
     _allowManualNext: 0
     _requiredBuildingConfig: {fileID: 0}
     _minimumWood: 0
@@ -101434,6 +101463,7 @@ MonoBehaviour:
     _message: "\u0414\u043E\u0436\u0434\u0438\u0441\u044C, \u043F\u043E\u043A\u0430
       \u0442\u0432\u043E\u0439 \u0432\u043E\u0438\u043D \u0434\u043E\u0439\u0434\u0451\u0442
       \u0434\u043E \u0431\u043E\u044F."
+    _messageEn: Wait until your warrior reaches the battle.
     _allowManualNext: 0
     _requiredBuildingConfig: {fileID: 0}
     _minimumWood: 0
@@ -101449,6 +101479,9 @@ MonoBehaviour:
       \u0441\u043E\u0431\u0438\u0440\u0430\u0439 \u0430\u0440\u043C\u0438\u044E \u2014
       \u043F\u043E\u0431\u0435\u0434\u0430 \u0431\u0443\u0434\u0435\u0442 \u0437\u0430
       \u0442\u043E\u0431\u043E\u0439!"
+    _messageEn: "Great! Now destroy the enemy castle to complete the tutorial. Hire
+      workers, build new structures, and gather your army \u2014 victory will be
+      yours!"
     _allowManualNext: 1
     _requiredBuildingConfig: {fileID: 0}
     _minimumWood: 0
@@ -101998,6 +102031,7 @@ GameObject:
   - component: {fileID: 1578810793}
   - component: {fileID: 1578810795}
   - component: {fileID: 1578810794}
+  - component: {fileID: 1578810796}
   m_Layer: 5
   m_Name: NextButtonText
   m_TagString: Untagged
@@ -102121,6 +102155,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1578810792}
   m_CullTransparentMesh: 1
+--- !u!114 &1578810796
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1578810792}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4582d71e55f8de243b7faf161c424ef6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _ru: "\u0414\u0430\u043B\u0435\u0435"
+  _en: Next
+  _text: {fileID: 1578810794}
 --- !u!1 &1584116358
 GameObject:
   m_ObjectHideFlags: 0
