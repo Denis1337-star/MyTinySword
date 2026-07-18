@@ -182,6 +182,9 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
 
     private void CompleteReadyUpgrades()
     {
+        if (_saveService == null || _catalog == null)
+            return;
+
         _saveService.CompleteReadyUpgrades(_catalog.Nodes);
     }
 
@@ -250,7 +253,7 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
         TechTreeRequirement[] requirements = config.Requirements;
 
         if (requirements.Length == 0)
-            return TechTreeUiText.NoRequirements;
+            return GameUiText.NoRequirements;
 
         _stringBuilder.Clear();
 
@@ -262,7 +265,7 @@ public sealed class TechTreePanel : ValidatedMonoBehaviour
             bool completed = requiredSaveData.Level >= requirement.RequiredLevel;
 
             _stringBuilder.Append(completed ? "✓ " : "• ");
-            _stringBuilder.Append(requirement.RequiredNode.GetDisplayName(YG2.lang));
+            _stringBuilder.Append(requirement.RequiredNode.GetDisplayName(Lang.Current));
             _stringBuilder.Append(": ");
             _stringBuilder.Append(requiredSaveData.Level);
             _stringBuilder.Append("/");

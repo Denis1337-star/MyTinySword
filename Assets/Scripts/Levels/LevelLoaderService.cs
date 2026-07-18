@@ -48,7 +48,7 @@ public sealed class LevelLoaderService
         // После загрузки Level_1 другие системы смогут узнать, какой LevelConfig активен.
         _levelRuntimeService.SetCurrentLevel(levelConfig);
 
-        Time.timeScale = 1f;
+        // Time.timeScale держит GamePauseService (+ x2 буст). Не сбрасываем вручную.
         SceneManager.LoadScene(levelConfig.SceneName);
 
         return true;

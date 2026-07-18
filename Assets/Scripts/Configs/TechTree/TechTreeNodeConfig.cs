@@ -62,21 +62,8 @@ public sealed class TechTreeNodeConfig : BaseConfig
 
         return $"{_bonusPrefix}{value:0.#}{_bonusSuffix}";
     }
-    public string GetDisplayName(string lang)
-    {
-        if (lang == "ru")
-            return _displayName;
-
-        return string.IsNullOrWhiteSpace(_displayNameEn) ? _displayName : _displayNameEn;
-    }
-
-    public string GetDescription(string lang)
-    {
-        if (lang == "ru")
-            return _description;
-
-        return string.IsNullOrWhiteSpace(_descriptionEn) ? _description : _descriptionEn;
-    }
+    public string GetDisplayName(string lang = null) => Lang.Pick(_displayName, _displayNameEn);
+    public string GetDescription(string lang = null) => Lang.Pick(_description, _descriptionEn);
 
     public override bool IsValid()
     {

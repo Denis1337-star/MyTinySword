@@ -11,6 +11,9 @@ public sealed class MainMenuSceneInstaller : MonoInstaller
     public override void InstallBindings()
     {
         if (_uiSoundRouter == null)
+            _uiSoundRouter = FindFirstObjectByType<UiSoundRouter>();
+
+        if (_uiSoundRouter == null)
         {
             Debug.LogError($"{name}: UiSoundRouter не назначен.", this);
             return;

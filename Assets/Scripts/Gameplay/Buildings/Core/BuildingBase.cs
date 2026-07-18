@@ -32,7 +32,7 @@ public abstract class BuildingBase : ValidatedMonoBehaviour
     public Health Health => health;
     public UnitSelectable Selectable => selectable;
 
-    public string DisplayName => config.DisplayName;
+    public string DisplayName => config.GetDisplayName();
     public FactionType Faction => faction;
 
     /// <summary>

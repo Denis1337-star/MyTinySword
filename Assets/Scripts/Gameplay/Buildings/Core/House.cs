@@ -157,10 +157,10 @@ public sealed class House : BuildingBase
     public string GetHireBlockReason()
     {
         if (CurrentWorkers >= MaxWorkers)
-            return "Достигнут лимит рабочих";
+            return GameUiText.BlockWorkerLimit;
 
         if (!_resourceStorage.HasResources(CurrentWoodCost, CurrentGoldCost, 0))
-            return "Не хватает ресурсов";
+            return GameUiText.BlockNotEnoughResources;
 
         return string.Empty;
     }

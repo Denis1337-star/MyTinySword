@@ -28,6 +28,7 @@ public sealed class UiSoundRouter : ValidatedMonoBehaviour
     protected override void Awake()
     {
         base.Awake();
+        EnsureAudioService();
         WireAllButtons();
     }
 
@@ -82,9 +83,29 @@ public sealed class UiSoundRouter : ValidatedMonoBehaviour
 
     private void PlayFor(Button button)
     {
+        if (button == null)
+            return;
+
         if (_playOnlyWhenInteractable && !button.interactable)
             return;
 
+        if (_audioService == null)
+            EnsureAudioService();
+
+        if (_audioService == null)
+            return;
+
         _audioService.PlayUiSound(_soundId);
+    }
+
+    private void EnsureAudioService()
+    {
+        if (_audioService != null)
+            return;
+
+        if (!ProjectContext.HasInstance)
+            return;
+
+        _audioService = ProjectContext.Instance.Container.TryResolve<GameAudioService>();
     }
 }

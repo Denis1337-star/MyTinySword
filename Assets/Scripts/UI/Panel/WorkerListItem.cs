@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YG;
 
 /// <summary>
 /// UI элемент одного рабочего в списке рабочих дома
@@ -30,15 +31,23 @@ public sealed class WorkerListItem : ValidatedMonoBehaviour
     private void OnEnable()
     {
         _selectButton.onClick.AddListener(HandleSelectClicked);
+        YG2.onSwitchLang += HandleSwitchLang;
 
         SubscribeToWorker();
+        Refresh();
     }
 
     private void OnDisable()
     {
         _selectButton.onClick.RemoveListener(HandleSelectClicked);
+        YG2.onSwitchLang -= HandleSwitchLang;
 
         UnsubscribeFromWorker();
+    }
+
+    private void HandleSwitchLang(string lang)
+    {
+        Refresh();
     }
 
     public void Bind(Worker worker, Action<Worker> onSelected)
@@ -61,14 +70,13 @@ public sealed class WorkerListItem : ValidatedMonoBehaviour
         }
 
         string currentJob = WorkerJobLocalization.GetName(_worker.CurrentJob);
-
-        string jobLine = _worker.HasPendingJob
-            ? $"Работа: {currentJob} → {WorkerJobLocalization.GetName(_worker.PendingJob)}"
-            : $"Работа: {currentJob}";
+        string pendingJob = _worker.HasPendingJob
+            ? WorkerJobLocalization.GetName(_worker.PendingJob)
+            : null;
 
         _infoText.text =
             $"{_worker.name}\n" +
-            $"{jobLine}";
+            $"{GameUiText.WorkerJobLine(currentJob, pendingJob)}";
     }
 
     private void HandleSelectClicked()

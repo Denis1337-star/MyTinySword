@@ -42,10 +42,5 @@ public sealed class TutorialStepData
     {
         return BuildingConfigUtility.Matches(_requiredBuildingConfig, buildingConfig);
     }
-    public string GetMessage(string lang)
-    {
-        if (lang == "en" && !string.IsNullOrWhiteSpace(_messageEn))
-            return _messageEn;
-        return _message;
-    }
+    public string GetMessage(string lang = null) => Lang.Pick(_message, _messageEn);
 }

@@ -5,11 +5,6 @@ using UnityEngine;
 /// </summary>
 public sealed class BuildingDemolishService
 {
-    private const string CannotDemolishMessage = "Это здание нельзя снести.";
-    private const string TutorialBlockedMessage = "Сейчас обучение не разрешает снести здание.";
-    private const string DefaultDemolishMessage =
-        "Вы уверены, что хотите снести здание?\nРесурсы не будут возвращены.";
-
     private readonly SelectionSystem _selectionSystem;
     private readonly ResourceStorage _resourceStorage;
     private readonly TechTreeBonusService _techTreeBonusService;
@@ -35,18 +30,18 @@ public sealed class BuildingDemolishService
 
         if (!building.CanBeDemolishedByButton)
         {
-            ShowBlocked(CannotDemolishMessage);
+            ShowBlocked(() => GameUiText.CannotDemolishBuilding);
             return;
         }
 
         if (!TutorialInputGuard.AllowsDemolishBuilding())
         {
-            ShowBlocked(TutorialBlockedMessage);
+            ShowBlocked(() => GameUiText.TutorialDemolishBlocked);
             return;
         }
 
         _confirmPanel.ShowAllowed(
-            BuildDemolishMessage(building),
+            BuildDemolishMessage,
             ConfirmDemolish,
             CancelDemolish);
     }
@@ -77,19 +72,19 @@ public sealed class BuildingDemolishService
         _selectionSystem.ClearSelection();
         _confirmPanel.Hide();
     }
-    private string BuildDemolishMessage(BuildingBase building)
+
+    private string BuildDemolishMessage()
     {
-        int woodRefund = GetRefundAmount(building.Config.WoodCost);
-        int goldRefund = GetRefundAmount(building.Config.GoldCost);
+        if (_pendingBuilding == null)
+            return GameUiText.DemolishConfirmNoRefund;
+
+        int woodRefund = GetRefundAmount(_pendingBuilding.Config.WoodCost);
+        int goldRefund = GetRefundAmount(_pendingBuilding.Config.GoldCost);
 
         if (woodRefund <= 0 && goldRefund <= 0)
-            return DefaultDemolishMessage;
+            return GameUiText.DemolishConfirmNoRefund;
 
-        return
-            "Вы уверены, что хотите снести здание?\n" +
-            "При сносе будет возвращено:\n" +
-            $"Дерево: {woodRefund}\n" +
-            $"Золото: {goldRefund}";
+        return GameUiText.DemolishConfirmWithRefund(woodRefund, goldRefund);
     }
 
     private int GetRefundAmount(int cost)
@@ -117,9 +112,9 @@ public sealed class BuildingDemolishService
         _confirmPanel.Hide();
     }
 
-    private void ShowBlocked(string message)
+    private void ShowBlocked(System.Func<string> messageProvider)
     {
         _pendingBuilding = null;
-        _confirmPanel.ShowBlocked(message, CancelDemolish);
+        _confirmPanel.ShowBlocked(messageProvider, CancelDemolish);
     }
 }

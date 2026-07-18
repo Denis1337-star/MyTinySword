@@ -28,7 +28,7 @@ public sealed class LevelSelectPanel : ValidatedMonoBehaviour
     private void Construct(
         LevelProgressService levelProgressService,
         LevelLoaderService levelLoaderService,
-        UiSoundRouter uiSoundRouter)
+        [InjectOptional] UiSoundRouter uiSoundRouter)
     {
         _levelProgressService = levelProgressService;
         _levelLoaderService = levelLoaderService;
@@ -103,7 +103,9 @@ public sealed class LevelSelectPanel : ValidatedMonoBehaviour
             completed,
             OnLevelClicked);
 
-        _uiSoundRouter.WireButton(item.Button);
+        if (_uiSoundRouter != null)
+            _uiSoundRouter.WireButton(item.Button);
+
         _spawnedItems.Add(item);
     }
 
@@ -120,7 +122,9 @@ public sealed class LevelSelectPanel : ValidatedMonoBehaviour
 
             if (item != null)
             {
-                _uiSoundRouter.UnwireButton(item.Button);
+                if (_uiSoundRouter != null)
+                    _uiSoundRouter.UnwireButton(item.Button);
+
                 Destroy(item.gameObject);
             }
         }

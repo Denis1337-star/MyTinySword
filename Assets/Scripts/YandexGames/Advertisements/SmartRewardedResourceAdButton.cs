@@ -4,19 +4,19 @@ using UnityEngine.UI;
 using Zenject;
 
 /// <summary>
-/// Умная rewarded-кнопка ресурса.
-/// Показывается только если хотя бы один ресурс ниже порога.
-/// Автоматически выбирает самый низкий ресурс и предлагает награду за рекламу.
-/// 
-/// Важно:
-/// объект со скриптом не должен выключаться.
-/// Выключается только _viewRoot.
+/// РЈРјРЅР°СЏ rewarded-РєРЅРѕРїРєР° СЂРµСЃСѓСЂСЃР°.
+/// РџРѕРєР°Р·С‹РІР°РµС‚СЃСЏ С‚РѕР»СЊРєРѕ РєРѕРіРґР° С…РѕС‚СЏ Р±С‹ РѕРґРёРЅ СЂРµСЃСѓСЂСЃ РЅРёР¶Рµ РїРѕСЂРѕРіР°.
+/// Р’С‹Р±РёСЂР°РµС‚ СЃР°РјС‹Р№ РґРµС„РёС†РёС‚РЅС‹Р№ СЂРµСЃСѓСЂСЃ Рё РІС‹РґР°С‘С‚ РЅР°РіСЂР°РґСѓ РїРѕСЃР»Рµ РїСЂРѕСЃРјРѕС‚СЂР°.
+///
+/// Р’Р°Р¶РЅРѕ:
+/// РљРЅРѕРїРєР° РЅРµ РѕС‚РєР»СЋС‡Р°РµС‚СЃСЏ РІРѕ РІСЂРµРјСЏ СЂРµРєР»Р°РјС‹.
+/// РЎРєСЂС‹РІР°РµС‚СЃСЏ С‡РµСЂРµР· _viewRoot.
 /// </summary>
 public sealed class SmartRewardedResourceAdButton : ValidatedMonoBehaviour
 {
     [Header("Rules")]
     [SerializeField, Min(0)] private int _lowResourceThreshold = 30;
-    [SerializeField, Min(1)] private int _rewardAmount = 40;
+    [SerializeField, Min(1)] private int _rewardAmount = RewardedAdIds.DefaultRewardAmount;
 
     [Header("Root")]
     [SerializeField] private GameObject _viewRoot;
@@ -113,7 +113,7 @@ public sealed class SmartRewardedResourceAdButton : ValidatedMonoBehaviour
         RefreshView();
 
         _advertisementService.ShowRewardedAd(
-            rewardId: GetRewardId(_currentRewardType),
+            rewardId: RewardedAdIds.ForResource(_currentRewardType, _rewardAmount),
             onRewarded: GiveReward,
             onClosed: OnAdClosed,
             onError: OnAdError);
@@ -125,29 +125,19 @@ public sealed class SmartRewardedResourceAdButton : ValidatedMonoBehaviour
             return;
 
         _resourceStorage.AddResource(_currentRewardType, _rewardAmount);
-
-        Debug.Log(
-            $"[SmartRewardedResourceAdButton] Игрок получил +{_rewardAmount} {GetResourceName(_currentRewardType)} за рекламу.",
-            this);
     }
 
     private void OnAdClosed()
     {
         _adInProgress = false;
         _currentRewardType = ResourceType.None;
-
         RefreshView();
     }
 
     private void OnAdError(string message)
     {
-        Debug.LogWarning(
-            $"[SmartRewardedResourceAdButton] Реклама не показалась: {message}",
-            this);
-
         _adInProgress = false;
         _currentRewardType = ResourceType.None;
-
         RefreshView();
     }
 
@@ -167,7 +157,6 @@ public sealed class SmartRewardedResourceAdButton : ValidatedMonoBehaviour
         bool hasReward = TryFindLowestLowResource(out ResourceType rewardType);
 
         _currentRewardType = rewardType;
-
         _viewRoot.SetActive(hasReward);
 
         if (!hasReward)
@@ -212,22 +201,9 @@ public sealed class SmartRewardedResourceAdButton : ValidatedMonoBehaviour
         }
 
         if (goldLow && gold < bestAmount)
-        {
             resourceType = ResourceType.Gold;
-        }
 
         return resourceType != ResourceType.None;
-    }
-
-    private string GetRewardId(ResourceType resourceType)
-    {
-        return resourceType switch
-        {
-            ResourceType.Wood => $"wood_{_rewardAmount}",
-            ResourceType.Meat => $"meat_{_rewardAmount}",
-            ResourceType.Gold => $"gold_{_rewardAmount}",
-            _ => $"resource_{_rewardAmount}"
-        };
     }
 
     private Sprite GetResourceIcon(ResourceType resourceType)
@@ -238,17 +214,6 @@ public sealed class SmartRewardedResourceAdButton : ValidatedMonoBehaviour
             ResourceType.Meat => _meatIcon,
             ResourceType.Gold => _goldIcon,
             _ => null
-        };
-    }
-
-    private static string GetResourceName(ResourceType resourceType)
-    {
-        return resourceType switch
-        {
-            ResourceType.Wood => "дерева",
-            ResourceType.Meat => "еды",
-            ResourceType.Gold => "золота",
-            _ => "ресурса"
         };
     }
 }

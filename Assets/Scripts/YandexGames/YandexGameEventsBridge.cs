@@ -6,8 +6,8 @@ using YG;
 using Zenject;
 
 /// <summary>
-/// ���������� ������� �������� ���� � PluginYG2 / Yandex Games
-/// � ��������� ������ ������ ���������� � ������� ������.
+/// Мост событий жизненного цикла с PluginYG2 / Yandex Games
+/// и общая пауза приложения на потерянном фокусе.
 /// </summary>
 public sealed class YandexGameEventsBridge : MonoBehaviour
 {
@@ -16,11 +16,15 @@ public sealed class YandexGameEventsBridge : MonoBehaviour
     [SerializeField]
     private List<string> _gameplaySceneNames = new()
     {
-        "Level_1"
+        "Level_1",
+        "Level_2",
+        "Level_3",
+        "Level_4",
+        "Level_5"
     };
 
     [Header("Debug")]
-    [SerializeField] private bool _logEvents = true;
+    [SerializeField] private bool _logEvents;
 
     private static YandexGameEventsBridge _instance;
     private static bool _gameReadySent;
@@ -56,6 +60,7 @@ public sealed class YandexGameEventsBridge : MonoBehaviour
 
     private void Start()
     {
+        EnsurePauseService();
         _sceneLoadedRoutine = StartCoroutine(HandleSceneLoadedNextFrame(SceneManager.GetActiveScene()));
     }
 
@@ -96,6 +101,17 @@ public sealed class YandexGameEventsBridge : MonoBehaviour
         }
 
         ResumeAfterApplicationPause();
+    }
+
+    private void EnsurePauseService()
+    {
+        if (_pauseService != null)
+            return;
+
+        if (!ProjectContext.HasInstance)
+            return;
+
+        _pauseService = ProjectContext.Instance.Container.TryResolve<GamePauseService>();
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
@@ -173,6 +189,21 @@ public sealed class YandexGameEventsBridge : MonoBehaviour
         LogEvent("GameplayStop");
     }
 
+    /// <summary>
+/// Мост событий жизненного цикла с PluginYG2 / Yandex Games
+/// и общая пауза приложения на потерянном фокусе.
+/// </summary>
+    public static void NotifyGameplayResultOpened()
+    {
+        if (_instance == null)
+        {
+            YG2.GameplayStop();
+            return;
+        }
+
+        _instance.StopGameplay();
+    }
+
     private void PauseByApplication()
     {
         if (_pausedByApplication)
@@ -181,7 +212,11 @@ public sealed class YandexGameEventsBridge : MonoBehaviour
         _pausedByApplication = true;
 
         StopGameplay();
-        _pauseService.Pause(GamePauseReason.ApplicationFocus);
+
+        EnsurePauseService();
+
+        if (_pauseService != null)
+            _pauseService.Pause(GamePauseReason.ApplicationFocus);
 
         LogEvent("Application Pause");
     }
@@ -193,7 +228,10 @@ public sealed class YandexGameEventsBridge : MonoBehaviour
 
         _pausedByApplication = false;
 
-        _pauseService.Resume(GamePauseReason.ApplicationFocus);
+        EnsurePauseService();
+
+        if (_pauseService != null)
+            _pauseService.Resume(GamePauseReason.ApplicationFocus);
 
         string currentSceneName = SceneManager.GetActiveScene().name;
 

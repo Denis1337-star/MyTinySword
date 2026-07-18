@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YG;
 using Zenject;
 
 /// <summary>
@@ -59,6 +60,9 @@ public sealed class HousePanel : ValidatedMonoBehaviour
         _assignAllWoodButton.onClick.AddListener(AssignAllToWood);
         _assignAllGoldButton.onClick.AddListener(AssignAllToGold);
         _assignAllMeatButton.onClick.AddListener(AssignAllToMeat);
+
+        YG2.onSwitchLang += HandleSwitchLang;
+        Refresh();
     }
 
     private void OnDisable()
@@ -70,7 +74,13 @@ public sealed class HousePanel : ValidatedMonoBehaviour
         _assignAllGoldButton.onClick.RemoveListener(AssignAllToGold);
         _assignAllMeatButton.onClick.RemoveListener(AssignAllToMeat);
 
+        YG2.onSwitchLang -= HandleSwitchLang;
         ClearHouseSubscription();
+    }
+
+    private void HandleSwitchLang(string lang)
+    {
+        Refresh();
     }
 
     protected override bool ValidateInternal()
@@ -177,10 +187,10 @@ public sealed class HousePanel : ValidatedMonoBehaviour
         }
 
         _workersLimitText.text =
-            $"Рабочие: {_currentHouse.CurrentWorkers}/{_currentHouse.MaxWorkers}";
+            GameUiText.Workers(_currentHouse.CurrentWorkers, _currentHouse.MaxWorkers);
 
         _hireCostText.text =
-            $"Стоимость: дерево {_currentHouse.CurrentWoodCost} / золото {_currentHouse.CurrentGoldCost}";
+            GameUiText.HireCost(_currentHouse.CurrentWoodCost, _currentHouse.CurrentGoldCost);
 
         _hireButton.interactable = _currentHouse.CanHire();
 
@@ -201,8 +211,8 @@ public sealed class HousePanel : ValidatedMonoBehaviour
 
     private void ClearText()
     {
-        _workersLimitText.text = "Рабочие: 0/0";
-        _hireCostText.text = "Стоимость: -";
+        _workersLimitText.text = GameUiText.WorkersEmpty;
+        _hireCostText.text = GameUiText.CostDash;
 
         _hireButton.interactable = false;
         _demolishButton.gameObject.SetActive(false);

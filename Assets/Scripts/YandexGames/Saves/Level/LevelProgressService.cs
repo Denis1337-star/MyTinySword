@@ -3,8 +3,8 @@ using UnityEngine;
 using YG;
 
 /// <summary>
-/// Сервис постоянного прогресса уровней
-/// Отвечает за отметку пройденных уровней и открытие следующих
+/// Сервис постоянного прогресса уровней.
+/// Отвечает за отметку пройденных уровней и открытие следующих.
 /// </summary>
 public sealed class LevelProgressService
 {
@@ -55,10 +55,6 @@ public sealed class LevelProgressService
             YG2.saves.lastUnlockedLevelIndex = nextLevelIndex;
 
         YandexSaveUtility.SaveProgress();
-
-        Debug.Log(
-            $"[LevelProgressService] Уровень сохранён как пройденный: {levelId}. " +
-            $"Открыт уровень: {YG2.saves.lastUnlockedLevelIndex}.");
     }
 
     public bool IsLevelCompleted(string levelId)
@@ -88,7 +84,5 @@ public sealed class LevelProgressService
         YG2.saves.completedLevelIds ??= new List<string>();
 
         YandexSaveUtility.SaveProgress();
-
-        Debug.Log("[LevelProgressService] Прогресс уровней инициализирован.");
     }
 }

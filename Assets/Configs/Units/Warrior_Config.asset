@@ -14,10 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _unitId: warrior
   _displayName: "\u0412\u043E\u0438\u043D"
+  _displayNameEn: "Warrior"
   _description: "\u0412\u043E\u0438\u043D \u0431\u043B\u0438\u0436\u043D\u0435\u0433\u043E
     \u0431\u043E\u044F \u0441 \u0431\u043E\u043B\u044C\u0448\u0438\u043C \u0437\u0430\u043F\u0430\u0441\u043E\u043C
     \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F, \u043D\u043E \u043D\u0435\u0431\u043E\u043B\u044C\u0448\u0438\u043C
     \u0443\u0440\u043E\u043D\u043E\u043C"
+  _descriptionEn: "Melee fighter with high health but modest damage."
   _icon: {fileID: 21300000, guid: 2334fa2b3b6b3492281b0993c123cfac, type: 3}
   _unitType: 0
   _prefab: {fileID: 3884826190589095570, guid: 7094ca977003a1d47a7950e31869d5b6, type: 3}

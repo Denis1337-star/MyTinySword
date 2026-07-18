@@ -17,6 +17,7 @@ public sealed class SelectionSystem : MonoBehaviour
     private readonly List<UnitSelectable> _selectedUnits = new();
 
     private Camera _mainCamera;
+    private ArmyUnitRegistry _armyUnitRegistry;
 
     public UnitSelectable CurrentSelection { get; private set; }
     public IReadOnlyList<UnitSelectable> SelectedUnits => _selectedUnits;
@@ -25,15 +26,64 @@ public sealed class SelectionSystem : MonoBehaviour
     public event Action SelectionCleared;
 
     [Inject]
-    private void Construct(Camera mainCamera)
+    private void Construct(Camera mainCamera, ArmyUnitRegistry armyUnitRegistry)
     {
         _mainCamera = mainCamera;
+        _armyUnitRegistry = armyUnitRegistry;
+
+        _armyUnitRegistry.OnArmyChanged += HandleArmyChanged;
     }
 
     private void OnDestroy()
     {
+        if (_armyUnitRegistry != null)
+            _armyUnitRegistry.OnArmyChanged -= HandleArmyChanged;
+
         SelectionChanged = null;
         SelectionCleared = null;
+    }
+
+    private void HandleArmyChanged()
+    {
+        PruneInvalidArmyUnits();
+    }
+
+    /// <summary>
+    /// Убирает из выделения уничтоженных и мёртвых боевых юнитов,
+    /// чтобы ArmySelectionPanel и остальной UI обновились.
+    /// </summary>
+    public void PruneInvalidArmyUnits()
+    {
+        bool changed = false;
+
+        for (int i = _selectedUnits.Count - 1; i >= 0; i--)
+        {
+            UnitSelectable selectable = _selectedUnits[i];
+
+            if (selectable == null)
+            {
+                _selectedUnits.RemoveAt(i);
+                changed = true;
+                continue;
+            }
+
+            ArmyUnit armyUnit = selectable.GetComponent<ArmyUnit>();
+
+            if (armyUnit == null)
+                continue;
+
+            if (!armyUnit.IsDead)
+                continue;
+
+            selectable.Deselect();
+            _selectedUnits.RemoveAt(i);
+            changed = true;
+        }
+
+        if (!changed)
+            return;
+
+        NotifySelectionResult();
     }
 
     public bool TrySelectAtScreenPosition(Vector2 screenPosition)

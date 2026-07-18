@@ -21,7 +21,6 @@ public sealed class ArmySelectionPanel : ValidatedMonoBehaviour
     private SelectionSystem _selectionSystem;
     private ArmyUnitRegistry _armyUnitRegistry;
 
-    private bool _isSubscribedToRegistry;
     private bool _isApplyingShow;
 
     public SimplePanelTween PanelTween => _panelTween;
@@ -43,18 +42,11 @@ public sealed class ArmySelectionPanel : ValidatedMonoBehaviour
     private void OnEnable()
     {
         _selectAllButton.onClick.AddListener(SelectAllPlayerUnits);
-
-        SubscribeToRegistry();
-
-        if (!_isApplyingShow)
-            RefreshFromCurrentSelection();
     }
 
     private void OnDisable()
     {
         _selectAllButton.onClick.RemoveListener(SelectAllPlayerUnits);
-
-        UnsubscribeFromRegistry();
     }
 
     protected override bool ValidateInternal()
@@ -124,7 +116,7 @@ public sealed class ArmySelectionPanel : ValidatedMonoBehaviour
             if (selectable == null)
                 continue;
 
-            if (!ArmyUnitSelectionUtility.TryGetPlayerArmyUnit(selectable, out ArmyUnit armyUnit, includeDead: true))
+            if (!ArmyUnitSelectionUtility.TryGetPlayerArmyUnit(selectable, out ArmyUnit armyUnit))
                 continue;
 
             UnitConfig config = armyUnit.Config;
@@ -172,30 +164,6 @@ public sealed class ArmySelectionPanel : ValidatedMonoBehaviour
         _armyUnitRegistry.GetAllPlayerUnitsNonAlloc(_playerUnitsBuffer);
 
         _selectionSystem.SelectArmyUnits(_playerUnitsBuffer);
-    }
-
-    private void SubscribeToRegistry()
-    {
-        if (_isSubscribedToRegistry)
-            return;
-
-        _armyUnitRegistry.OnArmyChanged += RefreshFromCurrentSelection;
-        _isSubscribedToRegistry = true;
-    }
-
-    private void UnsubscribeFromRegistry()
-    {
-        if (!_isSubscribedToRegistry)
-            return;
-
-        _armyUnitRegistry.OnArmyChanged -= RefreshFromCurrentSelection;
-
-        _isSubscribedToRegistry = false;
-    }
-
-    private void RefreshFromCurrentSelection()
-    {
-        Show(_selectionSystem.SelectedUnits);
     }
 
     private struct GroupInfo

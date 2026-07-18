@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using YG;
 using Zenject;
 
 /// <summary>
@@ -18,11 +19,16 @@ public sealed class GameResultPanel : ValidatedMonoBehaviour
 
     private LevelConfig _nextLevelConfig;
     private LevelLoaderService _levelLoaderService;
+    private GamePauseService _pauseService;
+    private bool _isShowingVictory;
 
     [Inject]
-    private void Construct(LevelLoaderService levelLoaderService)
+    private void Construct(
+        LevelLoaderService levelLoaderService,
+        GamePauseService pauseService)
     {
         _levelLoaderService = levelLoaderService;
+        _pauseService = pauseService;
     }
 
     private void OnEnable()
@@ -30,6 +36,7 @@ public sealed class GameResultPanel : ValidatedMonoBehaviour
         _nextLevelButton.onClick.AddListener(LoadNextLevel);
         _restartButton.onClick.AddListener(RestartLevel);
         _mainMenuButton.onClick.AddListener(LoadMainMenu);
+        YG2.onSwitchLang += HandleSwitchLang;
     }
 
     private void OnDisable()
@@ -37,6 +44,7 @@ public sealed class GameResultPanel : ValidatedMonoBehaviour
         _nextLevelButton.onClick.RemoveListener(LoadNextLevel);
         _restartButton.onClick.RemoveListener(RestartLevel);
         _mainMenuButton.onClick.RemoveListener(LoadMainMenu);
+        YG2.onSwitchLang -= HandleSwitchLang;
     }
 
     protected override bool ValidateInternal()
@@ -54,12 +62,30 @@ public sealed class GameResultPanel : ValidatedMonoBehaviour
     public void ShowVictory(LevelConfig nextLevelConfig)
     {
         _nextLevelConfig = nextLevelConfig;
+        _isShowingVictory = true;
 
-        _resultText.text = "ПОБЕДА";
+        _resultText.text = GameUiText.Victory;
         _nextLevelButton.gameObject.SetActive(nextLevelConfig != null);
 
         gameObject.SetActive(true);
-        Time.timeScale = 0f;
+
+        // SDK: геймплей закончен. Пауза мира/звука — через общий сервис.
+        YandexGameEventsBridge.NotifyGameplayResultOpened();
+        _pauseService.Pause(GamePauseReason.GameResult);
+    }
+
+    private void HandleSwitchLang(string lang)
+    {
+        if (!_isShowingVictory)
+            return;
+
+        _resultText.text = GameUiText.Victory;
+    }
+
+    private void LeaveResultScreen()
+    {
+        _isShowingVictory = false;
+        _pauseService.Resume(GamePauseReason.GameResult);
     }
 
     private void LoadNextLevel()
@@ -67,19 +93,19 @@ public sealed class GameResultPanel : ValidatedMonoBehaviour
         if (_nextLevelConfig == null)
             return;
 
-        Time.timeScale = 1f;
+        LeaveResultScreen();
         _levelLoaderService.TryLoadLevel(_nextLevelConfig);
     }
 
     private void RestartLevel()
     {
-        Time.timeScale = 1f;
+        LeaveResultScreen();
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     public void LoadMainMenu()
     {
-        Time.timeScale = 1f;
+        LeaveResultScreen();
         SceneManager.LoadScene(MainMenuSceneName);
     }
 }

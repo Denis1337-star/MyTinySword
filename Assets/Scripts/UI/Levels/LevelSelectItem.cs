@@ -27,15 +27,19 @@ public sealed class LevelSelectItem : ValidatedMonoBehaviour
     private Action<LevelConfig> _onClicked;
 
     private bool _unlocked;
+    private bool _completed;
 
     private void OnEnable()
     {
         _button.onClick.AddListener(OnButtonClicked);
+        YG2.onSwitchLang += HandleSwitchLang;
+        RefreshView();
     }
 
     private void OnDisable()
     {
         _button.onClick.RemoveListener(OnButtonClicked);
+        YG2.onSwitchLang -= HandleSwitchLang;
     }
 
     protected override bool ValidateInternal()
@@ -57,18 +61,24 @@ public sealed class LevelSelectItem : ValidatedMonoBehaviour
     {
         _levelConfig = levelConfig;
         _unlocked = unlocked;
+        _completed = completed;
         _onClicked = onClicked;
 
-        RefreshView(completed);
+        RefreshView();
     }
 
-    private void RefreshView(bool completed)
+    private void HandleSwitchLang(string lang)
+    {
+        RefreshView();
+    }
+
+    private void RefreshView()
     {
         if (_levelConfig == null)
         {
             _button.interactable = false;
-            _titleText.text = _levelConfig.GetDisplayName(YG2.lang);
-            _statusText.text = GetStatusText(completed);
+            _titleText.text = GameUiText.LevelNotSet;
+            _statusText.text = GameUiText.Error;
             SetOptionalView(_lockedView, true);
             SetOptionalView(_completedView, false);
             return;
@@ -76,24 +86,22 @@ public sealed class LevelSelectItem : ValidatedMonoBehaviour
 
         _button.interactable = _unlocked;
 
-        _titleText.text = _levelConfig.GetDisplayName(YG2.lang);
-        _statusText.text = GetStatusText(completed);
+        _titleText.text = _levelConfig.GetDisplayName(Lang.Current);
+        _statusText.text = GetStatusText();
 
         SetOptionalView(_lockedView, !_unlocked);
-        SetOptionalView(_completedView, completed);
+        SetOptionalView(_completedView, _completed);
     }
 
-    private string GetStatusText(bool completed)
+    private string GetStatusText()
     {
-        bool en = YG2.lang == "en";
-
         if (!_unlocked)
-            return en ? "Locked" : "Закрыт";
+            return GameUiText.Locked;
 
-        if (completed)
-            return en ? "Completed" : "Пройден";
+        if (_completed)
+            return GameUiText.Completed;
 
-        return en ? "Available" : "Доступен";
+        return GameUiText.Available;
     }
 
     private void OnButtonClicked()

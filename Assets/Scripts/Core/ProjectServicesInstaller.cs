@@ -26,8 +26,12 @@ public sealed class ProjectServicesInstaller : MonoInstaller
             .NonLazy();
 
         Container
-            .Bind<IAdvertisementService>()
-            .To<YandexAdvertisementService>()
+            .BindInterfacesAndSelfTo<GameSpeedBoostService>()
+            .AsSingle()
+            .NonLazy();
+
+        Container
+            .BindInterfacesAndSelfTo<YandexAdvertisementService>()
             .AsSingle()
             .NonLazy();
 

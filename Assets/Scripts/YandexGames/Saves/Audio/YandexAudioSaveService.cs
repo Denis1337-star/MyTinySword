@@ -29,7 +29,5 @@ public sealed class YandexAudioSaveService
         YG2.saves.sfxMuted = audioService.IsSfxMuted;
 
         YandexSaveUtility.SaveProgress();
-
-        Debug.Log("[YandexAudioSaveService] Audio settings saved.");
     }
 }

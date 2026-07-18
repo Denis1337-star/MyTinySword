@@ -18,15 +18,11 @@ public sealed class TutorialSaveService
 
         YG2.saves.tutorialCompleted = true;
         YandexSaveUtility.SaveProgress();
-
-        Debug.Log("[TutorialSaveService] Tutorial completed saved.");
     }
 
     public void ResetTutorial()
     {
         GameSavesDefaults.ApplyTutorial(YG2.saves);
         YandexSaveUtility.SaveProgress();
-
-        Debug.Log("[TutorialSaveService] Tutorial reset.");
     }
 }

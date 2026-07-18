@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YG;
 
 /// <summary>
 /// Универсальная панель подтверждения сноса здания.
@@ -9,12 +10,6 @@ using UnityEngine.UI;
 /// </summary>
 public sealed class BuildingDemolishConfirmPanel : ValidatedMonoBehaviour
 {
-    private const string DefaultAllowedMessage =
-        "Вы уверены, что хотите снести здание?\nРесурсы не будут возвращены.";
-
-    private const string DefaultBlockedMessage =
-        "Это здание нельзя снести.";
-
     [Header("Text")]
     [SerializeField] private TMP_Text _messageText;
 
@@ -27,23 +22,24 @@ public sealed class BuildingDemolishConfirmPanel : ValidatedMonoBehaviour
     [Header("Animation")]
     [SerializeField] private SimplePanelTween _panelTween;
 
-    [Header("Messages")]
-    [SerializeField, TextArea] private string _allowedMessage = DefaultAllowedMessage;
-    [SerializeField, TextArea] private string _blockedMessage = DefaultBlockedMessage;
-
+    private Func<string> _messageProvider;
     private Action _onConfirm;
     private Action _onCancel;
+    private bool _isAllowedMode;
 
     private void OnEnable()
     {
         _confirmButton.onClick.AddListener(HandleConfirmClicked);
         _cancelButton.onClick.AddListener(HandleCancelClicked);
+        YG2.onSwitchLang += HandleSwitchLang;
+        RefreshTexts();
     }
 
     private void OnDisable()
     {
         _confirmButton.onClick.RemoveListener(HandleConfirmClicked);
         _cancelButton.onClick.RemoveListener(HandleCancelClicked);
+        YG2.onSwitchLang -= HandleSwitchLang;
     }
 
     protected override bool ValidateInternal()
@@ -61,66 +57,80 @@ public sealed class BuildingDemolishConfirmPanel : ValidatedMonoBehaviour
     }
 
     public void ShowAllowed(
-        string message,
+        Func<string> messageProvider,
         Action onConfirm,
         Action onCancel)
     {
+        _isAllowedMode = true;
+        _messageProvider = messageProvider ?? (() => GameUiText.DemolishConfirmNoRefund);
         _onConfirm = onConfirm;
         _onCancel = onCancel;
 
-        _messageText.text = string.IsNullOrWhiteSpace(message)
-            ? GetAllowedMessage()
-            : message;
-
         _confirmButton.gameObject.SetActive(true);
         _confirmButton.interactable = true;
-        _confirmButtonText.text = "Да, снести";
-
         _cancelButton.gameObject.SetActive(true);
         _cancelButton.interactable = true;
-        _cancelButtonText.text = "Выйти";
 
+        RefreshTexts();
+        _panelTween.Show();
+    }
+
+    /// <summary>Совместимость: старый вызов со строкой.</summary>
+    public void ShowAllowed(string message, Action onConfirm, Action onCancel)
+    {
+        string frozen = message;
+        ShowAllowed(
+            () => string.IsNullOrWhiteSpace(frozen) ? GameUiText.DemolishConfirmNoRefund : frozen,
+            onConfirm,
+            onCancel);
+    }
+
+    public void ShowBlocked(Func<string> messageProvider, Action onCancel)
+    {
+        _isAllowedMode = false;
+        _messageProvider = messageProvider ?? (() => GameUiText.CannotDemolishBuilding);
+        _onConfirm = null;
+        _onCancel = onCancel;
+
+        _confirmButton.gameObject.SetActive(false);
+        _cancelButton.gameObject.SetActive(true);
+        _cancelButton.interactable = true;
+
+        RefreshTexts();
         _panelTween.Show();
     }
 
     public void ShowBlocked(string message, Action onCancel)
     {
-        _onConfirm = null;
-        _onCancel = onCancel;
-
-        _messageText.text = string.IsNullOrWhiteSpace(message)
-            ? GetBlockedMessage()
-            : message;
-
-        _confirmButton.gameObject.SetActive(false);
-
-        _cancelButton.gameObject.SetActive(true);
-        _cancelButton.interactable = true;
-        _cancelButtonText.text = "Выйти";
-
-        _panelTween.Show();
+        string frozen = message;
+        ShowBlocked(
+            () => string.IsNullOrWhiteSpace(frozen) ? GameUiText.CannotDemolishBuilding : frozen,
+            onCancel);
     }
 
     public void Hide()
     {
+        _messageProvider = null;
         _onConfirm = null;
         _onCancel = null;
-
         _panelTween.Hide();
     }
 
-    private string GetAllowedMessage()
+    private void HandleSwitchLang(string lang)
     {
-        return string.IsNullOrWhiteSpace(_allowedMessage)
-            ? DefaultAllowedMessage
-            : _allowedMessage;
+        RefreshTexts();
     }
 
-    private string GetBlockedMessage()
+    private void RefreshTexts()
     {
-        return string.IsNullOrWhiteSpace(_blockedMessage)
-            ? DefaultBlockedMessage
-            : _blockedMessage;
+        if (_messageText != null && _messageProvider != null)
+            _messageText.text = _messageProvider();
+
+        if (_confirmButtonText != null && _isAllowedMode)
+            _confirmButtonText.text = GameUiText.YesDemolish;
+
+        if (_cancelButtonText != null)
+            _cancelButtonText.text = GameUiText.Close;
     }
 
     private void HandleConfirmClicked()

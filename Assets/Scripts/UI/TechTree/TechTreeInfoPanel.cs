@@ -2,7 +2,6 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using YG;
 
 /// <summary>
 /// Панель подробной информации о выбранной ноде дерева развития.
@@ -147,7 +146,7 @@ public sealed class TechTreeInfoPanel : ValidatedMonoBehaviour
         if (_nodeIconImage != null)
             _nodeIconImage.sprite = config.Icon;
 
-        string lang = YG2.lang;
+        string lang = Lang.Current;
 
         _titleText.text = config.GetDisplayName(lang);
         _descriptionText.text = config.GetDescription(lang);
@@ -166,9 +165,9 @@ public sealed class TechTreeInfoPanel : ValidatedMonoBehaviour
 
         _currentLevelText.text = $"{level}\\{config.MaxLevel}";
         _nextLevelText.text = $"{nextLevel}\\{config.MaxLevel}";
-        _bonusPreviewText.text =
-           $"{TechTreeUiText.CurrentBonus}: {config.GetBonusText(level)}\n" +
-           $"{TechTreeUiText.NextBonus}: {config.GetBonusText(nextLevel)}";
+        _bonusPreviewText.text = GameUiText.BonusPreview(
+            config.GetBonusText(level),
+            config.GetBonusText(nextLevel));
 
         int upgradeSeconds = config.GetUpgradeSeconds(level);
         _upgradeTimeText.text = TechTreeNodeView.FormatTime(

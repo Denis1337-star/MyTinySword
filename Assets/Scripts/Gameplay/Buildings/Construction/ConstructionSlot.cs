@@ -47,16 +47,16 @@ public sealed class ConstructionSlot : ValidatedMonoBehaviour
     public string GetBuildBlockReason(BuildingConfig config)
     {
         if (config == null)
-            return "Здание не выбрано";
+            return GameUiText.BlockBuildingNotSelected;
 
         if (_currentConstruction != null)
-            return "Уже строится";
+            return GameUiText.BlockAlreadyBuilding;
 
         if (_buildingRegistry.IsLimitReached(config))
-            return "Лимит достигнут";
+            return GameUiText.BlockLimitReached;
 
         if (!_resourceStorage.HasResources(config.WoodCost, config.GoldCost, 0))
-            return "Не хватает ресурсов";
+            return GameUiText.BlockNotEnoughResources;
 
         return string.Empty;
     }

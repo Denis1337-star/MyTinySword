@@ -189,8 +189,6 @@ public sealed class TechTreeSaveService
         YG2.saves.techTree.LastKnownUnixTime = _timeService.GetCurrentUnixTime();
 
         YandexSaveUtility.SaveProgress();
-
-        Debug.Log("[TechTreeSaveService] Сохранения дерева развития инициализированы.");
     }
 
     private TechTreeNodeSaveData FindNode(string nodeId)

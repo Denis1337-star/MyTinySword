@@ -1,24 +1,60 @@
 using System;
-using UnityEngine;
+using Zenject;
 using YG;
 
 /// <summary>
-/// Реализация рекламы через PluginYG2 
-/// Ставит игру на паузу на время рекламы и выдаёт награду только по rewarded callback
+/// Р РµРєР»Р°РјР° С‡РµСЂРµР· PluginYG2.
+/// Resume РІСЃРµРіРґР° РЅР° close/error; РЅР°РіСЂР°РґР° С‚РѕР»СЊРєРѕ РёР· reward-callback.
+/// РџРѕСЃР»Рµ Р·Р°РєСЂС‹С‚РёСЏ СЂРµРєР»Р°РјС‹ timeScale СЃРёРЅС…СЂРѕРЅРёР·РёСЂСѓРµС‚СЃСЏ Р·Р°РЅРѕРІРѕ вЂ”
+/// РёРЅР°С‡Рµ PauseGameYG РјРѕР¶РµС‚ РІРµСЂРЅСѓС‚СЊ СЃРѕС…СЂР°РЅС‘РЅРЅС‹Р№ 0.
 /// </summary>
-public sealed class YandexAdvertisementService : IAdvertisementService
+public sealed class YandexAdvertisementService : IAdvertisementService, IInitializable, ITickable, IDisposable
 {
     private readonly GamePauseService _pauseService;
 
     private Action _currentRewardedCallback;
     private Action _currentClosedCallback;
     private Action<string> _currentErrorCallback;
+    private bool _resyncTimeScaleNextTick;
 
     public bool IsRewardedAdInProgress { get; private set; }
 
     public YandexAdvertisementService(GamePauseService pauseService)
     {
         _pauseService = pauseService;
+    }
+
+    public void Initialize()
+    {
+        YG2.onOpenRewardedAdv += HandleRewardedOpened;
+        YG2.onCloseRewardedAdv += HandleRewardedClosed;
+        YG2.onErrorRewardedAdv += HandleRewardedError;
+        YG2.onOpenInterAdv += HandleInterstitialOpened;
+        YG2.onCloseInterAdv += HandleInterstitialClosed;
+    }
+
+    public void Dispose()
+    {
+        YG2.onOpenRewardedAdv -= HandleRewardedOpened;
+        YG2.onCloseRewardedAdv -= HandleRewardedClosed;
+        YG2.onErrorRewardedAdv -= HandleRewardedError;
+        YG2.onOpenInterAdv -= HandleInterstitialOpened;
+        YG2.onCloseInterAdv -= HandleInterstitialClosed;
+    }
+
+    public void Tick()
+    {
+        if (!_resyncTimeScaleNextTick)
+            return;
+
+        _resyncTimeScaleNextTick = false;
+
+        if (_pauseService.IsPaused)
+            return;
+
+        // PauseGameYG РЅР° close РІРѕСЃСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ СЃС‚Р°СЂС‹Р№ timeScale РїРѕСЃР»Рµ РЅР°С€РµРіРѕ Resume вЂ”
+        // РЅР° СЃР»РµРґСѓСЋС‰РµРј РєР°РґСЂРµ РІРѕР·РІСЂР°С‰Р°РµРј Р°РєС‚СѓР°Р»СЊРЅС‹Р№ gameplay-РјР°СЃС€С‚Р°Р± (1x / 2x).
+        _pauseService.SetGameplayTimeScale(_pauseService.GameplayTimeScale);
     }
 
     public void ShowRewardedAd(
@@ -45,13 +81,10 @@ public sealed class YandexAdvertisementService : IAdvertisementService
         _currentClosedCallback = onClosed;
         _currentErrorCallback = onError;
 
-        _pauseService.Pause(GamePauseReason.Advertisement);
-
+        // РќРµ СЃС‚Р°РІРёРј Pause РґРѕ Open: РёРЅР°С‡Рµ YG СЃРѕС…СЂР°РЅРёС‚ timeScale=0 Рё РІРµСЂРЅС‘С‚ РµРіРѕ РїСЂРё Р·Р°РєСЂС‹С‚РёРё.
         try
         {
-            // Первый параметр — id награды.
-            // Второй параметр — callback награды.
-            YG2.RewardedAdvShow(rewardId, OnRewarded);
+            YG2.RewardedAdvShow(rewardId, OnRewardedGranted);
         }
         catch (Exception exception)
         {
@@ -59,32 +92,68 @@ public sealed class YandexAdvertisementService : IAdvertisementService
         }
     }
 
-    private void OnRewarded()
+    private void OnRewardedGranted()
     {
+        if (!IsRewardedAdInProgress)
+            return;
+
         _currentRewardedCallback?.Invoke();
-        FinishSuccessfully();
     }
 
-    private void FinishSuccessfully()
+    private void HandleRewardedOpened()
+    {
+        _pauseService.Pause(GamePauseReason.Advertisement);
+    }
+
+    private void HandleRewardedClosed()
+    {
+        if (!IsRewardedAdInProgress)
+            return;
+
+        FinishClosed();
+    }
+
+    private void HandleRewardedError()
+    {
+        if (!IsRewardedAdInProgress)
+            return;
+
+        FinishWithError("Rewarded ad failed.");
+    }
+
+    private void HandleInterstitialOpened()
+    {
+        _pauseService.Pause(GamePauseReason.Advertisement);
+    }
+
+    private void HandleInterstitialClosed()
     {
         _pauseService.Resume(GamePauseReason.Advertisement);
+        _resyncTimeScaleNextTick = true;
+    }
+
+    private void FinishClosed()
+    {
+        _pauseService.Resume(GamePauseReason.Advertisement);
+        _resyncTimeScaleNextTick = true;
 
         IsRewardedAdInProgress = false;
 
-        _currentClosedCallback?.Invoke();
-
+        Action closed = _currentClosedCallback;
         ClearCallbacks();
+        closed?.Invoke();
     }
 
     private void FinishWithError(string message)
     {
         _pauseService.Resume(GamePauseReason.Advertisement);
+        _resyncTimeScaleNextTick = true;
 
         IsRewardedAdInProgress = false;
 
-        _currentErrorCallback?.Invoke(message);
-
+        Action<string> error = _currentErrorCallback;
         ClearCallbacks();
+        error?.Invoke(message);
     }
 
     private void ClearCallbacks()

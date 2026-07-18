@@ -76,13 +76,13 @@ public abstract class ProductionBuildingBase : BuildingBase
     public string GetHireBlockReason()
     {
         if (_queueCount >= MaxQueue)
-            return "Очередь заполнена";
+            return GameUiText.BlockQueueFull;
 
         if (!_armyUnitRegistry.HasFreePlayerSlot())
-            return "Достигнут лимит армии";
+            return GameUiText.BlockArmyLimit;
 
         if (!_resourceStorage.HasResources(CurrentWoodCost, 0, CurrentMeatCost))
-            return "Не хватает ресурсов";
+            return GameUiText.BlockNotEnoughResources;
 
         return string.Empty;
     }

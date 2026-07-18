@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Единая точка управления паузой gameplay.
-/// Работает через набор причин паузы, чтобы разные системы не конфликтовали.
+/// пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ gameplay.
+/// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
+/// пїЅпїЅпїЅпїЅпїЅпїЅпїЅ Time.timeScale: 0 пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ gameplay-пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (1 пїЅпїЅпїЅ 2 пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ).
 /// </summary>
 public sealed class GamePauseService
 {
@@ -12,10 +13,12 @@ public sealed class GamePauseService
 
     private float _previousAudioVolume = 1f;
     private bool _pauseApplied;
+    private float _gameplayTimeScale = 1f;
 
     public event Action<bool> PauseStateChanged;
 
     public bool IsPaused => _activeReasons.Count > 0;
+    public float GameplayTimeScale => _gameplayTimeScale;
 
     public void Pause(GamePauseReason reason)
     {
@@ -39,6 +42,22 @@ public sealed class GamePauseService
             return;
 
         _activeReasons.Clear();
+        RefreshPauseState();
+    }
+
+    /// <summary>
+    /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ x2).
+    /// </summary>
+    public void SetGameplayTimeScale(float timeScale)
+    {
+        _gameplayTimeScale = Mathf.Max(0f, timeScale);
+
+        if (!_pauseApplied)
+            Time.timeScale = _gameplayTimeScale;
+    }
+
+    public void RefreshTimeScale()
+    {
         RefreshPauseState();
     }
 
@@ -71,14 +90,13 @@ public sealed class GamePauseService
 
     private void ApplyResumeIfNeeded()
     {
-        if (!_pauseApplied)
-            return;
+        if (_pauseApplied)
+        {
+            _pauseApplied = false;
+            AudioListener.pause = false;
+            AudioListener.volume = _previousAudioVolume;
+        }
 
-        _pauseApplied = false;
-
-        Time.timeScale = 1f;
-
-        AudioListener.pause = false;
-        AudioListener.volume = _previousAudioVolume;
+        Time.timeScale = _gameplayTimeScale;
     }
 }

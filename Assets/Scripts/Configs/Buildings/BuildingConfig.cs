@@ -8,9 +8,13 @@ public sealed class BuildingConfig : BaseConfig
 {
     [SerializeField] private string _buildingId;
     [SerializeField] private string _displayName;
+    [SerializeField] private string _displayNameEn;
 
     [TextArea]
     [SerializeField] private string _description;
+
+    [TextArea]
+    [SerializeField] private string _descriptionEn;
 
     [SerializeField] private Sprite _icon;
     [SerializeField] private GameObject _buildingPrefab;
@@ -24,6 +28,10 @@ public sealed class BuildingConfig : BaseConfig
     public string BuildingId => _buildingId;
     public string DisplayName => _displayName;
     public string Description => _description;
+
+    public string GetDisplayName(string lang = null) => Lang.Pick(_displayName, _displayNameEn);
+    public string GetDescription(string lang = null) => Lang.Pick(_description, _descriptionEn);
+
     public Sprite Icon => _icon;
     public GameObject BuildingPrefab => _buildingPrefab;
 

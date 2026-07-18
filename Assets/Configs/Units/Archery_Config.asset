@@ -14,10 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _unitId: archery
   _displayName: "\u041B\u0443\u0447\u043D\u0438\u043A"
+  _displayNameEn: "Archer"
   _description: "\u0412\u043E\u0438\u043D \u0434\u0430\u043B\u044C\u043D\u0435\u0433\u043E
     \u0431\u043E\u044F \u0441 \u0431\u043E\u043B\u044C\u0448\u0438\u043C \u0443\u0440\u043E\u043D\u043E\u043C,
     \u043D\u043E \u043C\u0430\u043B\u044B\u043C \u0437\u0430\u043F\u0430\u0441\u043E\u043C
     \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F"
+  _descriptionEn: "Ranged fighter with high damage but low health."
   _icon: {fileID: 21300000, guid: a7ddf97c30db44d2581c9d2b9ec8d39d, type: 3}
   _unitType: 1
   _prefab: {fileID: 468695769466756769, guid: d6a83031fb5240044a0ffb7f2c8a2a67, type: 3}

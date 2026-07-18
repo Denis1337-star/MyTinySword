@@ -14,8 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _buildingId: house
   _displayName: "\u0414\u043E\u043C"
+  _displayNameEn: "House"
   _description: "\u041F\u043E\u0437\u0432\u043E\u043B\u044F\u0435\u0442 \u043D\u0430\u043D\u0438\u043C\u0430\u0442\u044C
     \u0440\u0430\u0431\u043E\u0447\u0438\u0445"
+  _descriptionEn: "Allows hiring workers."
   _icon: {fileID: 21300000, guid: cb445ff62c7c14026925f63218d44e2a, type: 3}
   _buildingPrefab: {fileID: 148874888745276253, guid: 1e7bc072a39947546a2925a4d9f3d556, type: 3}
   _woodCost: 10

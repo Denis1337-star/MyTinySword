@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YG;
 using Zenject;
 
 /// <summary>
@@ -8,12 +9,6 @@ using Zenject;
 /// </summary>
 public sealed class BuildingActionPanel : ValidatedMonoBehaviour
 {
-    private const string CanDemolishText =
-        "Это здание можно снести.";
-
-    private const string CannotDemolishText =
-        "Это здание нельзя снести.";
-
     [Header("Root")]
     [SerializeField] private GameObject _root;
     [SerializeField] private SimplePanelTween _panelTween;
@@ -39,11 +34,19 @@ public sealed class BuildingActionPanel : ValidatedMonoBehaviour
     private void OnEnable()
     {
         _demolishButton.onClick.AddListener(RequestDemolishBuilding);
+        YG2.onSwitchLang += HandleSwitchLang;
+        Refresh();
     }
 
     private void OnDisable()
     {
         _demolishButton.onClick.RemoveListener(RequestDemolishBuilding);
+        YG2.onSwitchLang -= HandleSwitchLang;
+    }
+
+    private void HandleSwitchLang(string lang)
+    {
+        Refresh();
     }
 
     protected override bool ValidateInternal()
@@ -92,8 +95,8 @@ public sealed class BuildingActionPanel : ValidatedMonoBehaviour
         bool canDemolish = BuildingDemolishRules.CanDemolish(_currentBuilding);
 
         _descriptionText.text = canDemolish
-            ? CanDemolishText
-            : CannotDemolishText;
+            ? GameUiText.CanDemolishBuilding
+            : GameUiText.CannotDemolishBuilding;
 
         BuildingDemolishRules.RefreshButton(_demolishButton, _currentBuilding);
     }

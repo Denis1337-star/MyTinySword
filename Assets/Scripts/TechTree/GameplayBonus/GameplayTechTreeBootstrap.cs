@@ -1,4 +1,3 @@
-using UnityEngine;
 using Zenject;
 
 /// <summary>
@@ -41,8 +40,6 @@ public sealed class GameplayTechTreeBootstrap : IInitializable
             return;
 
         _resourceStorage.AddResource(resourceType, bonusAmount);
-
-        Debug.Log($"[GameplayTechTreeBootstrap] Стартовый ресурс {resourceType}: +{bonusAmount}.");
     }
 
     private void ApplyStartingWorkers()
@@ -53,7 +50,5 @@ public sealed class GameplayTechTreeBootstrap : IInitializable
             return;
 
         _playerHouse.AddFreeWorkers(bonusWorkers);
-
-        Debug.Log($"[GameplayTechTreeBootstrap] Стартовые рабочие: +{bonusWorkers}.");
     }
 }

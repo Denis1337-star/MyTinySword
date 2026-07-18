@@ -25,7 +25,7 @@ public sealed class HealerUnitConfig : UnitConfig
 
     public override string GetPreviewStatsText()
     {
-        return base.GetPreviewStatsText() + "\n" + $"Лечение: {_healAmount}\n";
+        return base.GetPreviewStatsText() + "\n" + GameUiText.Heal(_healAmount) + "\n";
     }
 
     protected override void OnValidate()

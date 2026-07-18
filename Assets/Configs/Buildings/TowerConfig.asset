@@ -14,8 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _buildingId: tower
   _displayName: "\u0411\u0430\u0448\u043D\u044F"
+  _displayNameEn: "Tower"
   _description: "\u041E\u0431\u043E\u0440\u043E\u043D\u0438\u0442\u0435\u043B\u044C\u043D\u043E\u0435
     \u0437\u0434\u0430\u043D\u0438\u0435"
+  _descriptionEn: "Defensive building."
   _icon: {fileID: 21300000, guid: 3cbd575d4968745d3a7f79a654fae04a, type: 3}
   _buildingPrefab: {fileID: 8906665872515809482, guid: c74605ef5a2f6ad45b8bb2d35762e4e9, type: 3}
   _woodCost: 15

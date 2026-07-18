@@ -32,12 +32,8 @@ public sealed class LevelConfig : BaseConfig
     public string Description => _description;
     public bool IsTutorialLevel => _isTutorialLevel;
 
-    public string GetDisplayName(string lang)
-    {
-        if (lang == "en" && !string.IsNullOrWhiteSpace(_displayNameEn))
-            return _displayNameEn;
-        return _displayName;
-    }
+    public string GetDisplayName(string lang = null) => Lang.Pick(_displayName, _displayNameEn);
+    public string GetDescription(string lang = null) => Lang.Pick(_description, _descriptionEn);
                                                    
     public override bool IsValid()
     {
