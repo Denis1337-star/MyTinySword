@@ -30,6 +30,7 @@ public sealed class GameSceneInstaller : MonoInstaller
     [SerializeField] private UiSoundRouter _uiSoundRouter;
     [SerializeField] private WorkerListPanel _workerListPanel;
     [SerializeField] private SelectionUiPresenter _selectionUiPresenter;
+    [SerializeField] private GameResultController _gameResultController;
 
     public override void InstallBindings()
     {
@@ -54,7 +55,7 @@ public sealed class GameSceneInstaller : MonoInstaller
         valid &= ValidationUtility.IsAssigned(this, _mainCamera, nameof(_mainCamera));
         valid &= ValidationUtility.IsAssigned(this, _cameraFocusController, nameof(_cameraFocusController));
         valid &= ValidationUtility.IsAssigned(this, _buildingDemolishConfirmPanel, nameof(_buildingDemolishConfirmPanel));
-
+        valid &= ValidationUtility.IsAssigned(this, _gameResultController, nameof(_gameResultController));
         valid &= ValidationUtility.IsAssigned(this, _gameplayInputController, nameof(_gameplayInputController));
         valid &= ValidationUtility.IsAssigned(this, _commandSystem, nameof(_commandSystem));
 
@@ -162,8 +163,12 @@ public sealed class GameSceneInstaller : MonoInstaller
             .NonLazy();
 
         Container.Bind<BuildingDemolishConfirmPanel>()
-    .FromInstance(_buildingDemolishConfirmPanel)
-    .AsSingle();
+            .FromInstance(_buildingDemolishConfirmPanel)
+            .AsSingle();
+
+        Container.Bind<GameResultController>()
+             .FromInstance(_gameResultController)
+             .AsSingle();
     }
 
     private void BindFactories()

@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e601d2476a0215f4da073b37198058bf, type: 3}
-  m_Name: Level_3_Config
+  m_Name: Level_7_Config
   m_EditorClassIdentifier: 
-  _displayNameEn: Level 3
-  _descriptionEn: Three level.
-  _levelId: level_3
-  _levelIndex: 3
-  _sceneName: Level_3
-  _displayName: "\u0423\u0440\u043E\u0432\u0435\u043D\u044C 3"
-  _description: "\u0422\u0440\u0435\u0442\u0438\u0439 \u0443\u0440\u043E\u0432\u0435\u043D\u044C."
+  _displayNameEn: Level 7
+  _descriptionEn: Six level.
+  _levelId: level_7
+  _levelIndex: 7
+  _sceneName: Level_7
+  _displayName: "\u0423\u0440\u043E\u0432\u0435\u043D\u044C 7"
+  _description: "\u0428\u0435\u0441\u0442\u043E\u0439  \u0443\u0440\u043E\u0432\u0435\u043D\u044C."
   _isTutorialLevel: 0
-  _objectiveType: 0
+  _objectiveType: 1
   _gatherResourceType: 1
-  _gatherTargetAmount: 400
+  _gatherTargetAmount: 5
   _waveCount: 5

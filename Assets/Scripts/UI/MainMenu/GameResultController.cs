@@ -41,7 +41,15 @@ public sealed class GameResultController : ValidatedMonoBehaviour
         if (!enabled)
             return;
 
-        _enemyCastle.OnCastleDestroyed += OnEnemyCastleDestroyed;
+        LevelConfig level = GetCurrentLevelConfig();
+
+        if (level != null && level.ObjectiveType == LevelObjectiveType.DestroyEnemyCastle
+            && _enemyCastle != null)
+        {
+            _enemyCastle.OnCastleDestroyed += OnEnemyCastleDestroyed;
+        }
+
+
     }
 
     private void OnDestroy()
@@ -58,7 +66,6 @@ public sealed class GameResultController : ValidatedMonoBehaviour
 
         valid &= ValidationUtility.IsAssigned(this, _levelCatalog, nameof(_levelCatalog));
         valid &= ValidationUtility.IsValidConfig(this, _levelCatalog, nameof(_levelCatalog));
-        valid &= ValidationUtility.IsAssigned(this, _enemyCastle, nameof(_enemyCastle));
         valid &= ValidationUtility.IsAssigned(this, _resultPanel, nameof(_resultPanel));
 
         if (_fallbackLevelConfig != null)
@@ -75,7 +82,7 @@ public sealed class GameResultController : ValidatedMonoBehaviour
         FinishVictory();
     }
 
-    private void FinishVictory()
+    public void FinishVictory()
     {
         _gameFinished = true;
 

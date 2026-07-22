@@ -25,12 +25,26 @@ public sealed class LevelConfig : BaseConfig
     [Header("Tutorial")]
     [SerializeField] private bool _isTutorialLevel = true;
 
+    [Header("Objective")]
+    [SerializeField] private LevelObjectiveType _objectiveType = LevelObjectiveType.DestroyEnemyCastle;
+
+    [Header("Gather Objective")]
+    [SerializeField] private ResourceType _gatherResourceType = ResourceType.Wood;
+    [SerializeField, Min(1)] private int _gatherTargetAmount = 400;
+
+    [Header("Wave Objective")]
+    [SerializeField, Min(1)] private int _waveCount = 5;
+
     public string LevelId => _levelId;
     public int LevelIndex => _levelIndex;
     public string SceneName => _sceneName;
     public string DisplayName => _displayName;
     public string Description => _description;
     public bool IsTutorialLevel => _isTutorialLevel;
+    public LevelObjectiveType ObjectiveType => _objectiveType;
+    public ResourceType GatherResourceType => _gatherResourceType;
+    public int GatherTargetAmount => _gatherTargetAmount;
+    public int WaveCount => _waveCount;
 
     public string GetDisplayName(string lang = null) => Lang.Pick(_displayName, _displayNameEn);
     public string GetDescription(string lang = null) => Lang.Pick(_description, _descriptionEn);

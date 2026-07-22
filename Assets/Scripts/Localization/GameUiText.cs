@@ -158,6 +158,18 @@ public static class GameUiText
     public static string Wood => Lang.Pick("Дерево", "Wood");
     public static string Gold => Lang.Pick("Золото", "Gold");
     public static string Meat => Lang.Pick("Мясо", "Meat");
+    public static string GatherObjectiveProgress(ResourceType resourceType, int current, int target)
+    {
+        string resourceName = resourceType switch
+        {
+            ResourceType.Wood => Wood,
+            ResourceType.Gold => Gold,
+            ResourceType.Meat => Meat,
+            _ => resourceType.ToString(),
+        };
+        return Lang.Pick($"{resourceName}:{current}/{target}",
+            $"{resourceName}:{current}/{target}");
+    }
 
     public static string BlockBuildingNotSelected => BuildingNotSelected;
     public static string BlockAlreadyBuilding => Lang.Pick("Уже строится", "Already building");
@@ -199,6 +211,10 @@ public static class GameUiText
             case "Level_5":
                 ru = "На этом уровне, ты сильно ограничен в золоте, поэтому я дал тебе 200 на старте";
                 en = "On this level you are severely limited in gold, so I gave you 200 at the start.";
+                return true;
+            case "Level_6":
+                ru = "Собери нужное количество дерева. Рядом с базой лес безопасный, большой лес охраняют патрули — береги рабочих.";
+                en = "Gather the required amount of wood. The forest near your base is safe; the large forest is guarded by patrols — protect your workers.";
                 return true;
 
             default:

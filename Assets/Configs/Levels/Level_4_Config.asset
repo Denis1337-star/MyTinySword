@@ -13,10 +13,14 @@ MonoBehaviour:
   m_Name: Level_4_Config
   m_EditorClassIdentifier: 
   _displayNameEn: Level 4
-  _descriptionEn: First level.
+  _descriptionEn: Four level.
   _levelId: level_4
   _levelIndex: 4
   _sceneName: Level_4
   _displayName: "\u0423\u0440\u043E\u0432\u0435\u043D\u044C 4"
   _description: "\u0427\u0435\u0442\u0432\u0435\u0440\u0442\u044B\u0439  \u0443\u0440\u043E\u0432\u0435\u043D\u044C."
   _isTutorialLevel: 0
+  _objectiveType: 0
+  _gatherResourceType: 1
+  _gatherTargetAmount: 400
+  _waveCount: 5
