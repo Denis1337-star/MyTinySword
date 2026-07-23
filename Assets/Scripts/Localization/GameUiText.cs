@@ -216,6 +216,10 @@ public static class GameUiText
                 ru = "Собери нужное количество дерева. Рядом с базой лес безопасный, большой лес охраняют патрули — береги рабочих.";
                 en = "Gather the required amount of wood. The forest near your base is safe; the large forest is guarded by patrols — protect your workers.";
                 return true;
+            case "Level_7":
+                ru = "Враги периодически выходят из базы и идут на твою. Держи оборону у прохода башнями и армией, потом контратакуй ослабленную базу и снеси замок.";
+                en = "Enemies periodically leave their base and march on yours. Hold the chokepoint with towers and troops, then counterattack the weakened base and destroy the castle.";
+                return true;
 
             default:
                 ru = null;

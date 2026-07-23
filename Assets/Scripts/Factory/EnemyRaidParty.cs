@@ -88,7 +88,7 @@ public class EnemyRaidParty : ValidatedMonoBehaviour
             for (int i = 0; i < fromRoot.Length; i++)
             {
                 ArmyUnit unit = fromRoot[i];
-                if (unit == null || !unit.IsDead)
+                if (unit == null || unit.IsDead)
                     continue;
 
                 if (!result.Contains(unit))

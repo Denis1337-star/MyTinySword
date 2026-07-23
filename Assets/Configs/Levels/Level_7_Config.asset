@@ -20,7 +20,7 @@ MonoBehaviour:
   _displayName: "\u0423\u0440\u043E\u0432\u0435\u043D\u044C 7"
   _description: "\u0428\u0435\u0441\u0442\u043E\u0439  \u0443\u0440\u043E\u0432\u0435\u043D\u044C."
   _isTutorialLevel: 0
-  _objectiveType: 1
+  _objectiveType: 0
   _gatherResourceType: 1
   _gatherTargetAmount: 5
   _waveCount: 5

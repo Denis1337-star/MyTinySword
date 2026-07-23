@@ -7,7 +7,7 @@
         false,
         false
     ],
-    "idSave": 546,
+    "idSave": 548,
     "tutorialCompleted": false,
     "audioSettingsInitialized": true,
     "musicVolume": 0.800000011920929,
@@ -15,9 +15,11 @@
     "musicMuted": false,
     "sfxMuted": false,
     "levelProgressInitialized": true,
-    "lastUnlockedLevelIndex": 1,
-    "totalVictories": 0,
-    "completedLevelIds": [],
+    "lastUnlockedLevelIndex": 7,
+    "totalVictories": 2,
+    "completedLevelIds": [
+        "level_6"
+    ],
     "techTree": {
         "Initialized": true,
         "Nodes": [
