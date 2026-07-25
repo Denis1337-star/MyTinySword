@@ -14,6 +14,7 @@ public sealed class GameResultController : ValidatedMonoBehaviour
 
     [Header("Castles")]
     [SerializeField] private Castle _enemyCastle;
+    [SerializeField] private Castle _playerCastle;
 
     [Header("UI")]
     [SerializeField] private GameResultPanel _resultPanel;
@@ -43,17 +44,22 @@ public sealed class GameResultController : ValidatedMonoBehaviour
 
         LevelConfig level = GetCurrentLevelConfig();
 
-        if (level != null && level.ObjectiveType == LevelObjectiveType.DestroyEnemyCastle
+        if (_playerCastle != null)
+            _playerCastle.OnCastleDestroyed += OnPlayerCastleDestroyed;
+
+        if (level != null
+            && level.ObjectiveType == LevelObjectiveType.DestroyEnemyCastle
             && _enemyCastle != null)
         {
             _enemyCastle.OnCastleDestroyed += OnEnemyCastleDestroyed;
         }
-
-
     }
 
     private void OnDestroy()
     {
+        if (_playerCastle != null)
+            _playerCastle.OnCastleDestroyed -= OnPlayerCastleDestroyed;
+
         if (_enemyCastle != null)
             _enemyCastle.OnCastleDestroyed -= OnEnemyCastleDestroyed;
 
@@ -81,6 +87,12 @@ public sealed class GameResultController : ValidatedMonoBehaviour
 
         FinishVictory();
     }
+    private void OnPlayerCastleDestroyed(Castle _)
+    {
+        if(_gameFinished) return;
+
+        FinishDefeat();
+    }
 
     public void FinishVictory()
     {
@@ -93,6 +105,12 @@ public sealed class GameResultController : ValidatedMonoBehaviour
         _resultPanel.ShowVictory(nextLevel);
 
         GameFinished?.Invoke(true);
+    }
+    public void FinishDefeat()
+    {
+        _gameFinished = true;
+        _resultPanel.ShowDefeat();
+        GameFinished?.Invoke(false);
     }
 
     private void SaveVictoryProgress(LevelConfig levelConfig)

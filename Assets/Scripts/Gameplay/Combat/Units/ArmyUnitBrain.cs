@@ -147,6 +147,13 @@ public sealed class ArmyUnitBrain
 
     private void UpdateMove()
     {
+        Health enemy = _targetFinder.FindNearestEnemyTarget();
+        if (enemy != null)
+        {
+            StartAttack(enemy, returnToMoveAfterCombat: true);
+            return;
+        }
+
         if (_unit.Movement.HasTarget)
             return;
 

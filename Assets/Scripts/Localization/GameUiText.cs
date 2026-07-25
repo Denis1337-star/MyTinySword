@@ -7,6 +7,7 @@ using System.Collections.Generic;
 public static class GameUiText
 {
     public static string Victory => Lang.Pick("ПОБЕДА", "VICTORY");
+    public static string Defeat => Lang.Pick("ПОРАЖЕНИЕ", "DEFEAT");
 
     public static string FormatMinutesSeconds(int totalSeconds)
     {
@@ -219,6 +220,10 @@ public static class GameUiText
             case "Level_7":
                 ru = "Враги периодически выходят из базы и идут на твою. Держи оборону у прохода башнями и армией, потом контратакуй ослабленную базу и снеси замок.";
                 en = "Enemies periodically leave their base and march on yours. Hold the chokepoint with towers and troops, then counterattack the weakened base and destroy the castle.";
+                return true;
+            case "Level_8":
+                ru = "Собери 300 золота. Часть рудников охраняют вражеские патрули и башни — не пускай рабочих туда без охраны, иначе их убьют.";
+                en = "Gather 300 gold. Some mines are guarded by enemy patrols and towers — don't send workers there unprotected, or they will be killed.";
                 return true;
 
             default:

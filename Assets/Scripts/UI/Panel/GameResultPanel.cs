@@ -21,6 +21,7 @@ public sealed class GameResultPanel : ValidatedMonoBehaviour
     private LevelLoaderService _levelLoaderService;
     private GamePauseService _pauseService;
     private bool _isShowingVictory;
+    private bool _isShowingDefeat;
 
     [Inject]
     private void Construct(
@@ -69,22 +70,36 @@ public sealed class GameResultPanel : ValidatedMonoBehaviour
 
         gameObject.SetActive(true);
 
-        // SDK: геймплей закончен. Пауза мира/звука — через общий сервис.
+        YandexGameEventsBridge.NotifyGameplayResultOpened();
+        _pauseService.Pause(GamePauseReason.GameResult);
+    }
+    public void ShowDefeat()
+    {
+        _nextLevelConfig = null;
+        _isShowingDefeat = true;
+        _isShowingVictory =false;
+
+        _resultText.text = GameUiText.Defeat;
+        _nextLevelButton.gameObject.SetActive(false);
+
+        gameObject.SetActive(true);
+
         YandexGameEventsBridge.NotifyGameplayResultOpened();
         _pauseService.Pause(GamePauseReason.GameResult);
     }
 
     private void HandleSwitchLang(string lang)
     {
-        if (!_isShowingVictory)
-            return;
-
+        if (_isShowingVictory)
         _resultText.text = GameUiText.Victory;
+        else if(_isShowingDefeat)
+            _resultText.text= GameUiText.Defeat;
     }
 
     private void LeaveResultScreen()
     {
         _isShowingVictory = false;
+        _isShowingDefeat = false;
         _pauseService.Resume(GamePauseReason.GameResult);
     }
 
