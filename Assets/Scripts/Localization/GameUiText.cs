@@ -19,7 +19,14 @@ public static class GameUiText
         return Lang.Pick($"{minutes:00}м {seconds:00}сек", $"{minutes:00}m {seconds:00}s");
     }
 
-    public static string SpeedBoostWatchAd => Lang.Pick("Реклама", "Watch Ad");
+    /// <summary>
+    /// Оффер до просмотра рекламы: явно множитель награды (п. 4.5.1 Яндекс Игр).
+    /// </summary>
+    public static string SpeedBoostRewardTitle =>
+        Lang.Pick("Скорость 2x", "2x Speed");
+
+    public static string SpeedBoostRewardDuration(int rewardSeconds) =>
+        Lang.Pick($"на {FormatMinutesSeconds(rewardSeconds)}", $"for {FormatMinutesSeconds(rewardSeconds)}");
 
     public static string GameSpeedStatus(bool isDoubleSpeed) =>
         isDoubleSpeed
@@ -96,6 +103,9 @@ public static class GameUiText
     public static string Workers(int current, int max) =>
         Lang.Pick($"Рабочие: {current}/{max}", $"Workers: {current}/{max}");
 
+    public static string WorkerName(int displayNumber) =>
+        Lang.Pick($"Рабочий {displayNumber}", $"Worker {displayNumber}");
+
     public static string WorkersEmpty => Workers(0, 0);
 
     public static string HireCost(int wood, int gold) =>
@@ -168,8 +178,9 @@ public static class GameUiText
             ResourceType.Meat => Meat,
             _ => resourceType.ToString(),
         };
-        return Lang.Pick($"{resourceName}:{current}/{target}",
-            $"{resourceName}:{current}/{target}");
+        return Lang.Pick(
+            $"{resourceName}\n{current}/{target}",
+            $"{resourceName}\n{current}/{target}");
     }
 
     public static string BlockBuildingNotSelected => BuildingNotSelected;

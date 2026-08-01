@@ -23,7 +23,7 @@ MonoBehaviour:
   _maxLevel: 3
   _upgradeSeconds: 3c00000078000000f0000000
   _bonusType: 6
-  _bonusPerLevel: 5
+  _bonusPerLevel: 2
   _bonusPrefix: +
   _bonusSuffix: 
   _requirements:

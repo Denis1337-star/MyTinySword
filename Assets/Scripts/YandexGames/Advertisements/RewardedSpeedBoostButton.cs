@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YG;
 using Zenject;
 
 /// <summary>
@@ -55,6 +56,7 @@ public sealed class RewardedSpeedBoostButton : ValidatedMonoBehaviour
         if (_speedBoostService != null)
             _speedBoostService.StateChanged += HandleStateChanged;
 
+        YG2.onSwitchLang += HandleSwitchLang;
         RefreshView(force: true);
     }
 
@@ -65,6 +67,13 @@ public sealed class RewardedSpeedBoostButton : ValidatedMonoBehaviour
 
         if (_speedBoostService != null)
             _speedBoostService.StateChanged -= HandleStateChanged;
+
+        YG2.onSwitchLang -= HandleSwitchLang;
+    }
+
+    private void HandleSwitchLang(string lang)
+    {
+        RefreshView(force: true);
     }
 
     private void Update()
@@ -72,7 +81,9 @@ public sealed class RewardedSpeedBoostButton : ValidatedMonoBehaviour
         if (_speedBoostService == null)
             return;
 
-        if (!_speedBoostService.HasCharge)
+        // Пока есть заряд — тикаем таймер. Если заряд только что кончился,
+        // один раз ещё обновим UI (иначе кнопка залипает на «1 сек / 2x»).
+        if (!_speedBoostService.HasCharge && !_lastDisplayedHasCharge)
             return;
 
         RefreshView(force: false);
@@ -149,12 +160,22 @@ public sealed class RewardedSpeedBoostButton : ValidatedMonoBehaviour
         _lastDisplayedBoostOn = boostOn;
         _lastDisplayedHasCharge = hasCharge;
 
-        _timerText.text = hasCharge
-            ? GameUiText.FormatMinutesSeconds(seconds)
-            : GameUiText.SpeedBoostWatchAd;
+        if (hasCharge)
+        {
+            _timerText.text = GameUiText.FormatMinutesSeconds(seconds);
 
-        if (_speedStatusText != null)
-            _speedStatusText.text = GameUiText.GameSpeedStatus(boostOn);
+            if (_speedStatusText != null)
+                _speedStatusText.text = GameUiText.GameSpeedStatus(boostOn);
+        }
+        else
+        {
+            // До рекламы — награда (2x + длительность), не текущая 1x.
+            int rewardSeconds = Mathf.CeilToInt(_rewardSeconds);
+            _timerText.text = GameUiText.SpeedBoostRewardTitle;
+
+            if (_speedStatusText != null)
+                _speedStatusText.text = GameUiText.SpeedBoostRewardDuration(rewardSeconds);
+        }
 
         // Иконка рекламы: только когда заряда нет.
         if (_videoIcon != null)

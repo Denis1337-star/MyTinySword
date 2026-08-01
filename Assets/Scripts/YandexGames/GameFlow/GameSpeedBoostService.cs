@@ -53,14 +53,21 @@ public sealed class GameSpeedBoostService : IInitializable, ITickable, IDisposab
                 ApplyTimeScale();
         }
 
-        if (!IsEnabled || _pauseService.IsPaused || !IsGameplaySceneActive)
+        if (!_isEnabled || _pauseService.IsPaused || !IsGameplaySceneActive)
             return;
 
         _remainingSeconds -= Time.unscaledDeltaTime;
 
-        if (_remainingSeconds > 0f)
+        // Порог тот же, что у HasCharge (> 0.01). Иначе остаток 0.001..0.01
+        // отключает буст, но StateChanged не шлётся и UI зависает на «1 сек / 2x».
+        if (HasCharge)
             return;
 
+        ExpireCharge();
+    }
+
+    private void ExpireCharge()
+    {
         _remainingSeconds = 0f;
         _isEnabled = false;
         ApplyTimeScale();

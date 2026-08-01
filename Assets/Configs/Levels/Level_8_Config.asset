@@ -22,5 +22,5 @@ MonoBehaviour:
   _isTutorialLevel: 0
   _objectiveType: 1
   _gatherResourceType: 2
-  _gatherTargetAmount: 300
+  _gatherTargetAmount: 500
   _waveCount: 5

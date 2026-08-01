@@ -46,14 +46,10 @@ public sealed class SheepResource : ResourceNodeBase
 
     public override WorkSlot TryReserveSlot(Worker worker)
     {
-        WorkSlot slot = base.TryReserveSlot(worker);
-
-        if (slot == null)
-            return null;
-
-        SetFrozen(true);
-
-        return slot;
+        // Не морозим овцу на резерве: иначе при залипании NavMesh овца
+        // остаётся стоять, а рабочий вечно в GoToResource.
+        // Freeze делается в WorkRoutine, когда охота реально началась.
+        return base.TryReserveSlot(worker);
     }
 
     public override void CancelWork(Worker worker)

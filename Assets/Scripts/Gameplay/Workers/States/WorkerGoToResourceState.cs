@@ -5,10 +5,14 @@ using UnityEngine;
 /// </summary>
 public sealed class WorkerGoToResourceState : IWorkerState
 {
+    private const int MaxRepathAttempts = 1;
+
     private readonly Worker _worker;
+    private readonly WorkerNavigationStuckTracker _stuckTracker = new();
 
     private float _reachDistanceSqr;
     private float _maxWorkDistanceSqr;
+    private int _repathAttempts;
 
     public WorkerGoToResourceState(Worker worker)
     {
@@ -17,6 +21,8 @@ public sealed class WorkerGoToResourceState : IWorkerState
 
     public void Enter()
     {
+        _repathAttempts = 0;
+
         if (!_worker.HasValidResourceAssignment())
         {
             ResetToIdle();
@@ -29,12 +35,10 @@ public sealed class WorkerGoToResourceState : IWorkerState
         _reachDistanceSqr = reachDistance * reachDistance;
         _maxWorkDistanceSqr = maxWorkDistance * maxWorkDistance;
 
-        bool movementStarted = _worker.Movement.MoveTo(_worker.TargetSlot.Position);
+        _stuckTracker.Reset(_worker.transform.position);
 
-        if (!movementStarted)
-        {
+        if (!StartMovementToSlot())
             ResetToIdle();
-        }
     }
 
     public void Update()
@@ -48,6 +52,12 @@ public sealed class WorkerGoToResourceState : IWorkerState
         if (IsCloseEnoughToStartWork(_reachDistanceSqr))
         {
             StartWork();
+            return;
+        }
+
+        if (_stuckTracker.Tick(_worker.Movement, _worker.transform.position, Time.deltaTime))
+        {
+            TryRecoverFromStuck();
             return;
         }
 
@@ -65,6 +75,26 @@ public sealed class WorkerGoToResourceState : IWorkerState
 
     public void Exit()
     {
+    }
+
+    private void TryRecoverFromStuck()
+    {
+        if (_repathAttempts < MaxRepathAttempts)
+        {
+            _repathAttempts++;
+            _stuckTracker.Reset(_worker.transform.position);
+
+            if (StartMovementToSlot())
+                return;
+        }
+
+        // Слот освобождается в ResetToIdle → овца снова свободна.
+        ResetToIdle();
+    }
+
+    private bool StartMovementToSlot()
+    {
+        return _worker.Movement.MoveTo(_worker.TargetSlot.Position);
     }
 
     private bool IsCloseEnoughToStartWork(float distanceSqr)

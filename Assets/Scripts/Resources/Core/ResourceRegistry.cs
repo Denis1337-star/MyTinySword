@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 /// <summary>
 /// Реестр всех  ресурсных точек на сцене
@@ -31,12 +32,18 @@ public sealed class ResourceRegistry
     }
 
     /// <summary>
-    /// Ищет ближайший доступный ресурс конкретного типа
+    /// Ищет ближайший доступный ресурс по стоимости пути NavMesh (с Area Cost).
     /// </summary>
     public T FindBest<T>(Vector2 from) where T : ResourceNodeBase
     {
-        T bestResource = null;
-        float bestSqrDistance = float.MaxValue;
+        T bestByPath = null;
+        float bestPathCost = float.MaxValue;
+
+        T bestByFallback = null;
+        float bestSqrFallback = float.MaxValue;
+
+        Vector3 fromPosition = new(from.x, from.y, 0f);
+        int areaMask = NavMesh.AllAreas;
 
         for (int i = 0; i < _nodes.Count; i++)
         {
@@ -54,21 +61,27 @@ public sealed class ResourceRegistry
             if (!resource.HasFreeSlot())
                 continue;
 
-            float sqrDistance = GetSqrDistanceToResource(resource, from);
+            Vector2 workPosition = resource.GetWorkPosition(null);
+            Vector3 toPosition = new(workPosition.x, workPosition.y, 0f);
 
-            if (sqrDistance >= bestSqrDistance)
+            if (NavMeshPathCostEvaluator.TryGetPathCost(fromPosition, toPosition, areaMask, out float pathCost))
+            {
+                if (pathCost >= bestPathCost)
+                    continue;
+
+                bestPathCost = pathCost;
+                bestByPath = resource;
+                continue;
+            }
+
+            float sqrDistance = (workPosition - from).sqrMagnitude;
+            if (sqrDistance >= bestSqrFallback)
                 continue;
 
-            bestSqrDistance = sqrDistance;
-            bestResource = resource;
+            bestSqrFallback = sqrDistance;
+            bestByFallback = resource;
         }
 
-        return bestResource;
-    }
-
-    private static float GetSqrDistanceToResource(ResourceNodeBase resource, Vector2 from)
-    {
-        Vector2 workPosition = resource.GetWorkPosition(null);
-        return (workPosition - from).sqrMagnitude;
+        return bestByPath != null ? bestByPath : bestByFallback;
     }
 }

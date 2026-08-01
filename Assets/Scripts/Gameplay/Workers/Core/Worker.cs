@@ -30,6 +30,11 @@ public sealed class Worker : ValidatedMonoBehaviour
 
     public House Home { get; private set; }
 
+    /// <summary>
+    /// Порядковый номер рабочего для UI (1, 2, …). Не путать с GameObject.name.
+    /// </summary>
+    public int DisplayNumber { get; private set; }
+
     public IWorkerJob CurrentJobLogic { get; private set; }
     public WorkerJobType CurrentJob { get; private set; }
     public WorkerJobType PendingJob { get; private set; } = WorkerJobType.None;
@@ -77,6 +82,9 @@ public sealed class Worker : ValidatedMonoBehaviour
     private void Start()
     {
         ApplyMovementSpeedBonus();
+        // Рабочие не объезжают агентов — проходят сквозь других рабочих и воинов.
+        _movement.SetAvoidOtherAgents(false);
+        _movement.SetAvoidancePriority(0);
     }
 
     protected override bool ValidateInternal()
@@ -120,6 +128,11 @@ public sealed class Worker : ValidatedMonoBehaviour
         StateMachine.ChangeState(WorkerStateType.Idle);
     }
 
+    public void SetDisplayNumber(int displayNumber)
+    {
+        DisplayNumber = displayNumber;
+    }
+
     public void AssignJob(WorkerJobType job)
     {
         Brain.AssignJob(job);
@@ -149,10 +162,19 @@ public sealed class Worker : ValidatedMonoBehaviour
 
     public bool CanSwitchJobImmediately()
     {
-        return TargetResource == null &&
-               TargetSlot == null &&
-               !Inventory.HasCargo &&
-               !Movement.HasTarget;
+        if (Inventory.HasCargo)
+            return false;
+
+        if (TargetResource == null &&
+            TargetSlot == null &&
+            !Movement.HasTarget)
+            return true;
+
+        // Залип на NavMesh (путь есть, но не едет) — можно сменить работу сразу.
+        if (Movement.HasFailedPath)
+            return true;
+
+        return Movement.HasTarget && !Movement.IsMoving;
     }
 
     public void ClearCurrentAssignment()

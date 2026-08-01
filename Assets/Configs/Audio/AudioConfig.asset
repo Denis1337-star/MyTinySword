@@ -32,6 +32,12 @@ MonoBehaviour:
     _musicClip: {fileID: 8300000, guid: 71d635f19ddeba0469c71507559c1252, type: 3}
   - _sceneName: Level_5
     _musicClip: {fileID: 8300000, guid: 71d635f19ddeba0469c71507559c1252, type: 3}
+  - _sceneName: Level_6
+    _musicClip: {fileID: 8300000, guid: 71d635f19ddeba0469c71507559c1252, type: 3}
+  - _sceneName: Level_7
+    _musicClip: {fileID: 8300000, guid: 71d635f19ddeba0469c71507559c1252, type: 3}
+  - _sceneName: Level_8
+    _musicClip: {fileID: 8300000, guid: 71d635f19ddeba0469c71507559c1252, type: 3}
   _sounds:
   - _id: 10
     _clips:

@@ -66,6 +66,9 @@ public sealed class ArmyUnit : ValidatedMonoBehaviour
 
     private void Start()
     {
+        // После UnitMovement.ConfigureAgent: воины проходят сквозь других агентов.
+        _movement.SetAvoidOtherAgents(false);
+        _movement.SetAvoidancePriority(0);
         _armyUnitRegistry.Register(this);
     }
 

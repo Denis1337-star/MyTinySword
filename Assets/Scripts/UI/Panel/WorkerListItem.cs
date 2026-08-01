@@ -75,7 +75,7 @@ public sealed class WorkerListItem : ValidatedMonoBehaviour
             : null;
 
         _infoText.text =
-            $"{_worker.name}\n" +
+            $"{GameUiText.WorkerName(_worker.DisplayNumber)}\n" +
             $"{GameUiText.WorkerJobLine(currentJob, pendingJob)}";
     }
 

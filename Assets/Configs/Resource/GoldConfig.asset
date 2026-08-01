@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: GoldConfig
   m_EditorClassIdentifier: 
   _resourceType: 2
-  _respawnTime: 60
+  _respawnTime: 90
   _workTime: 5
   _growInterval: 10

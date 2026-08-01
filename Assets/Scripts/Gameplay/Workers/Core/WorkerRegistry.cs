@@ -19,7 +19,9 @@ public sealed class WorkerRegistry
             return;
 
         _workerCounter++;
-        worker.name = $"Worker {_workerCounter}";
+        worker.SetDisplayNumber(_workerCounter);
+        // Hierarchy-имя только для отладки; в UI используется GameUiText.WorkerName.
+        worker.name = $"Worker_{_workerCounter}";
 
         _workers.Add(worker);
     }

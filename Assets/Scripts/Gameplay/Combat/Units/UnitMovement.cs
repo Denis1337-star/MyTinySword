@@ -39,6 +39,23 @@ public sealed class UnitMovement : ValidatedMonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Путь построить нельзя — агент не должен вечно ждать HasTarget.
+    /// </summary>
+    public bool HasFailedPath
+    {
+        get
+        {
+            if (!CanUseAgent())
+                return true;
+
+            if (_agent.pathPending)
+                return false;
+
+            return _agent.pathStatus == NavMeshPathStatus.PathInvalid;
+        }
+    }
+
     public bool IsMoving
     {
         get
@@ -106,6 +123,10 @@ public sealed class UnitMovement : ValidatedMonoBehaviour
 
         _agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
         _agent.avoidancePriority = UnityEngine.Random.Range(30, 70);
+        _agent.areaMask = _areaMask;
+
+        // Подхватывает Dangerous и другие Area Cost со сцены.
+        NavMeshAreaCostService.ApplyToAgent(_agent);
     }
 
     private bool EnsureAgentOnNavMesh()
@@ -135,6 +156,30 @@ public sealed class UnitMovement : ValidatedMonoBehaviour
     {
         _speed = Mathf.Max(0.1f, speed);
         _agent.speed = _speed;
+    }
+
+    /// <summary>
+    /// Unity: меньшее значение = выше приоритет избегания (0..99).
+    /// </summary>
+    public void SetAvoidancePriority(int priority)
+    {
+        if (_agent == null)
+            return;
+
+        _agent.avoidancePriority = Mathf.Clamp(priority, 0, 99);
+    }
+
+    /// <summary>
+    /// false — агент не объезжает других NavMeshAgent (проходит «сквозь»).
+    /// </summary>
+    public void SetAvoidOtherAgents(bool avoid)
+    {
+        if (_agent == null)
+            return;
+
+        _agent.obstacleAvoidanceType = avoid
+            ? ObstacleAvoidanceType.HighQualityObstacleAvoidance
+            : ObstacleAvoidanceType.NoObstacleAvoidance;
     }
 
     public void SetStoppingDistance(float stoppingDistance)

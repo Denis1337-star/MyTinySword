@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: SheepConfig
   m_EditorClassIdentifier: 
   _resourceType: 3
-  _respawnTime: 60
+  _respawnTime: 90
   _workTime: 4
   _meatAmount: 3

@@ -6,6 +6,7 @@ using UnityEngine;
 public sealed class WorkerCarryState : IWorkerState
 {
     private readonly Worker _worker;
+    private readonly WorkerNavigationStuckTracker _stuckTracker = new();
 
     private Vector2 _dropPosition;
     private float _reachDistanceSqr;
@@ -32,7 +33,8 @@ public sealed class WorkerCarryState : IWorkerState
         float reachDistance = _worker.GetReachResourceDistance();
         _reachDistanceSqr = reachDistance * reachDistance;
 
-        _worker.Movement.MoveTo(_dropPosition);
+        _stuckTracker.Reset(_worker.transform.position);
+        TryMoveToDrop();
     }
 
     public void Update()
@@ -43,9 +45,39 @@ public sealed class WorkerCarryState : IWorkerState
         Vector2 workerPosition = _worker.transform.position;
         float sqrDistance = (workerPosition - _dropPosition).sqrMagnitude;
 
-        if (sqrDistance > _reachDistanceSqr)
+        if (sqrDistance <= _reachDistanceSqr)
+        {
+            DeliverAndContinue();
+            return;
+        }
+
+        if (_stuckTracker.Tick(_worker.Movement, workerPosition, Time.deltaTime))
+        {
+            _dropPosition = _worker.Home.GetDropPosition(_worker);
+            _stuckTracker.Reset(workerPosition);
+            TryMoveToDrop();
+            return;
+        }
+
+        if (_worker.Movement.HasTarget)
             return;
 
+        // Путь закончился далеко от дропа — пробуем ещё раз.
+        _stuckTracker.Reset(workerPosition);
+        TryMoveToDrop();
+    }
+
+    public void Exit()
+    {
+    }
+
+    private void TryMoveToDrop()
+    {
+        _worker.Movement.MoveTo(_dropPosition);
+    }
+
+    private void DeliverAndContinue()
+    {
         _worker.Movement.Stop();
         _worker.DeliverCargo();
 
@@ -60,10 +92,6 @@ public sealed class WorkerCarryState : IWorkerState
             : WorkerStateType.Idle;
 
         _worker.StateMachine.ChangeState(nextState);
-    }
-
-    public void Exit()
-    {
     }
 
     private EquipmentType GetCargoEquipment()
